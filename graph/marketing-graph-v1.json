@@ -136,7 +136,8 @@
     "no_hindsight_contamination": true,
     "scan_research_reuse": true,
     "marketing_may_prepare_in_parallel": true,
-    "distribution_requires_final_scan_gate": true
+    "distribution_requires_final_scan_gate": true,
+    "t_plus_tracking_never_blocks_marketing": true
   },
   "execution_routing": {
     "owner": "VC Harness",
@@ -239,32 +240,28 @@
     "state_language": "UNKNOWN, INVESTIGATE, FORMING, CONFIRMED and WATCH/NO SIGNAL must remain explicit where material."
   },
   "scan_marketing_parallelism": {
-    "rule": "Marketing intelligence begins as soon as a candidate formation has enough evidence for bounded analysis; external distribution waits for final scan evidence/state gates.",
-    "reuse": "Scanner public-source research is reused as the initial narrative baseline. Marketing performs additional search only for destination-specific or unresolved gaps.",
-    "parallel_outputs": [
-      "formation_evidence",
-      "public_narrative_baseline",
-      "candidate_narrative_delta",
-      "candidate_destinations"
-    ]
+    "rule": "Marketing preparation may begin in parallel once EMRADAR has a bounded candidate formation; external distribution waits for the final scan evidence/state gate.",
+    "input_from_emradar": [
+      "formation",
+      "T0_public_narrative_baseline",
+      "EMRADAR_delta"
+    ],
+    "reuse": "Reuse scanner research and T0 narrative baseline. Search again only for a destination-specific or unresolved gap.",
+    "marketing_output": [
+      "candidate_destinations",
+      "editorial_master_copy",
+      "destination_native_assets"
+    ],
+    "latency_goal": "Prepare campaign work during the scan so approved distribution can follow the final scan gate without avoidable duplicate research."
   },
   "narrative_timeline": {
-    "purpose": "Measure how EMRADAR interpretation compares with the public narrative over time without hindsight contamination.",
-    "t0": "Persist scan timestamp, evidence available at scan time, EMRADAR interpretation/state, narrative baseline and UNKNOWNs.",
-    "followups": [
-      "T+1",
-      "T+3",
-      "T+7",
-      "later_when_material"
-    ],
-    "compare": [
-      "subsequent evidence",
-      "where public coverage entered the story",
-      "connections later made",
-      "narrative convergence_or_divergence",
-      "commercial confirmation_or_falsification"
-    ],
-    "rule": "Later reporting may validate or falsify earlier EMRADAR reasoning but must never be backfilled into the T0 evidence set.",
+    "owner": "EMRADAR",
+    "marketing_dependency": false,
+    "marketing_input": "T0 only",
+    "purpose": "Scanner learning and retrospective validation/falsification without hindsight contamination.",
+    "t0": "Persist evidence available at scan time, public narrative baseline, EMRADAR interpretation/state and UNKNOWNs.",
+    "followups": "T+ tracking is EMRADAR learning work and must not delay or block Marketing.",
+    "rule": "Later reporting may validate or falsify T0 reasoning but must never be backfilled into the T0 evidence set.",
     "metric": "narrative_lead_time_or_lag",
     "claims": "Do not claim EMRADAR was first unless timestamped evidence supports it."
   }
