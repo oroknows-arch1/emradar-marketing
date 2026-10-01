@@ -2,7 +2,6 @@
   "version": "1.0",
   "architecture": "agentic_graph_with_persistent_feedback_loop",
   "source_of_truth": "EMRADAR",
-  "route_elasticity": true,
   "nodes": [
     {
       "id": "ingest",
@@ -102,5 +101,81 @@
     "unknown_is_valid_state": true,
     "receipt_required": true,
     "retire_not_delete": true
+  },
+  "execution_routing": {
+    "owner": "VC Harness",
+    "repository": "oroknows-arch1/vcharness",
+    "contract_version": "elastic-routing-v0.1",
+    "contract_paths": [
+      "src/routing/contracts.ts",
+      "src/routing/router.ts",
+      "src/routing/registry.ts"
+    ],
+    "boundary": "Marketing declares bounded work units and required quality/tools/risk. Harness selects deterministic/model/human lane, provider/model, concurrency, attempt ceiling and escalation.",
+    "usage_policy": [
+      "deterministic work must not consume model usage",
+      "select lowest-cost permitted available provider adequate for the classified lane",
+      "wide separable work requests wide-parallel rather than serial high-cost reasoning",
+      "escalate only after bounded failure or verification need",
+      "respect provider health, permissions, tools and data sensitivity",
+      "record routing telemetry including tokens, estimated cost and work allowance when available"
+    ],
+    "wide_parallel": {
+      "requested_by_marketing": true,
+      "provider_selection": "Harness-owned",
+      "note": "Marketing never assumes Kimi K3 availability. Current checked-in Harness registry defines kimi-k3 but has it disabled/unavailable."
+    }
+  },
+  "work_unit_policy": {
+    "scout": {
+      "complexity": "low",
+      "separable": true,
+      "aiRequired": true
+    },
+    "destination_baseline": {
+      "complexity": "low",
+      "separable": true,
+      "aiRequired": true
+    },
+    "emradar_delta": {
+      "complexity": "medium",
+      "separable": false,
+      "aiRequired": true
+    },
+    "novelty_gate": {
+      "complexity": "fixed",
+      "separable": false,
+      "aiRequired": false
+    },
+    "route": {
+      "complexity": "medium",
+      "separable": false,
+      "aiRequired": true
+    },
+    "adapt": {
+      "complexity": "medium",
+      "separable": true,
+      "aiRequired": true
+    },
+    "permission_gate": {
+      "complexity": "fixed",
+      "separable": false,
+      "aiRequired": false
+    },
+    "receipt": {
+      "complexity": "fixed",
+      "separable": false,
+      "aiRequired": false
+    },
+    "observe": {
+      "complexity": "fixed",
+      "separable": true,
+      "aiRequired": false
+    },
+    "learn": {
+      "complexity": "medium",
+      "separable": false,
+      "aiRequired": true
+    }
   }
 }
