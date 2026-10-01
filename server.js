@@ -54,10 +54,13 @@ const server=http.createServer(async(req,res)=>{
       if(!input.text||!input.asset_base64||!input.asset_sha256) return json(res,400,failReceipt("asset_gate","text, asset_base64 and asset_sha256 required"));
       const asset=Buffer.from(input.asset_base64,"base64"),hash=crypto.createHash("sha256").update(asset).digest("hex");
       if(hash!==input.asset_sha256) return json(res,409,failReceipt("asset_hash","asset hash mismatch"));
-      const form=new FormData();form.set("media",new Blob([asset],{type:input.asset_mime||"image/png"}),input.asset_filename||"asset.png");form.set("media_category","tweet_image");
-      const media=await xFetch("https://api.x.com/2/media/upload",auth.access_token,{method:"POST",body:form});
-      const mediaId=media?.data?.id||media?.media_id_string||media?.id;
-      if(!mediaId) throw new Error("X media receipt missing media id");
+      const mediaType=input.asset_mime||"image/png";
+      const init=await xFetch("https://api.x.com/2/media/upload/initialize",auth.access_token,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({media_type:mediaType,total_bytes:asset.length,media_category:"tweet_image"})});
+      const mediaId=init?.data?.id||init?.data?.media_id||init?.media_id_string||init?.id;
+      if(!mediaId) throw new Error("X media initialize receipt missing media id");
+      const appendForm=new FormData();appendForm.set("segment_index","0");appendForm.set("media",new Blob([asset],{type:mediaType}),input.asset_filename||"asset.png");
+      await xFetch(`https://api.x.com/2/media/upload/${mediaId}/append`,auth.access_token,{method:"POST",body:appendForm});
+      await xFetch(`https://api.x.com/2/media/upload/${mediaId}/finalize`,auth.access_token,{method:"POST"});
       const post=await xFetch("https://api.x.com/2/tweets",auth.access_token,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:input.text,media:{media_ids:[String(mediaId)]}})});
       const postId=post?.data?.id;if(!postId) throw new Error("X publication receipt missing post id");
       const receipt={ok:true,platform:"X",post_id:postId,post_url:`https://x.com/i/web/status/${postId}`,published_at:new Date().toISOString(),asset_hash:hash,additional_cost_usd:0,measurement_state:"UNKNOWN",learning_handoff:"READY"};
