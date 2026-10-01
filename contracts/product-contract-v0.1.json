@@ -1,0 +1,31 @@
+{
+  "version": "0.1",
+  "status": "FROZEN_AFTER_TWO_PRODUCT_PROOF",
+  "fields": [
+    "product_identity",
+    "product_type",
+    "current_offer",
+    "free_paid_state",
+    "conversion_goal",
+    "available_CTAs",
+    "source_material",
+    "evidence",
+    "claim_constraints",
+    "uncertainty_state_model",
+    "brand_system",
+    "audience_hypotheses",
+    "destination_constraints",
+    "permissions",
+    "available_accounts",
+    "budget_constraints",
+    "measurement_capabilities"
+  ],
+  "boundary": "Downstream Marketing Engine consumes this contract only; product-native structures terminate at adapters.",
+  "rules": [
+    "Preserve source evidence/certainty semantics.",
+    "UNKNOWN is valid and must not be promoted for marketing.",
+    "Claims remain bounded by source product.",
+    "Permissions and available accounts are explicit; never assume execution access.",
+    "Missing measurement is recorded as UNKNOWN."
+  ]
+}
