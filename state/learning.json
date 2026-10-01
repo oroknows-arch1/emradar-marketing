@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "id": "C002-LEARN-001",
+      "type": "failure",
+      "status": "ACTIVE",
+      "finding": "Topical relevance alone is insufficient for insertion.",
+      "repair": "Mandatory destination baseline and EMRADAR delta before adaptation/execution.",
+      "regression_rule": "NO_MEANINGFUL_DELTA → DO_NOT_INSERT"
+    },
+    {
+      "id": "C002-LEARN-002",
+      "type": "route_decision",
+      "status": "ACTIVE",
+      "finding": "Electronics For You already covers much of generic beyond-the-fab thesis.",
+      "result": "REJECTED_CURRENT_ANGLE",
+      "next_activation": "Only reactivate if EMRADAR establishes a narrower contribution not already present in destination baseline."
+    }
+  ]
+}
