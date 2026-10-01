@@ -25,6 +25,14 @@
       "state": "REJECTED_CURRENT_ANGLE",
       "gate": "NOVELTY_GATE",
       "reason": "Targeted baseline check showed generic beyond-the-fab angle substantially overlaps recent destination coverage. Do not insert unless a narrower meaningful EMRADAR delta is established."
+    },
+    {
+      "id": "C002-C02-RETEST",
+      "destination": "SEMI India",
+      "method": "professional insight / formation-tracking contribution",
+      "state": "READY_FOR_ADAPTATION",
+      "gate": "EDITORIAL_QUALITY_GATE_PASS",
+      "note": "Use stateful formation tracking only; do not claim discovery priority."
     }
   ],
   "next_rule": "Use scanner T0 baseline first. Campaign may proceed only on the stateful formation-tracking delta; do not reuse retired broad ecosystem angles.",
@@ -41,5 +49,41 @@
       "follow suppliers not announcements"
     ],
     "next_stage": "destination adaptation + editorial quality gate; no external action without permission/execution capability"
+  },
+  "editorial_stage": {
+    "status": "PASS",
+    "baseline_checked": "2026-10-01",
+    "destination": "SEMI India / professional semiconductor ecosystem audience",
+    "destination_baseline": "Audience already knows India has commercial packaging/assembly capacity, multiple commercial facilities, broad ecosystem policy, and extensive MoUs across materials/equipment/supply chain.",
+    "meaningful_delta": "Do not re-report ecosystem formation. Apply EMRADAR's explicit evidence-state framework to separate commercial proof from announced capability and state the next evidence required to advance FORMING.",
+    "editorial_master_copy": {
+      "headline": "India's semiconductor build-out is producing commercial evidence. But not every layer is equally real yet.",
+      "body": [
+        "India now has multiple semiconductor facilities in commercial production, while the country's first major front-end wafer fab remains under construction.",
+        "At the same time, a new wave of agreements is assembling around equipment, materials, packaging, logistics and supplier localisation.",
+        "EMRADAR keeps those signals separate rather than treating them as one completed ecosystem.",
+        "INDIA SEMICONDUCTOR ECOSYSTEM — FORMING",
+        "Commercial production is evidence. An MoU is evidence of intent. Planned capacity is not operating capacity. The next test is whether supplier commitments become installed capacity, orders, revenue and repeat demand.",
+        "That progression—not the number of announcements—is what EMRADAR will track."
+      ],
+      "evidence_state_sequence": [
+        "announcement",
+        "commitment",
+        "capacity",
+        "orders",
+        "revenue",
+        "repeat demand"
+      ]
+    },
+    "editorial_quality_gate": {
+      "factual_precision": "PASS",
+      "signal_state_preserved": "PASS",
+      "uncertainty_preserved": "PASS",
+      "meaningful_delta_visible": "PASS",
+      "consequence_clear": "PASS",
+      "no_generic_finance_hype": "PASS",
+      "destination_appropriate": "PASS"
+    },
+    "next_stage": "adapt into destination-native assets; permission gate before external execution"
   }
 }
