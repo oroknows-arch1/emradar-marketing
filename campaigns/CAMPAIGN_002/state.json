@@ -172,5 +172,19 @@
       "activate supported LinkedIn/X publishing route",
       "connect EMRADAR site publication path"
     ]
+  },
+  "creative_production": {
+    "status": "OWNER_APPROVED",
+    "approved_at": "2026-10-01",
+    "output": "Campaign 002 multi-platform visual campaign board",
+    "formats": [
+      "LinkedIn",
+      "Instagram feed",
+      "Instagram/Facebook story",
+      "X",
+      "square social"
+    ],
+    "next_test": "CAMPAIGN_003",
+    "next_formation": "saudi-industrial-localisation"
   }
 }
