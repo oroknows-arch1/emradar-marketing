@@ -46,9 +46,39 @@
       "output": "native_insertion_method"
     },
     {
+      "id": "editorial_intelligence",
+      "worker": "editorial_intelligence",
+      "input": [
+        "formation",
+        "novel_contribution",
+        "native_insertion_method"
+      ],
+      "rule": "preserve evidence and uncertainty while adding publication-grade factual discipline, consequence mapping, market relevance, emerging-market depth and digital clarity",
+      "output": "editorial_master_copy"
+    },
+    {
+      "id": "editorial_quality_gate",
+      "worker": "gate",
+      "hard": true,
+      "checks": [
+        "factual_precision",
+        "signal_state_preserved",
+        "uncertainty_preserved",
+        "meaningful_delta_visible",
+        "consequence_clear",
+        "no_generic_finance_hype",
+        "destination_appropriate"
+      ],
+      "fail": "repair_or_retire"
+    },
+    {
       "id": "adapt",
       "worker": "adapter",
-      "output": "destination_native_asset"
+      "output": "destination_native_asset",
+      "input": [
+        "editorial_master_copy",
+        "native_insertion_method"
+      ]
     },
     {
       "id": "permission_gate",
@@ -100,7 +130,9 @@
     "no_fabricated_performance": true,
     "unknown_is_valid_state": true,
     "receipt_required": true,
-    "retire_not_delete": true
+    "retire_not_delete": true,
+    "editorial_quality_required": true,
+    "no_style_imitation": true
   },
   "execution_routing": {
     "owner": "VC Harness",
@@ -123,7 +155,7 @@
     "wide_parallel": {
       "requested_by_marketing": true,
       "provider_selection": "Harness-owned",
-      "note": "Marketing never assumes Kimi K3 availability. Current checked-in Harness registry defines kimi-k3 but has it disabled/unavailable."
+      "note": "Marketing never assumes a provider. Harness owns live provider health and selection; Kimi K3 may be used when its runtime health gate passes."
     }
   },
   "work_unit_policy": {
@@ -176,6 +208,30 @@
       "complexity": "medium",
       "separable": false,
       "aiRequired": true
+    },
+    "editorial_intelligence": {
+      "complexity": "medium",
+      "separable": false,
+      "aiRequired": true
+    },
+    "editorial_quality_gate": {
+      "complexity": "fixed",
+      "separable": false,
+      "aiRequired": false
     }
+  },
+  "editorial_intelligence": {
+    "purpose": "Turn verified EMRADAR intelligence into recognisably EMRADAR publication-grade copy before destination adaptation.",
+    "reference_texture": {
+      "Reuters": "factual discipline, attribution, restraint, information density",
+      "Financial Times": "systems thinking, bottlenecks, second-order consequences, financial context",
+      "Bloomberg": "market immediacy, catalysts, companies, why-it-matters-now",
+      "The Economist": "thesis compression and conceptual framing without importing certainty or cleverness",
+      "Rest of World": "emerging-market ground truth, local consequences, people and industrial reality",
+      "Semafor": "modular digital clarity and mobile readability"
+    },
+    "rule": "Synthesize editorial qualities; never imitate, mimic or reproduce a publication's distinctive voice or wording.",
+    "sequence": "EMRADAR evidence -> novelty/delta -> editorial intelligence -> editorial quality gate -> destination adaptation",
+    "state_language": "UNKNOWN, INVESTIGATE, FORMING, CONFIRMED and WATCH/NO SIGNAL must remain explicit where material."
   }
 }
