@@ -27,5 +27,19 @@
       "reason": "Targeted baseline check showed generic beyond-the-fab angle substantially overlaps recent destination coverage. Do not insert unless a narrower meaningful EMRADAR delta is established."
     }
   ],
-  "next_rule": "No further external insertion until route passes DESTINATION_BASELINE → EMRADAR_DELTA → NOVELTY_GATE."
+  "next_rule": "Use scanner T0 baseline first. Campaign may proceed only on the stateful formation-tracking delta; do not reuse retired broad ecosystem angles.",
+  "test_continuation": {
+    "checked_at": "2026-10-01",
+    "bounded_baseline_result": "FAIL broad ecosystem/supplier-opportunity novelty; current public discussion already covers the 450-supplier vendor park, materials/equipment localisation, physical dependencies, and supplier orders.",
+    "timing_finding": "Key vendor-park facts were public by 2026-09-17, before the 2026-09-23 scan. They cannot be presented as a later EMRADAR discovery.",
+    "surviving_delta": "EMRADAR's useful contribution is a stateful formation test: distinguish announcement/MoU from capacity, orders, revenue and repeat demand; explicitly state what evidence would advance FORMING or falsify the thesis.",
+    "campaign_thesis": "India's semiconductor ecosystem is FORMING. The campaign should show what has crossed into commercial evidence, what remains announcement-stage, and what EMRADAR needs to see next.",
+    "novelty_gate": "PASS_FOR_STATEFUL_FORMATION_TRACKING_ONLY",
+    "prohibited_angles": [
+      "India is moving beyond fabs",
+      "450 suppliers/vendor park is the hidden opportunity",
+      "follow suppliers not announcements"
+    ],
+    "next_stage": "destination adaptation + editorial quality gate; no external action without permission/execution capability"
+  }
 }
