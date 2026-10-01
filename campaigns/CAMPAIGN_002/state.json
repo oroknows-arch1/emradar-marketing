@@ -130,7 +130,7 @@
     "next_stage": "permission/risk gate, then execute only routes with available authorised channel"
   },
   "permission_risk_stage": {
-    "status": "PASS_WITH_CHANNEL_LIMITS",
+    "status": "PASS_NO_EXECUTABLE_ROUTE",
     "identity": "Sean Walker / EMRADAR",
     "checks": {
       "evidence": "PASS",
@@ -151,8 +151,9 @@
       },
       {
         "asset": "C002-A-EDITORIAL",
-        "permission": "AUTHORISED_EMAIL_CHANNEL_AVAILABLE",
-        "action": "EXECUTE_ONE_BOUNDED_PITCH"
+        "permission": "DESTINATION_REQUIRES_FINISHED_MANUSCRIPT_AND_CONTRIBUTOR_DETAILS",
+        "action": "HOLD_READY",
+        "reason": "Electronics For You says it does not consider article ideas through its contributor route; submission requires a finished manuscript and contributor information. Do not send a pitch-only email."
       },
       {
         "asset": "C002-A-SITE",
@@ -160,6 +161,16 @@
         "action": "HOLD_READY"
       }
     ],
-    "execution_rule": "Execute only the authorised email route. Do not simulate LinkedIn/X/site publication and do not fabricate receipts."
+    "execution_rule": "No current route may be externally executed without inventing access or violating destination submission requirements. Preserve all assets as ready/held; next production work is a finished EFY manuscript or activation of a supported social/site publishing channel."
+  },
+  "execution_stage": {
+    "status": "NO_ACTION",
+    "receipts": [],
+    "reason": "No authorised executable destination remains after destination-specific permission check. No simulated publication and no fabricated receipt.",
+    "next_options": [
+      "produce finished EFY manuscript with required contributor details before submission",
+      "activate supported LinkedIn/X publishing route",
+      "connect EMRADAR site publication path"
+    ]
   }
 }
