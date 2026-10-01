@@ -1,0 +1,30 @@
+{
+  "campaign_id": "ATLAS-CROSS-PRODUCT-001",
+  "product": "Atlasoquence",
+  "source": "AOC-001 AI's Physical Hunger",
+  "status": "PASS_SHARED_ENGINE",
+  "campaign_thesis": "AI is often described as software. Atlasoquence follows the physical chain beneath it—from data-centre demand into electricity, grids, materials and northern Chile—while keeping documented mechanisms, place connections and fiction visibly separate.",
+  "assets": [
+    {
+      "id": "ATLAS-A-LINKEDIN",
+      "format": "native insight post",
+      "copy": "AI looks weightless on a screen. Its consequences are not.\\n\\nAtlasoquence follows the physical chain beneath AI: data-centre growth → electricity and grid demand → material demand → northern Chile → the human questions that follow.\\n\\nThe edition keeps three things separate: documented global mechanisms, documented place connections, and fictional human exploration.\\n\\nRead AI's Physical Hunger on Atlasoquence."
+    },
+    {
+      "id": "ATLAS-A-X",
+      "format": "short native post",
+      "copy": "AI is software sitting on physical systems.\\n\\nAtlasoquence maps the chain: data centres → electricity/grid demand → materials → northern Chile → human consequences.\\n\\nFacts stay facts. Fiction stays labelled fiction.\\n\\nAI's Physical Hunger."
+    },
+    {
+      "id": "ATLAS-A-SITE",
+      "format": "campaign landing copy",
+      "copy": "AI'S PHYSICAL HUNGER\\n\\nFollow the physical consequences beneath AI—from data-centre demand through electricity, grids and materials to northern Chile. Documented mechanisms, place connections and fictional human exploration remain explicitly separated.\\n\\nFind the change. Establish what is real. Follow where it goes. Map what follows."
+    }
+  ],
+  "checks": {
+    "shared_contract": "PASS",
+    "downstream_engine_rewrite": "NONE",
+    "claim_constraints": "PASS",
+    "fact_fiction_boundary": "PASS"
+  }
+}
