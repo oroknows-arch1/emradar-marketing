@@ -11,7 +11,7 @@ const receipts=[];
 
 const json=(res,status,body)=>{res.writeHead(status,{"content-type":"application/json","cache-control":"no-store"});res.end(JSON.stringify(body));};
 const base64url=b=>Buffer.from(b).toString("base64url");
-const callbackUrl=req)=>`${PUBLIC_BASE_URL||`https://${req.headers.host}`}/oauth/x/callback`;
+const callbackUrl=(req)=>`${PUBLIC_BASE_URL||`https://${req.headers.host}`}/oauth/x/callback`;
 
 async function tokenExchange(body){
   const headers={"content-type":"application/x-www-form-urlencoded"};
