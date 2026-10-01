@@ -1,0 +1,59 @@
+{
+  "adapter": "ATLASOQUENCE_ADAPTER_V0.1",
+  "input": "verified Atlasoquence edition manifest + signal library + distribution package",
+  "output": "PRODUCT_CONTRACT_V0.1",
+  "mapping": {
+    "product_identity": "Atlasoquence",
+    "product_type": "consequence-mapping publishing product",
+    "current_offer": "verified interactive editions showing how world change connects to people and place",
+    "free_paid_state": "public editorial product; paid offer not established",
+    "conversion_goal": "drive qualified readers to permanent Atlas edition",
+    "available_CTAs": [
+      "read the edition",
+      "explore perspectives",
+      "visit permanent Atlas edition"
+    ],
+    "source_material": [
+      "verified master edition",
+      "edition manifest",
+      "signal library",
+      "approved distribution package"
+    ],
+    "evidence": "publication source register and edition evidence IDs",
+    "claim_constraints": [
+      "facts/fiction boundary mandatory",
+      "do not strengthen causal chain",
+      "fiction never becomes evidence",
+      "preserve locality and certainty layers",
+      "no investment claim from fictional perspective"
+    ],
+    "uncertainty_state_model": [
+      "documented_global",
+      "documented_place",
+      "analysis",
+      "fictional_human"
+    ],
+    "brand_system": "Atlasoquence consequence-chain visual/editorial DNA",
+    "audience_hypotheses": [
+      "general curious readers",
+      "technology/energy/minerals audiences",
+      "industry and market readers",
+      "place/community audiences"
+    ],
+    "destination_constraints": [
+      "derivatives point to permanent edition",
+      "fact/fiction labels survive adaptation",
+      "source claims remain within locked edition"
+    ],
+    "permissions": "AOC-001 release publication remains human-gated; marketing derivatives cannot override source release gate",
+    "available_accounts": "only authenticated channels actually exposed to executor",
+    "budget_constraints": "organic-first; no spend without owner approval",
+    "measurement_capabilities": [
+      "publication receipt",
+      "reach/impressions if exposed",
+      "clicks/visits if exposed",
+      "engagement if exposed",
+      "conversion signal or UNKNOWN"
+    ]
+  }
+}
