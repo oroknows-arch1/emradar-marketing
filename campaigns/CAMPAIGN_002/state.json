@@ -128,5 +128,38 @@
       "generic_hype": "NONE"
     },
     "next_stage": "permission/risk gate, then execute only routes with available authorised channel"
+  },
+  "permission_risk_stage": {
+    "status": "PASS_WITH_CHANNEL_LIMITS",
+    "identity": "Sean Walker / EMRADAR",
+    "checks": {
+      "evidence": "PASS",
+      "identity": "PASS",
+      "risk": "PASS",
+      "signal_state_preservation": "PASS"
+    },
+    "routes": [
+      {
+        "asset": "C002-A-LINKEDIN",
+        "permission": "NO_EXECUTION_CONNECTOR",
+        "action": "HOLD_READY"
+      },
+      {
+        "asset": "C002-A-X",
+        "permission": "NO_EXECUTION_CONNECTOR",
+        "action": "HOLD_READY"
+      },
+      {
+        "asset": "C002-A-EDITORIAL",
+        "permission": "AUTHORISED_EMAIL_CHANNEL_AVAILABLE",
+        "action": "EXECUTE_ONE_BOUNDED_PITCH"
+      },
+      {
+        "asset": "C002-A-SITE",
+        "permission": "NO_ASSUMED_PUBLICATION_PATH_IN_MARKETING_REPO",
+        "action": "HOLD_READY"
+      }
+    ],
+    "execution_rule": "Execute only the authorised email route. Do not simulate LinkedIn/X/site publication and do not fabricate receipts."
   }
 }
