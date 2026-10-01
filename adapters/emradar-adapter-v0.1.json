@@ -1,0 +1,56 @@
+{
+  "adapter": "EMRADAR_ADAPTER_V0.1",
+  "input": "EMRADAR scan/formation/T0 narrative structures",
+  "output": "PRODUCT_CONTRACT_V0.1",
+  "mapping": {
+    "product_identity": "EMRADAR",
+    "product_type": "emerging-market intelligence product",
+    "current_offer": "formation intelligence and stateful market tracking",
+    "free_paid_state": "current public product; paid offer not established",
+    "conversion_goal": "qualified readership and repeat engagement with EMRADAR formations",
+    "available_CTAs": [
+      "read formation",
+      "visit EMRADAR",
+      "follow formation updates"
+    ],
+    "source_material": [
+      "scan discovery records",
+      "unknown registry",
+      "T0 narrative baseline where available"
+    ],
+    "evidence": "formation evidence arrays and cited source register",
+    "claim_constraints": [
+      "never upgrade source signal state",
+      "no BUY/investability claim without source gate",
+      "preserve contradictions/falsification",
+      "no discovery-priority claim without timestamp evidence"
+    ],
+    "uncertainty_state_model": [
+      "UNKNOWN",
+      "INVESTIGATE",
+      "FORMING",
+      "CONFIRMED",
+      "WATCH/NO SIGNAL"
+    ],
+    "brand_system": "EMRADAR evidence-first, restrained, mobile-first intelligence identity",
+    "audience_hypotheses": [
+      "market professionals",
+      "industry professionals",
+      "investors seeking emerging formations"
+    ],
+    "destination_constraints": [
+      "meaningful delta required",
+      "destination baseline where insertion depends on novelty"
+    ],
+    "permissions": "explicit per destination",
+    "available_accounts": "only authenticated channels actually exposed to executor",
+    "budget_constraints": "organic-first; no spend without owner approval",
+    "measurement_capabilities": [
+      "publication receipt",
+      "reach/impressions if exposed",
+      "clicks/visits if exposed",
+      "engagement if exposed",
+      "conversion signal or UNKNOWN"
+    ]
+  }
+}
