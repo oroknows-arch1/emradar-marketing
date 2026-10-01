@@ -85,5 +85,48 @@
       "destination_appropriate": "PASS"
     },
     "next_stage": "adapt into destination-native assets; permission gate before external execution"
+  },
+  "adaptation_stage": {
+    "status": "PASS",
+    "principle": "One editorial master; destination-native insertions. Preserve FORMING and commercial-proof distinction.",
+    "assets": [
+      {
+        "id": "C002-A-LINKEDIN",
+        "destination": "LinkedIn / semiconductor professionals",
+        "format": "native insight post",
+        "state": "READY_PERMISSION_GATE",
+        "copy": "India's semiconductor build-out is producing commercial evidence. But not every layer is equally real yet.\n\nEMRADAR currently classifies the INDIA SEMICONDUCTOR ECOSYSTEM as FORMING.\n\nThe distinction matters:\n\nCommercial production is evidence.\nAn MoU is evidence of intent.\nPlanned capacity is not operating capacity.\n\nThe next test is whether supplier commitments progress through:\nCAPACITY → ORDERS → REVENUE → REPEAT DEMAND.\n\nRather than counting semiconductor announcements, EMRADAR will track which parts of the ecosystem actually cross into commercial proof—and which do not."
+      },
+      {
+        "id": "C002-A-X",
+        "destination": "X / market and technology conversation",
+        "format": "short native post",
+        "state": "READY_PERMISSION_GATE",
+        "copy": "India's semiconductor ecosystem is FORMING. The useful question now isn't how many projects are announced, but which layers become commercially real.\n\nEMRADAR is tracking:\ncommitment → capacity → orders → revenue → repeat demand.\n\nPlanned capacity ≠ operating capacity."
+      },
+      {
+        "id": "C002-A-EDITORIAL",
+        "destination": "industry publication / contributor route",
+        "format": "editorial pitch",
+        "state": "READY_PERMISSION_GATE",
+        "subject": "Contribution idea: measuring when India's semiconductor ecosystem becomes commercially real",
+        "copy": "EMRADAR is tracking India's semiconductor ecosystem as a FORMING market, but with a distinction that gets lost when announcements, MoUs, planned capacity and commercial production are grouped together.\n\nA proposed contribution would map the ecosystem by evidence state—commitment, installed capacity, commercial orders, revenue and repeat demand—and identify what would need to happen for the formation to strengthen or weaken.\n\nThe aim is not another overview of India's semiconductor ambitions, but a measurable framework for following which layers are becoming economically real."
+      },
+      {
+        "id": "C002-A-SITE",
+        "destination": "EMRADAR",
+        "format": "formation card / campaign landing copy",
+        "state": "READY_PERMISSION_GATE",
+        "copy": "INDIA SEMICONDUCTOR ECOSYSTEM — FORMING\n\nCommercial activity is emerging across parts of India's semiconductor build-out, while other layers remain at agreement, planned-capacity or construction stage.\n\nEMRADAR tracks the progression:\nANNOUNCEMENT → COMMITMENT → CAPACITY → ORDERS → REVENUE → REPEAT DEMAND\n\nNext evidence: supplier capacity coming online, commercial orders, disclosed revenue exposure and repeat demand.\n\nFalsification: repeated delays, cancelled commitments, capacity without utilisation, or supplier economics failing to materialise."
+      }
+    ],
+    "adaptation_checks": {
+      "signal_state_preserved": "PASS",
+      "delta_preserved": "PASS",
+      "destination_native": "PASS",
+      "unsupported_priority_claims": "NONE",
+      "generic_hype": "NONE"
+    },
+    "next_stage": "permission/risk gate, then execute only routes with available authorised channel"
   }
 }
