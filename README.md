@@ -4,14 +4,16 @@ Agentic marketing and distribution engine for EMRADAR.
 
 ## Operating loop
 
-`SCAN → FORMATION → CAMPAIGN → SCOUT → DESTINATION_BASELINE → EMRADAR_DELTA → NOVELTY_GATE → ROUTE → ADAPT → PERMISSION_GATE → EXECUTE → RECEIPT → OBSERVE → LEARN → DISTRIBUTION_MAP → LOOP`
+`SCAN/T0 NARRATIVE → FORMATION + EMRADAR_DELTA → CAMPAIGN PREP (PARALLEL) → DESTINATION_BASELINE (ONLY IF NEEDED) → NOVELTY_GATE → ROUTE → EDITORIAL_INTELLIGENCE → EDITORIAL_QUALITY_GATE → ADAPT → PERMISSION_GATE → EXECUTE → RECEIPT → OBSERVE → LEARN → DISTRIBUTION_MAP → LOOP`
 
 ### Hard rules
 
 - EMRADAR remains the intelligence source of truth.
 - Preserve source signal states; marketing cannot promote FORMING to CONFIRMED or erase UNKNOWN.
 - Reuse the persistent Distribution Map before external discovery.
-- Search only enough to resolve a route decision or evidence gap.
+- Reuse EMRADAR's T0 public-narrative research first; search only enough to resolve a destination-specific route decision or evidence gap.
+- Marketing preparation may run in parallel with the scan; external distribution waits for the final EMRADAR evidence/state gate.
+- T+ narrative tracking belongs to EMRADAR learning and never blocks Marketing.
 - A relevant destination is not sufficient. Establish its current conversation baseline.
 - No insertion without a meaningful EMRADAR delta.
 - `NO_MEANINGFUL_DELTA → DO_NOT_INSERT`.
