@@ -1,8 +1,9 @@
 {
   "name":"emradar-x-executor",
-  "version":"0.1.0",
+  "version":"0.1.1",
   "private":true,
   "type":"module",
   "scripts":{"start":"node server.js"},
+  "dependencies":{"redis":"^5.8.3"},
   "engines":{"node":">=20"}
 }
