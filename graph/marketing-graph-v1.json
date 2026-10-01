@@ -1,0 +1,106 @@
+{
+  "version": "1.0",
+  "architecture": "agentic_graph_with_persistent_feedback_loop",
+  "source_of_truth": "EMRADAR",
+  "route_elasticity": true,
+  "nodes": [
+    {
+      "id": "ingest",
+      "worker": "source",
+      "output": "formation"
+    },
+    {
+      "id": "campaign",
+      "worker": "campaign",
+      "output": "campaign_hypotheses"
+    },
+    {
+      "id": "scout",
+      "worker": "scout",
+      "output": "candidate_destinations"
+    },
+    {
+      "id": "baseline",
+      "worker": "destination_baseline",
+      "rule": "retrieve only directly relevant material needed to establish what destination already knows",
+      "output": "conversation_baseline"
+    },
+    {
+      "id": "delta",
+      "worker": "emradar_delta",
+      "input": [
+        "formation",
+        "conversation_baseline"
+      ],
+      "output": "novel_contribution"
+    },
+    {
+      "id": "novelty_gate",
+      "worker": "gate",
+      "hard": true,
+      "pass": "meaningful_delta",
+      "fail": "retire_or_reroute"
+    },
+    {
+      "id": "route",
+      "worker": "relevance_router",
+      "output": "native_insertion_method"
+    },
+    {
+      "id": "adapt",
+      "worker": "adapter",
+      "output": "destination_native_asset"
+    },
+    {
+      "id": "permission_gate",
+      "worker": "gate",
+      "hard": true,
+      "checks": [
+        "evidence",
+        "identity",
+        "permission",
+        "risk"
+      ]
+    },
+    {
+      "id": "execute",
+      "worker": "executor",
+      "output": "external_action"
+    },
+    {
+      "id": "receipt",
+      "worker": "deterministic_recorder",
+      "hard": true,
+      "output": "execution_receipt"
+    },
+    {
+      "id": "observe",
+      "worker": "observer",
+      "output": "measured_result_or_UNKNOWN"
+    },
+    {
+      "id": "learn",
+      "worker": "learning",
+      "output": "route_learning"
+    },
+    {
+      "id": "distribution_map",
+      "worker": "state",
+      "persistent": true,
+      "loop_to": [
+        "scout",
+        "route",
+        "campaign"
+      ]
+    }
+  ],
+  "invariants": {
+    "signal_state_preservation": true,
+    "meaningful_delta_required": true,
+    "no_broad_search_for_completeness": true,
+    "no_fabricated_performance": true,
+    "unknown_is_valid_state": true,
+    "receipt_required": true,
+    "retire_not_delete": true
+  }
+}
