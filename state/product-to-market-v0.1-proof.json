@@ -1,0 +1,34 @@
+{
+  "status": "ADAPTER_EXTRACTION_POINT_REACHED",
+  "date": "2026-10-01",
+  "product_contract": "contracts/product-contract-v0.1.json",
+  "products": [
+    {
+      "product": "EMRADAR",
+      "adapter": "adapters/emradar-adapter-v0.1.json",
+      "proof": "Campaign 002 plus EDGE-001 INVESTIGATE state preservation",
+      "result": "PASS"
+    },
+    {
+      "product": "Atlasoquence",
+      "adapter": "adapters/atlasoquence-adapter-v0.1.json",
+      "proof": "campaigns/ATLAS_CROSS_PRODUCT_001/state.json",
+      "result": "PASS"
+    }
+  ],
+  "downstream_engine": "graph/marketing-graph-v1.json",
+  "engine_rewrite_required": false,
+  "sampling": "STOP",
+  "distribution_edge": {
+    "status": "BLOCKED_OWNER_AUTH_OR_EXECUTION_CHANNEL",
+    "lowest_friction_candidates": [
+      "LinkedIn organic",
+      "X organic",
+      "EMRADAR site publication"
+    ],
+    "finding": "No connected LinkedIn/X publishing executor is available in the current tool surface. Existing Campaign 002 state already records NO_EXECUTION_CONNECTOR. Site publication would require cross-repo implementation/deployment rather than proving the simplest mainstream social edge.",
+    "next_required_owner_action": "Authenticate/connect one supported mainstream publishing account when an execution connector is available, or explicitly choose site publication as the distribution edge."
+  },
+  "ship_gate": "BLOCKED_AT_REAL_DISTRIBUTION_EDGE",
+  "no_fabricated_publication": true
+}
