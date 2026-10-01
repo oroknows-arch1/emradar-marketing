@@ -132,7 +132,11 @@
     "receipt_required": true,
     "retire_not_delete": true,
     "editorial_quality_required": true,
-    "no_style_imitation": true
+    "no_style_imitation": true,
+    "no_hindsight_contamination": true,
+    "scan_research_reuse": true,
+    "marketing_may_prepare_in_parallel": true,
+    "distribution_requires_final_scan_gate": true
   },
   "execution_routing": {
     "owner": "VC Harness",
@@ -233,5 +237,35 @@
     "rule": "Synthesize editorial qualities; never imitate, mimic or reproduce a publication's distinctive voice or wording.",
     "sequence": "EMRADAR evidence -> novelty/delta -> editorial intelligence -> editorial quality gate -> destination adaptation",
     "state_language": "UNKNOWN, INVESTIGATE, FORMING, CONFIRMED and WATCH/NO SIGNAL must remain explicit where material."
+  },
+  "scan_marketing_parallelism": {
+    "rule": "Marketing intelligence begins as soon as a candidate formation has enough evidence for bounded analysis; external distribution waits for final scan evidence/state gates.",
+    "reuse": "Scanner public-source research is reused as the initial narrative baseline. Marketing performs additional search only for destination-specific or unresolved gaps.",
+    "parallel_outputs": [
+      "formation_evidence",
+      "public_narrative_baseline",
+      "candidate_narrative_delta",
+      "candidate_destinations"
+    ]
+  },
+  "narrative_timeline": {
+    "purpose": "Measure how EMRADAR interpretation compares with the public narrative over time without hindsight contamination.",
+    "t0": "Persist scan timestamp, evidence available at scan time, EMRADAR interpretation/state, narrative baseline and UNKNOWNs.",
+    "followups": [
+      "T+1",
+      "T+3",
+      "T+7",
+      "later_when_material"
+    ],
+    "compare": [
+      "subsequent evidence",
+      "where public coverage entered the story",
+      "connections later made",
+      "narrative convergence_or_divergence",
+      "commercial confirmation_or_falsification"
+    ],
+    "rule": "Later reporting may validate or falsify earlier EMRADAR reasoning but must never be backfilled into the T0 evidence set.",
+    "metric": "narrative_lead_time_or_lag",
+    "claims": "Do not claim EMRADAR was first unless timestamped evidence supports it."
   }
 }
