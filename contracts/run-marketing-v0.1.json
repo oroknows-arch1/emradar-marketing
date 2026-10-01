@@ -1,0 +1,38 @@
+{
+  "version":"0.1",
+  "status":"READY_FOR_EXECUTOR",
+  "input":{"product":"EMRADAR"},
+  "trigger":"RUN_MARKETING",
+  "pipeline":[
+    "load_product_contract",
+    "select_campaign_worthy_signal",
+    "evidence_state_gate",
+    "campaign_and_copy",
+    "real_asset_search_where_appropriate",
+    "visual_asset_generation_where_needed",
+    "asset_exists_gate",
+    "visual_qa",
+    "x_adapter",
+    "permission_gate",
+    "publish",
+    "receipt",
+    "measure",
+    "learn"
+  ],
+  "hard_gates":{
+    "asset_exists":"No PASS unless a retrievable artifact exists.",
+    "source_binding":"Rendered asset must match selected formation and source state.",
+    "claims":"No unsupported investment or certainty upgrade.",
+    "external_action":"Publish only through an authenticated authorised executor.",
+    "receipt":"No publication PASS without a real platform receipt."
+  },
+  "approved_test_asset":{
+    "filename":"a_clean_high_resolution_marketing_campaign_board.png",
+    "sha256":"22a17de22f18c019f6d107b71df6e9cd04045712ef66583a13a2e6955c6b464a",
+    "formation":"global-grid-equipment-bottleneck",
+    "state":"CONFIRMED",
+    "asset_production_gate":"PASS"
+  },
+  "x_executor":{"status":"BLOCKED_CONNECTION_REQUIRED","publish_mode":"organic","spend":0},
+  "success_output":["platform","post_id","post_url","published_at","asset_hash","measurement_state"]
+}
