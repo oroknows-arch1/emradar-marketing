@@ -16,6 +16,13 @@
       "finding": "Electronics For You already covers much of generic beyond-the-fab thesis.",
       "result": "REJECTED_CURRENT_ANGLE",
       "next_activation": "Only reactivate if EMRADAR establishes a narrower contribution not already present in destination baseline."
+    },
+    {
+      "id": "C002-LEARN-003",
+      "type": "timing_and_novelty",
+      "status": "ACTIVE",
+      "finding": "Facts published before the scan must not be treated as EMRADAR lead-time evidence. Later coverage is used to measure convergence, not backfill novelty.",
+      "result": "Retired supplier-park/opportunity framing; retained stateful formation-tracking delta."
     }
   ]
 }
