@@ -1,0 +1,10 @@
+{
+  "id": "EDGE-001",
+  "source": "EMRADAR 2026-09-30",
+  "formation": "east-africa-refining-localisation",
+  "source_state": "INVESTIGATE",
+  "decision": "CAMPAIGN_WITH_INVESTIGATE_LABEL_ONLY",
+  "reason": "Large possible formation but financing, land/legal, feedstock, construction and listed exposure remain unresolved. Marketing may explain what is being investigated; it may not present the refinery or beneficiary market as established.",
+  "quality_gate": "PASS_WITH_STATE_PRESERVATION",
+  "new_architectural_learning": "No new interface field required. Product Contract uncertainty/state model + claim constraints already carry weak-evidence handling."
+}
