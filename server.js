@@ -1,12 +1,33 @@
 import http from "node:http";
 import crypto from "node:crypto";
 import { URL, URLSearchParams } from "node:url";
+import { createClient } from "redis";
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
 const X_CLIENT_SECRET=process.env.X_CLIENT_SECRET||"";
 const PUBLIC_BASE_URL=(process.env.PUBLIC_BASE_URL||"").replace(/\/$/,"");
+const KEY_VALUE_URL=process.env.KEY_VALUE_URL||"";
 const sessions=new Map();
+let kv=null;
+async function store(){
+  if(!KEY_VALUE_URL) throw new Error("KEY_VALUE_URL_NOT_CONFIGURED");
+  if(!kv){kv=createClient({url:KEY_VALUE_URL});kv.on("error",e=>console.error("Key Value error",e.message));await kv.connect();}
+  else if(!kv.isOpen) await kv.connect();
+  return kv;
+}
+async function saveAuth(auth){const s=await store();await s.set("emradar:x:authorized",JSON.stringify(auth));}
+async function loadAuth(){try{const s=await store(),raw=await s.get("emradar:x:authorized");return raw?JSON.parse(raw):null;}catch(e){console.error("Key Value load failed",e.message);return null;}}
+async function currentAuth(){
+  let auth=sessions.get("authorized")||await loadAuth();
+  if(!auth?.access_token) return null;
+  if(auth.expires_at&&Date.now()>=auth.expires_at-60000&&auth.refresh_token){
+    const t=await tokenExchange({grant_type:"refresh_token",refresh_token:auth.refresh_token,client_id:X_CLIENT_ID});
+    auth={...auth,...t,authorized_at:auth.authorized_at||new Date().toISOString(),refreshed_at:new Date().toISOString(),expires_at:Date.now()+(Number(t.expires_in||7200)*1000)};
+    sessions.set("authorized",auth);await saveAuth(auth);
+  }
+  return auth;
+}
 const receipts=[];
 
 const json=(res,status,body)=>{res.writeHead(status,{"content-type":"application/json","cache-control":"no-store"});res.end(JSON.stringify(body));};
@@ -28,7 +49,7 @@ function failReceipt(stage,error){const receipt={ok:false,stage,timestamp:new Da
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
-  if(req.method==="GET"&&u.pathname==="/health") return json(res,200,{ok:true,service:"EMRADAR_X_ONE_BUTTON_EXECUTOR_V0_1",x_authorized:[...sessions.values()].some(s=>s.access_token),publish_enabled:false,cost_gate:{additional_spend_without_owner_approval:0}});
+  if(req.method==="GET"&&u.pathname==="/health"){const auth=await currentAuth().catch(()=>null);return json(res,200,{ok:true,service:"EMRADAR_X_ONE_BUTTON_EXECUTOR_V0_1",x_authorized:!!auth?.access_token,auth_store:KEY_VALUE_URL?"persistent":"memory_only",publish_enabled:false,cost_gate:{additional_spend_without_owner_approval:0}});}
   if(req.method==="GET"&&u.pathname==="/oauth/x/start"){
     if(!X_CLIENT_ID) return json(res,503,{ok:false,blocker:"X_CLIENT_ID_NOT_CONFIGURED",callback_url:callbackUrl(req)});
     const state=base64url(crypto.randomBytes(24)),verifier=base64url(crypto.randomBytes(48));
@@ -40,11 +61,11 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/oauth/x/callback"){
     const state=u.searchParams.get("state"),code=u.searchParams.get("code"),s=sessions.get(state);
     if(!state||!code||!s||Date.now()-s.created>600000) return json(res,400,{ok:false,error:"invalid_or_expired_oauth_state"});
-    try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});sessions.set("authorized",{...t,authorized_at:new Date().toISOString()});sessions.delete(state);return json(res,200,{ok:true,status:"X_AUTHORIZED",next:"RUN_MARKETING"});}
+    try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});const auth={...t,authorized_at:new Date().toISOString(),expires_at:Date.now()+(Number(t.expires_in||7200)*1000)};await saveAuth(auth);sessions.set("authorized",auth);sessions.delete(state);return json(res,200,{ok:true,status:"X_AUTHORIZED",storage:"PERSISTENT",next:"RUN_MARKETING"});}
     catch(e){return json(res,502,failReceipt("oauth_callback",e));}
   }
   if(req.method==="POST"&&u.pathname==="/RUN_MARKETING"){
-    const auth=sessions.get("authorized");
+    const auth=await currentAuth();
     if(!auth?.access_token) return json(res,403,failReceipt("permission_gate","X authorization required"));
     try{
       const raw=await readBody(req), input=raw.length?JSON.parse(raw):{};
