@@ -101,7 +101,7 @@
         "id": "C002-A-X",
         "destination": "X / market and technology conversation",
         "format": "short native post",
-        "state": "READY_PERMISSION_GATE",
+        "state": "PUBLISHED_VERIFIED",
         "copy": "India's semiconductor ecosystem is FORMING. The useful question now isn't how many projects are announced, but which layers become commercially real.\n\nEMRADAR is tracking:\ncommitment → capacity → orders → revenue → repeat demand.\n\nPlanned capacity ≠ operating capacity."
       },
       {
@@ -130,7 +130,7 @@
     "next_stage": "permission/risk gate, then execute only routes with available authorised channel"
   },
   "permission_risk_stage": {
-    "status": "PASS_NO_EXECUTABLE_ROUTE",
+    "status": "PASS_X_EXECUTED",
     "identity": "Sean Walker / EMRADAR",
     "checks": {
       "evidence": "PASS",
@@ -146,8 +146,8 @@
       },
       {
         "asset": "C002-A-X",
-        "permission": "NO_EXECUTION_CONNECTOR",
-        "action": "HOLD_READY"
+        "permission": "AUTHORISED_X_EXECUTOR",
+        "action": "EXECUTED"
       },
       {
         "asset": "C002-A-EDITORIAL",
@@ -161,17 +161,29 @@
         "action": "HOLD_READY"
       }
     ],
-    "execution_rule": "No current route may be externally executed without inventing access or violating destination submission requirements. Preserve all assets as ready/held; next production work is a finished EFY manuscript or activation of a supported social/site publishing channel."
+    "execution_rule": "X Campaign 002 executed under explicit owner authorisation. Other route statuses remain unchanged."
   },
   "execution_stage": {
-    "status": "NO_ACTION",
-    "receipts": [],
-    "reason": "No authorised executable destination remains after destination-specific permission check. No simulated publication and no fabricated receipt.",
-    "next_options": [
-      "produce finished EFY manuscript with required contributor details before submission",
-      "activate supported LinkedIn/X publishing route",
-      "connect EMRADAR site publication path"
-    ]
+    "status": "PUBLISHED_VERIFIED",
+    "receipts": [
+      {
+        "ok": true,
+        "platform": "X",
+        "post_id": "2105745130712187147",
+        "post_url": "https://x.com/oroknows/status/2105745130712187147",
+        "published_at": "2026-10-01T19:42:17.043Z",
+        "asset_hash": "d8fed28e7e45fb9cf5966c358e0828ff40df5a15b81955add5abd395aacae412",
+        "verification": "LIVE_BROWSER_TEXT_AND_IMAGE_PASS",
+        "account": "@oroknows",
+        "measurement_state": "UNKNOWN",
+        "ad_spend_usd": 0,
+        "api_cost_usd": "UNKNOWN",
+        "note": "Executor reported additional_cost_usd=0; API billing was not inspected."
+      }
+    ],
+    "user_interventions": 0,
+    "automation_scope": "Assistant-orchestrated execution using existing approved copy and recovered image; hosted executor handles upload and publication.",
+    "full_unattended_product_to_campaign": "NOT_YET_PROVEN"
   },
   "creative_production": {
     "status": "OWNER_APPROVED",

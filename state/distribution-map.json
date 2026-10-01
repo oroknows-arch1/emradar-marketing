@@ -1,5 +1,18 @@
 {
   "version": 1,
-  "routes": [],
+  "routes": [
+    {
+      "id": "EMRADAR-X-OROKNOWS",
+      "product": "EMRADAR",
+      "platform": "X",
+      "account": "@oroknows",
+      "method": "organic native post with image",
+      "status": "LIVE_EXECUTION_VERIFIED",
+      "receipt": "https://x.com/oroknows/status/2105745130712187147",
+      "formation": "india-semiconductor-ecosystem",
+      "evidence_state": "FORMING",
+      "performance": "UNKNOWN"
+    }
+  ],
   "note": "Persistent route memory. Seed/sync from verified Campaign 002 discoveries; never treat absence here as permission for broad search."
 }

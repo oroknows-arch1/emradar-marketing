@@ -23,6 +23,20 @@
       "status": "ACTIVE",
       "finding": "Facts published before the scan must not be treated as EMRADAR lead-time evidence. Later coverage is used to measure convergence, not backfill novelty.",
       "result": "Retired supplier-park/opportunity framing; retained stateful formation-tracking delta."
+    },
+    {
+      "id": "C002-LEARN-004",
+      "type": "live_execution",
+      "status": "ACTIVE",
+      "post_id": "2105745130712187147",
+      "result": "PUBLISHED_VERIFIED",
+      "finding": "Missing asset was recoverable from existing approved files. X persistent authorization, media upload and publication worked without owner intervention.",
+      "remaining_gaps": [
+        "RUN_MARKETING accepts finished text, asset bytes and caller-declared gate results; does not autonomously select a signal or manufacture and review a campaign.",
+        "Receipts in current server are in-memory; this verified result is persisted here.",
+        "Performance metrics and actual API billing remain UNKNOWN."
+      ],
+      "next_rule": "Build the unattended preparation/recovery/verification route before describing a trigger UI as full product-to-market automation."
     }
   ]
 }
