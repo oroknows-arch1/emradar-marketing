@@ -1,7 +1,7 @@
 {
   "scope": "REAL_LOCAL_FILE_EXECUTION_NO_EXTERNAL_PUBLICATION",
   "first": {
-    "run_id": "99460ce6-f077-4811-81ea-94d381c95998",
+    "run_id": "fc4e16ed-ba15-4d98-baae-dad6f75db054",
     "product": "TEST_PRODUCT",
     "campaign_id": "SAFE_TEST_1",
     "status": "PASS",
@@ -10,7 +10,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.169Z",
+        "at": "2026-10-02T16:31:32.561Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -18,7 +18,7 @@
       {
         "node": "signal_extraction",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.170Z",
+        "at": "2026-10-02T16:31:32.562Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -26,7 +26,7 @@
       {
         "node": "signal_library",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.170Z",
+        "at": "2026-10-02T16:31:32.562Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -34,7 +34,7 @@
       {
         "node": "priority",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.172Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -42,7 +42,7 @@
       {
         "node": "campaign",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.172Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -50,7 +50,7 @@
       {
         "node": "relevance",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.172Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -58,7 +58,7 @@
       {
         "node": "scout",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.172Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -66,7 +66,7 @@
       {
         "node": "baseline",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.173Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -74,7 +74,7 @@
       {
         "node": "delta",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.174Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -82,7 +82,7 @@
       {
         "node": "novelty_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.174Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -90,7 +90,7 @@
       {
         "node": "route",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.174Z",
+        "at": "2026-10-02T16:31:32.563Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -98,7 +98,7 @@
       {
         "node": "editorial_intelligence",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.185Z",
+        "at": "2026-10-02T16:31:32.569Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -106,7 +106,7 @@
       {
         "node": "editorial_quality_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.185Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -114,7 +114,7 @@
       {
         "node": "variant_factory",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.186Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -122,7 +122,7 @@
       {
         "node": "format",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.187Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -130,7 +130,7 @@
       {
         "node": "adapt",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.188Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -138,7 +138,7 @@
       {
         "node": "evidence_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.188Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -146,7 +146,7 @@
       {
         "node": "brand_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.188Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -154,7 +154,7 @@
       {
         "node": "permission_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.188Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -162,50 +162,50 @@
       {
         "node": "execute",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.188Z",
+        "at": "2026-10-02T16:31:32.570Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "baf71ce85b7893f26cf171548581de943f129d2905cf042691b5bdf6b0adb5a0"
+        "output_hash": "0198de06ffc3d476796dae1b8f91cd087c185ab1987ed8dd8e491ed1b4a1a937"
       },
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.195Z",
+        "at": "2026-10-02T16:31:32.572Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "baf71ce85b7893f26cf171548581de943f129d2905cf042691b5bdf6b0adb5a0"
+        "output_hash": "0198de06ffc3d476796dae1b8f91cd087c185ab1987ed8dd8e491ed1b4a1a937"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.197Z",
+        "at": "2026-10-02T16:31:32.574Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "baf71ce85b7893f26cf171548581de943f129d2905cf042691b5bdf6b0adb5a0"
+        "output_hash": "0198de06ffc3d476796dae1b8f91cd087c185ab1987ed8dd8e491ed1b4a1a937"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.199Z",
+        "at": "2026-10-02T16:31:32.575Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "80e0eb39c9cbd36f224dc0490af177c72a885bc759a2fa736542ee7567d6c9b7"
+        "output_hash": "274df56ef31dab8c2374f6c47b45f9f7015c341dc1dcf5aeb81ae008b51aedb8"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.200Z",
+        "at": "2026-10-02T16:31:32.575Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "64f82219eec9094ae71eee443099e3f0e1d5478b3ccbd277521fb2fc4e373a02"
+        "output_hash": "518fb32600a72931b31eae2013b975a86ff75b26928e0d824b34f3add08c2fa5"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.201Z",
+        "at": "2026-10-02T16:31:32.576Z",
         "status": "PASS",
         "input_hash": "22ab2928ac1ec39474a1bcc330df7408fb476ac03c5afa8553347a7ac2d71ac2",
-        "output_hash": "64f82219eec9094ae71eee443099e3f0e1d5478b3ccbd277521fb2fc4e373a02"
+        "output_hash": "518fb32600a72931b31eae2013b975a86ff75b26928e0d824b34f3add08c2fa5"
       }
     ],
     "selection": {
@@ -257,14 +257,19 @@
       "variant": "94e2578ca30d5cd7",
       "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
       "format": "svg",
-      "timestamp": "2026-10-02T10:28:50.191Z",
+      "timestamp": "2026-10-02T16:31:32.572Z",
       "execution_status": "PUBLISHED",
       "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
-      "url": "file:///tmp/marketing-graph-817um2/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+      "url": "file:///tmp/marketing-graph-O2UbIp/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
       "campaign_id": "SAFE_TEST_1",
       "product": "TEST_PRODUCT",
       "signal_id": "test-signal",
       "signal_revision": "r1",
+      "signal_state": "FORMING",
+      "evidence_refs": [
+        "E1"
+      ],
+      "source_receipt": null,
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "attempts": 1,
       "max_attempts": 2,
@@ -278,7 +283,7 @@
     "performance": {
       "status": "AVAILABLE",
       "source": "local_file_readback",
-      "observed_at": "2026-10-02T10:28:50.198Z",
+      "observed_at": "2026-10-02T16:31:32.575Z",
       "metrics": {
         "delivered_bytes": {
           "value": 478,
@@ -297,7 +302,7 @@
       "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "execution_status": "PUBLISHED",
-      "observed_at": "2026-10-02T10:28:50.198Z",
+      "observed_at": "2026-10-02T16:31:32.575Z",
       "source": "local_file_readback",
       "measurements": {
         "delivered_bytes": {
@@ -337,10 +342,11 @@
           "measurement_adjustment": 0.05,
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T10:28:50.191Z",
-            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "last_execution_at": "2026-10-02T16:31:32.572Z",
+            "last_observed_at": "2026-10-02T16:31:32.575Z",
             "optimal_time": "UNKNOWN"
           },
+          "current_measurement_state": "AVAILABLE",
           "measurements": {
             "delivered_bytes": {
               "value": 478,
@@ -352,7 +358,8 @@
               "unit": "boolean",
               "scope": "local_delivery"
             }
-          }
+          },
+          "last_known_evidence_strength": "DIRECT_MEASUREMENT"
         }
       },
       "platforms": {
@@ -387,10 +394,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.191Z",
-              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "last_execution_at": "2026-10-02T16:31:32.572Z",
+              "last_observed_at": "2026-10-02T16:31:32.575Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -402,7 +410,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           }
         }
       ],
@@ -416,7 +425,7 @@
     }
   },
   "duplicate": {
-    "run_id": "31c41843-a287-4fd3-b2ba-bedb228716db",
+    "run_id": "b3dc529e-bffa-4463-9422-bce367098c01",
     "product": "TEST_PRODUCT",
     "campaign_id": "SAFE_TEST_DUPLICATE",
     "status": "PASS",
@@ -425,7 +434,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.208Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -433,7 +442,7 @@
       {
         "node": "signal_extraction",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.208Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -441,7 +450,7 @@
       {
         "node": "signal_library",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.208Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -449,7 +458,7 @@
       {
         "node": "priority",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.210Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -457,7 +466,7 @@
       {
         "node": "campaign",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.210Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -465,7 +474,7 @@
       {
         "node": "relevance",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.210Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -473,7 +482,7 @@
       {
         "node": "scout",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.210Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -481,7 +490,7 @@
       {
         "node": "baseline",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -489,7 +498,7 @@
       {
         "node": "delta",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -497,7 +506,7 @@
       {
         "node": "novelty_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -505,7 +514,7 @@
       {
         "node": "route",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -513,7 +522,7 @@
       {
         "node": "editorial_intelligence",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -521,7 +530,7 @@
       {
         "node": "editorial_quality_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -529,7 +538,7 @@
       {
         "node": "variant_factory",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -537,7 +546,7 @@
       {
         "node": "format",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -545,7 +554,7 @@
       {
         "node": "adapt",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -553,7 +562,7 @@
       {
         "node": "evidence_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.578Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -561,7 +570,7 @@
       {
         "node": "brand_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.579Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -569,7 +578,7 @@
       {
         "node": "permission_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.579Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -577,50 +586,50 @@
       {
         "node": "execute",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.211Z",
+        "at": "2026-10-02T16:31:32.579Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "0bdf55d087ffd9e77bdfc881201cf644636663404eb36beb98691ccefa02e0ae"
+        "output_hash": "5c58a5849810d8fba4f0036dea7e11e2513463ee7c1563d75a28620e0d7545a2"
       },
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.212Z",
+        "at": "2026-10-02T16:31:32.579Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "0bdf55d087ffd9e77bdfc881201cf644636663404eb36beb98691ccefa02e0ae"
+        "output_hash": "5c58a5849810d8fba4f0036dea7e11e2513463ee7c1563d75a28620e0d7545a2"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.218Z",
+        "at": "2026-10-02T16:31:32.580Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "0bdf55d087ffd9e77bdfc881201cf644636663404eb36beb98691ccefa02e0ae"
+        "output_hash": "5c58a5849810d8fba4f0036dea7e11e2513463ee7c1563d75a28620e0d7545a2"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.220Z",
+        "at": "2026-10-02T16:31:32.581Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "a98487b567fb04d2874e0b55dfd71333fddabeb5f7c060eda287eacc75a2ce10"
+        "output_hash": "9deeb9843a9a5789de6adf495f589af5189a6354f18b2a3273e388afe11b2fc3"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.221Z",
+        "at": "2026-10-02T16:31:32.581Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "a98487b567fb04d2874e0b55dfd71333fddabeb5f7c060eda287eacc75a2ce10"
+        "output_hash": "9deeb9843a9a5789de6adf495f589af5189a6354f18b2a3273e388afe11b2fc3"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.221Z",
+        "at": "2026-10-02T16:31:32.581Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "a98487b567fb04d2874e0b55dfd71333fddabeb5f7c060eda287eacc75a2ce10"
+        "output_hash": "9deeb9843a9a5789de6adf495f589af5189a6354f18b2a3273e388afe11b2fc3"
       }
     ],
     "selection": {
@@ -672,14 +681,19 @@
       "variant": "94e2578ca30d5cd7",
       "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
       "format": "svg",
-      "timestamp": "2026-10-02T10:28:50.191Z",
+      "timestamp": "2026-10-02T16:31:32.572Z",
       "execution_status": "PUBLISHED",
       "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
-      "url": "file:///tmp/marketing-graph-817um2/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+      "url": "file:///tmp/marketing-graph-O2UbIp/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
       "campaign_id": "SAFE_TEST_1",
       "product": "TEST_PRODUCT",
       "signal_id": "test-signal",
       "signal_revision": "r1",
+      "signal_state": "FORMING",
+      "evidence_refs": [
+        "E1"
+      ],
+      "source_receipt": null,
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "attempts": 1,
       "max_attempts": 2,
@@ -693,7 +707,7 @@
     "performance": {
       "status": "AVAILABLE",
       "source": "local_file_readback",
-      "observed_at": "2026-10-02T10:28:50.219Z",
+      "observed_at": "2026-10-02T16:31:32.580Z",
       "metrics": {
         "delivered_bytes": {
           "value": 478,
@@ -712,7 +726,7 @@
       "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "execution_status": "PUBLISHED",
-      "observed_at": "2026-10-02T10:28:50.219Z",
+      "observed_at": "2026-10-02T16:31:32.580Z",
       "source": "local_file_readback",
       "measurements": {
         "delivered_bytes": {
@@ -745,10 +759,11 @@
           "measurement_adjustment": 0.05,
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T10:28:50.191Z",
-            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "last_execution_at": "2026-10-02T16:31:32.572Z",
+            "last_observed_at": "2026-10-02T16:31:32.575Z",
             "optimal_time": "UNKNOWN"
           },
+          "current_measurement_state": "AVAILABLE",
           "measurements": {
             "delivered_bytes": {
               "value": 478,
@@ -760,7 +775,8 @@
               "unit": "boolean",
               "scope": "local_delivery"
             }
-          }
+          },
+          "last_known_evidence_strength": "DIRECT_MEASUREMENT"
         }
       },
       "platforms": {
@@ -795,10 +811,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.191Z",
-              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "last_execution_at": "2026-10-02T16:31:32.572Z",
+              "last_observed_at": "2026-10-02T16:31:32.575Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -810,7 +827,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           }
         }
       ],
@@ -835,10 +853,11 @@
           "measurement_adjustment": 0.05,
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T10:28:50.191Z",
-            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "last_execution_at": "2026-10-02T16:31:32.572Z",
+            "last_observed_at": "2026-10-02T16:31:32.575Z",
             "optimal_time": "UNKNOWN"
           },
+          "current_measurement_state": "AVAILABLE",
           "measurements": {
             "delivered_bytes": {
               "value": 478,
@@ -850,7 +869,8 @@
               "unit": "boolean",
               "scope": "local_delivery"
             }
-          }
+          },
+          "last_known_evidence_strength": "DIRECT_MEASUREMENT"
         }
       },
       "platforms": {
@@ -885,10 +905,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.191Z",
-              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "last_execution_at": "2026-10-02T16:31:32.572Z",
+              "last_observed_at": "2026-10-02T16:31:32.575Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -900,7 +921,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           }
         }
       ],
@@ -914,7 +936,7 @@
     }
   },
   "next": {
-    "run_id": "6e789362-3aaf-4ef0-84c2-b21e46353eb4",
+    "run_id": "0b205aab-dfde-4b40-95b0-7ba59e88654f",
     "product": "TEST_PRODUCT",
     "campaign_id": "SAFE_TEST_NEXT",
     "status": "PASS",
@@ -923,7 +945,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.225Z",
+        "at": "2026-10-02T16:31:32.582Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -931,7 +953,7 @@
       {
         "node": "signal_extraction",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.225Z",
+        "at": "2026-10-02T16:31:32.582Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -939,7 +961,7 @@
       {
         "node": "signal_library",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.225Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -947,7 +969,7 @@
       {
         "node": "priority",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -955,7 +977,7 @@
       {
         "node": "campaign",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -963,7 +985,7 @@
       {
         "node": "relevance",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -971,7 +993,7 @@
       {
         "node": "scout",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -979,7 +1001,7 @@
       {
         "node": "baseline",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -987,7 +1009,7 @@
       {
         "node": "delta",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -995,7 +1017,7 @@
       {
         "node": "novelty_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -1003,7 +1025,7 @@
       {
         "node": "route",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1011,7 +1033,7 @@
       {
         "node": "editorial_intelligence",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1019,7 +1041,7 @@
       {
         "node": "editorial_quality_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1027,7 +1049,7 @@
       {
         "node": "variant_factory",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1035,7 +1057,7 @@
       {
         "node": "format",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1043,7 +1065,7 @@
       {
         "node": "adapt",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1051,7 +1073,7 @@
       {
         "node": "evidence_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1059,7 +1081,7 @@
       {
         "node": "brand_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1067,7 +1089,7 @@
       {
         "node": "permission_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1075,50 +1097,50 @@
       {
         "node": "execute",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.226Z",
+        "at": "2026-10-02T16:31:32.583Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "ff52f37bda1e4ace4b355ee61da5c2e4b28994e915baaccebbdec1cccb7f0c01"
+        "output_hash": "279a01906180a9e55144993aee88612781bcc7c1ae86fcb45bc6829cd14857cf"
       },
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.232Z",
+        "at": "2026-10-02T16:31:32.585Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "ff52f37bda1e4ace4b355ee61da5c2e4b28994e915baaccebbdec1cccb7f0c01"
+        "output_hash": "279a01906180a9e55144993aee88612781bcc7c1ae86fcb45bc6829cd14857cf"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.234Z",
+        "at": "2026-10-02T16:31:32.586Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "ff52f37bda1e4ace4b355ee61da5c2e4b28994e915baaccebbdec1cccb7f0c01"
+        "output_hash": "279a01906180a9e55144993aee88612781bcc7c1ae86fcb45bc6829cd14857cf"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.235Z",
+        "at": "2026-10-02T16:31:32.586Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "852953a91a0216176886a3231cf4852ea24bb0861af398da9d6b67db8a7bea47"
+        "output_hash": "d2c6f1ba80d5137623e44c875c662422ebec86d45f203f12366ac1784eef194a"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.235Z",
+        "at": "2026-10-02T16:31:32.586Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "4d983de7737170a43569419702d55b0acd7ebda30fbe5238d85109a3c40ff1a6"
+        "output_hash": "ab996c190ad6cc81898961e32a1c572589c59acca67f497f2860a86e27b62194"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T10:28:50.235Z",
+        "at": "2026-10-02T16:31:32.586Z",
         "status": "PASS",
         "input_hash": "dc74de771aebff26800c3c0fb6e2904cfdd69f6fe8f7f4270088ec85373c7139",
-        "output_hash": "4d983de7737170a43569419702d55b0acd7ebda30fbe5238d85109a3c40ff1a6"
+        "output_hash": "ab996c190ad6cc81898961e32a1c572589c59acca67f497f2860a86e27b62194"
       }
     ],
     "selection": {
@@ -1170,14 +1192,19 @@
       "variant": "227717681c132fcf",
       "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
       "format": "svg",
-      "timestamp": "2026-10-02T10:28:50.231Z",
+      "timestamp": "2026-10-02T16:31:32.584Z",
       "execution_status": "PUBLISHED",
       "external_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
-      "url": "file:///tmp/marketing-graph-817um2/destination/83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736.json",
+      "url": "file:///tmp/marketing-graph-O2UbIp/destination/83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736.json",
       "campaign_id": "SAFE_TEST_NEXT",
       "product": "TEST_PRODUCT",
       "signal_id": "test-signal",
       "signal_revision": "r2",
+      "signal_state": "FORMING",
+      "evidence_refs": [
+        "E1"
+      ],
+      "source_receipt": null,
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "attempts": 1,
       "max_attempts": 2,
@@ -1191,7 +1218,7 @@
     "performance": {
       "status": "AVAILABLE",
       "source": "local_file_readback",
-      "observed_at": "2026-10-02T10:28:50.234Z",
+      "observed_at": "2026-10-02T16:31:32.586Z",
       "metrics": {
         "delivered_bytes": {
           "value": 478,
@@ -1210,7 +1237,7 @@
       "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "execution_status": "PUBLISHED",
-      "observed_at": "2026-10-02T10:28:50.234Z",
+      "observed_at": "2026-10-02T16:31:32.586Z",
       "source": "local_file_readback",
       "measurements": {
         "delivered_bytes": {
@@ -1243,10 +1270,11 @@
           "measurement_adjustment": 0.05,
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T10:28:50.191Z",
-            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "last_execution_at": "2026-10-02T16:31:32.572Z",
+            "last_observed_at": "2026-10-02T16:31:32.575Z",
             "optimal_time": "UNKNOWN"
           },
+          "current_measurement_state": "AVAILABLE",
           "measurements": {
             "delivered_bytes": {
               "value": 478,
@@ -1258,7 +1286,8 @@
               "unit": "boolean",
               "scope": "local_delivery"
             }
-          }
+          },
+          "last_known_evidence_strength": "DIRECT_MEASUREMENT"
         }
       },
       "platforms": {
@@ -1293,10 +1322,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.191Z",
-              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "last_execution_at": "2026-10-02T16:31:32.572Z",
+              "last_observed_at": "2026-10-02T16:31:32.575Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -1308,7 +1338,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           }
         }
       ],
@@ -1333,10 +1364,11 @@
           "measurement_adjustment": 0.05,
           "last_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T10:28:50.231Z",
-            "last_observed_at": "2026-10-02T10:28:50.234Z",
+            "last_execution_at": "2026-10-02T16:31:32.584Z",
+            "last_observed_at": "2026-10-02T16:31:32.586Z",
             "optimal_time": "UNKNOWN"
           },
+          "current_measurement_state": "AVAILABLE",
           "measurements": {
             "delivered_bytes": {
               "value": 478,
@@ -1348,7 +1380,8 @@
               "unit": "boolean",
               "scope": "local_delivery"
             }
-          }
+          },
+          "last_known_evidence_strength": "DIRECT_MEASUREMENT"
         }
       },
       "platforms": {
@@ -1385,10 +1418,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.191Z",
-              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "last_execution_at": "2026-10-02T16:31:32.572Z",
+              "last_observed_at": "2026-10-02T16:31:32.575Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -1400,7 +1434,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           }
         },
         {
@@ -1417,10 +1452,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.191Z",
-              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "last_execution_at": "2026-10-02T16:31:32.572Z",
+              "last_observed_at": "2026-10-02T16:31:32.575Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -1432,7 +1468,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           },
           "after": {
             "successes": 2,
@@ -1444,10 +1481,11 @@
             "measurement_adjustment": 0.05,
             "last_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T10:28:50.231Z",
-              "last_observed_at": "2026-10-02T10:28:50.234Z",
+              "last_execution_at": "2026-10-02T16:31:32.584Z",
+              "last_observed_at": "2026-10-02T16:31:32.586Z",
               "optimal_time": "UNKNOWN"
             },
+            "current_measurement_state": "AVAILABLE",
             "measurements": {
               "delivered_bytes": {
                 "value": 478,
@@ -1459,7 +1497,8 @@
                 "unit": "boolean",
                 "scope": "local_delivery"
               }
-            }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
           }
         }
       ],

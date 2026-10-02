@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test tests/runtime/*.test.js",
-    "test:loop": "node scripts/prove-loop.js"
+    "test:loop": "node scripts/prove-loop.js",
+    "test:native-source": "node scripts/prove-native-source.js"
   },
   "dependencies": {
     "redis": "^5.8.3"

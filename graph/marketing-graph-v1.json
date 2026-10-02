@@ -558,6 +558,45 @@
       ],
       "max_attempts": 1,
       "execution_lane": "deterministic"
+    },
+    {
+      "id": "product_context_intake",
+      "worker": "ProductIntake.receive",
+      "inputs": [
+        "signed_source_envelope",
+        "registered_source_key",
+        "owner_policy",
+        "prior_sequence"
+      ],
+      "outputs": [
+        "source_receipt",
+        "persistent_product_truth"
+      ],
+      "authority": "product truth only; cannot grant marketing permission, budget or brand changes",
+      "failure_state": "BLOCKED_INVALID_SIGNATURE_OR_STALE_SOURCE",
+      "handoff": [
+        "ingest"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "native_source_adapter",
+      "worker": "emradarSource",
+      "inputs": [
+        "native_scan",
+        "source_attestation"
+      ],
+      "outputs": [
+        "source_signals_with_evidence_and_uncertainty"
+      ],
+      "authority": "schema translation; never grants release approval",
+      "failure_state": "BLOCKED_INVALID_SCAN_OR_UNKNOWN_STATE",
+      "handoff": [
+        "product_context_intake"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
     }
   ],
   "invariants": {
@@ -945,6 +984,16 @@
       "from": "relevance",
       "to": "receipt",
       "event": "blocked"
+    },
+    {
+      "from": "native_source_adapter",
+      "to": "product_context_intake",
+      "event": "signed_handoff"
+    },
+    {
+      "from": "product_context_intake",
+      "to": "ingest",
+      "event": "next_authorized_cycle"
     }
   ],
   "runtime": {
@@ -954,6 +1003,7 @@
     "max_steps": 40,
     "next_cycle": "New campaign/input or configured trigger; persistent learning loaded on each entry",
     "creative_fallback": "Missing approved source/copy/destination is a bounded Harness-required blocker; do not fabricate",
-    "autonomous_trigger": "MARKETING_AUTONOMOUS=true; bounded tick every >=60s; per-product autonomous.enabled required"
+    "autonomous_trigger": "MARKETING_AUTONOMOUS=true; bounded tick every >=60s; per-product autonomous.enabled required",
+    "model_dispatch": "runtime/harness.js calls canonical configured Harness router, registry, executor and verifier; default BLOCKED when absent; bounded reserved worker costs"
   }
 }

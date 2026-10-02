@@ -1,0 +1,147 @@
+{
+  "source_repository": "oroknows-arch1/emerging-markets-radar",
+  "source_path": "data/discovery.json",
+  "source_blob_sha": "17e88db31f2868c1459eedebd11c253d9b0567a0",
+  "scope": "REAL_NATIVE_SOURCE_READ_LOCAL_GRAPH_BLOCKED_NO_EXTERNAL_PUBLICATION",
+  "handoff": {
+    "node": "product_context_intake",
+    "status": "ACCEPTED_SOURCE",
+    "product": "EMRADAR",
+    "sequence": 1,
+    "digest": "bb68c8d1cc9773aa0a45e7e3a7c09ba83902d4e60c3d3409c124c5c5a2905404",
+    "ignored_authority_fields": [
+      "budget",
+      "destinations",
+      "permissions",
+      "brand_system",
+      "autonomous"
+    ],
+    "next": "ingest"
+  },
+  "run": {
+    "run_id": "0c2cff8c-14d0-4bb2-bd11-9811931bdbc2",
+    "product": "EMRADAR",
+    "campaign_id": "NATIVE_SOURCE_SAFE_BLOCKED_PROOF",
+    "status": "BLOCKED",
+    "blocker": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+    "nodes": [
+      {
+        "node": "ingest",
+        "lane": "deterministic",
+        "at": "2026-10-02T16:31:32.776Z",
+        "status": "BLOCKED",
+        "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
+        "reason": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "receipt",
+        "lane": "deterministic",
+        "at": "2026-10-02T16:31:32.776Z",
+        "status": "PASS",
+        "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
+        "output_hash": "d00c7760c3ec9a2aec13f9f971d51cb476b618586ac668b494755dbc84294fbe"
+      },
+      {
+        "node": "observe",
+        "lane": "deterministic",
+        "at": "2026-10-02T16:31:32.777Z",
+        "status": "PASS",
+        "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
+        "output_hash": "d00c7760c3ec9a2aec13f9f971d51cb476b618586ac668b494755dbc84294fbe"
+      },
+      {
+        "node": "normalize",
+        "lane": "deterministic",
+        "at": "2026-10-02T16:31:32.778Z",
+        "status": "PASS",
+        "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
+        "output_hash": "e4f54b74cc90be2aeb22ba3cc878ad7acb441bfb4221b32b7c4a588be0327abe"
+      },
+      {
+        "node": "learn",
+        "lane": "deterministic",
+        "at": "2026-10-02T16:31:32.778Z",
+        "status": "PASS",
+        "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
+        "output_hash": "e4f54b74cc90be2aeb22ba3cc878ad7acb441bfb4221b32b7c4a588be0327abe"
+      },
+      {
+        "node": "distribution_map",
+        "lane": "deterministic",
+        "at": "2026-10-02T16:31:32.779Z",
+        "status": "PASS",
+        "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
+        "output_hash": "e4f54b74cc90be2aeb22ba3cc878ad7acb441bfb4221b32b7c4a588be0327abe"
+      }
+    ],
+    "receipt": {
+      "id": "ec2ffdaf5e51ae2817d529800e5e37bb83532021bf45596eb7c80bc522830f85",
+      "destination": "UNKNOWN",
+      "platform": "UNKNOWN",
+      "variant": "UNKNOWN",
+      "format": "UNKNOWN",
+      "timestamp": "2026-10-02T16:31:32.776Z",
+      "execution_status": "BLOCKED",
+      "external_id": null,
+      "url": null,
+      "campaign_id": "NATIVE_SOURCE_SAFE_BLOCKED_PROOF",
+      "product": "EMRADAR",
+      "signal_id": "global-grid-equipment-bottleneck",
+      "signal_revision": "11271d319cb6667947360a4ab4237ffbbecd53f543dc347b05f42769966b0b91",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "78eadbe89d3c2f4fa91773a78428cd8aec1821b2023f10141e33a634b599c4fe",
+        "43672f31599a08f708097e30c916de70f10543387f110c02e910ff29f383479e",
+        "9e5945f6f5ec3f3b3dc5776e304079c0183379511e7700e431da898703db247c"
+      ],
+      "source_receipt": {
+        "digest": "bb68c8d1cc9773aa0a45e7e3a7c09ba83902d4e60c3d3409c124c5c5a2905404",
+        "sequence": 1
+      },
+      "route_key": null,
+      "attempts": 0,
+      "max_attempts": 0,
+      "retry_at": null,
+      "error": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+      "api_cost_usd": 0,
+      "worker_reserved_usd": 0,
+      "ad_spend_usd": 0
+    },
+    "performance": {
+      "status": "UNKNOWN",
+      "metrics": {},
+      "source": "UNAVAILABLE",
+      "observed_at": "2026-10-02T16:31:32.777Z",
+      "cost_usd": "UNKNOWN"
+    },
+    "outcome": {
+      "receipt_id": "ec2ffdaf5e51ae2817d529800e5e37bb83532021bf45596eb7c80bc522830f85",
+      "route_key": null,
+      "execution_status": "BLOCKED",
+      "observed_at": "2026-10-02T16:31:32.777Z",
+      "source": "UNAVAILABLE",
+      "measurements": {},
+      "engagement_rate": "UNKNOWN",
+      "reach": "UNKNOWN",
+      "conversion": "UNKNOWN",
+      "cost_usd": "UNKNOWN",
+      "evidence_strength": "EXECUTION_ONLY"
+    },
+    "learning_before": {
+      "version": 0,
+      "routes": {},
+      "platforms": {},
+      "processed": {},
+      "history": []
+    },
+    "learning_after": {
+      "version": 0,
+      "routes": {},
+      "platforms": {},
+      "processed": {},
+      "history": []
+    }
+  },
+  "pass": true
+}

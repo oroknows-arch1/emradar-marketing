@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
+import {marketingWorkUnit} from './harness.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -9,13 +10,25 @@ const initial=()=>({version:0,routes:{},platforms:{},processed:{},history:[]});
 const keyOf=(p,s,d,f)=>[p,s,d,f].map(encodeURIComponent).join(':');
 const score=(state,key)=>{const r=state.routes[key];return r?Math.max(-1,Math.min(1,(r.successes-r.failures)/(r.successes+r.failures+2)+(r.measurement_adjustment||0))):0;};
 function approved(p,s) {
-  if(!p || !s || !p.product_identity || !p.release_approved || !p.review?.evidence || !p.review?.brand || !p.review?.editorial || !p.review?.risk)fail('SOURCE_REVIEW_OR_RELEASE_REQUIRED');
-  if(!p.uncertainty_state_model.includes(s.state)||!s.id||!s.revision||!s.evidence?.length||!s.approved_copy?.length)fail('SOURCE_CONTRACT_INCOMPLETE');
-  if(!s.approved_copy.every(c=>typeof c==='string'&&c.includes(s.state)))fail('STATE_NOT_VISIBLE_IN_APPROVED_COPY');
+  if(!p || !s || !p.product_identity || p.release_approved!==true || p.review?.evidence!==true || p.review?.brand!==true || p.review?.editorial!==true || p.review?.risk!==true)fail('SOURCE_REVIEW_OR_RELEASE_REQUIRED');
+  if(!p.uncertainty_state_model.includes(s.state)||!s.id||!s.revision||!s.evidence?.length||!(s.approved_copy?.length||s.source_facts?.length||s.source_material))fail('SOURCE_CONTRACT_INCOMPLETE');
+  if(!(s.approved_copy||[]).every(c=>typeof c==='string'&&c.includes(s.state)))fail('STATE_NOT_VISIBLE_IN_APPROVED_COPY');
 }
 
 export class GraphEngine {
-  constructor({store,products,adapters,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.maxSteps=maxSteps;}
+  constructor({store,products,adapters,harness=null,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;}
+  async modelWork(c,node,context,approvalKey) {
+    if(!this.harness)fail('HARNESS_DISPATCH_NOT_CONNECTED');
+    const b=c.product.budget;
+    if(!b?.[approvalKey]||!Number.isFinite(b.max_worker_usd)||b.max_worker_usd<=0||!Number.isFinite(b.max_worker_daily_usd)||!Number.isSafeInteger(b.max_worker_calls)||b.max_worker_calls<1)fail('WORKER_COST_APPROVAL_REQUIRED');
+    const ledgerKey='worker_cost:'+c.input.product+':'+now().slice(0,10);const ledger=await this.store.get(ledgerKey)||{calls:0,reserved_usd:0};
+    if(ledger.calls+2>b.max_worker_calls||ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd)fail('WORKER_DAILY_BOUND');
+    ledger.calls+=2;ledger.reserved_usd+=b.max_worker_usd*2;await this.store.put(ledgerKey,ledger);c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;
+    const input={...context,learning_routes:Object.fromEntries(Object.entries(c.state.routes).filter(([key])=>key.startsWith(encodeURIComponent(c.input.product)+':')))};input.input_hash=digest(input);
+    const work=await this.harness.work(marketingWorkUnit(node,c.input.product),input);
+    c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',reserved_usd:b.max_worker_usd*2};
+    await this.store.put('work:'+c.run_id+':'+node,c.node_work);return work;
+  }
   async tick() {
     // Bounded autonomous scheduler node: one product revision, then at most one
     // due performance observation. State is persistent across restarts.
@@ -49,27 +62,30 @@ export class GraphEngine {
     if(!input.product||!input.campaign_id)fail('PRODUCT_AND_CAMPAIGN_REQUIRED');
     return this.store.locked('engine',async()=>{
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
-      c.learning_before=structuredClone(c.state);let id='ingest';let count=0;
-      while(id) {
-        if(++count>this.maxSteps){c.status='FAILED';c.blocker='STEP_BOUND';await workers.receipt(c,this);break;}
-        const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
-        const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:input.product,campaign:input.campaign_id,learning:c.state.version})};
-        try {await workers[id](c,this);entry.status='PASS';}catch(e){entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}
-        entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
-        const edges=graph.edges.filter(e=>e.from===id);
-        const event=entry.status==='BLOCKED'?'blocked':c.duplicate&&id==='execute'?'duplicate':'success';
-        const edge=edges.find(e=>e.event===event);id=edge?.to||null;
-      }
+      c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
       if(c.status==='RUNNING')c.status=c.receipt?.execution_status==='PUBLISHED'?'PASS':c.receipt?.execution_status||'BLOCKED';
       const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
+  async traverse(c,start) {
+    let id=start;let count=0;
+      while(id) {
+        if(++count>this.maxSteps){c.status='FAILED';c.blocker='STEP_BOUND';await workers.receipt(c,this);break;}
+        const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
+        const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:c.input.product,campaign:c.input.campaign_id,learning:c.state.version})};
+        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}
+        entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
+        const edges=graph.edges.filter(e=>e.from===id);
+        const event=entry.status==='BLOCKED'?'blocked':c.duplicate&&id==='execute'?'duplicate':'success';
+        const edge=edges.find(e=>e.event===event);id=edge?.to||null;
+      }
+  }
   async feedback(receiptId) {
     return this.store.locked('engine',async()=>{
       const r=await this.store.get('receipt:'+receiptId);if(!r)fail('RECEIPT_NOT_FOUND');
-      const c={input:{product:r.product,campaign_id:r.campaign_id},receipt:r,state:await this.store.get('learning')||initial(),trace:[]};
-      for(const id of ['observe','normalize','learn','distribution_map']){try{await workers[id](c,this);c.trace.push({node:id,status:'PASS'});}catch(e){c.trace.push({node:id,status:'BLOCKED',reason:e.message});break;}}
+      const c={input:{product:r.product,campaign_id:r.campaign_id},receipt:r,state:await this.store.get('learning')||initial(),trace:[],status:'RUNNING',run_id:crypto.randomUUID()};
+      await this.traverse(c,'observe');
       await this.store.put('feedback:'+r.id,{trace:c.trace,outcome:c.outcome||null,learning:c.state});return {trace:c.trace,outcome:c.outcome,learning:c.state};
     });
   }
@@ -78,7 +94,7 @@ export class GraphEngine {
 const workers={
   async ingest(c,e) {
     c.product=structuredClone(e.products[c.input.product]);c.signal=c.product?.signals?.find(s=>!c.input.signal_id||s.id===c.input.signal_id);
-    approved(c.product,c.signal);c.truth_hash=digest(c.product);
+    c.truth_hash=digest(c.product||null);approved(c.product,c.signal);
     c.max_attempts=Math.min(3,Math.max(1,c.product.max_attempts||2));
   },
   async signal_extraction(c) {c.signals=c.product.signals.filter(s=>s.evidence?.length);},
@@ -93,7 +109,19 @@ const workers={
     // Persistent product-scoped map first. No broad discovery or invented destination.
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
-    if(!c.candidates.length)fail('NO_VERIFIED_DESTINATION_HARNESS_DISCOVERY_REQUIRED');
+    if(!c.candidates.length){
+      const cached=await e.store.get('discovery:'+c.input.product+':'+c.signal.revision);
+      if(cached)c.candidates=cached.destinations.map(d=>({...d,permission:c.product.destination_permissions?.[d.id]||{approved:false}}));
+      else{
+        const work=await e.modelWork(c,'scout',{signal:c.signal,brand:c.product.brand_system},'discovery_approved');
+        if(!Array.isArray(work.result.destinations)||!work.result.destinations.length||work.result.destinations.length>5)fail('DISCOVERY_RESULT_INVALID');
+        c.candidates=work.result.destinations.map(d=>{
+          if(!d.id||!d.platform||!Array.isArray(d.formats))fail('DISCOVERY_RESULT_INVALID');
+          return {...d,permission:c.product.destination_permissions?.[d.id]||{approved:false}};
+        });
+        await e.store.put('discovery:'+c.input.product+':'+c.signal.revision,{destinations:c.candidates,proof:work.proof});
+      }
+    }
   },
   async baseline(c) {c.candidates=c.candidates.filter(d=>d.baseline?.id&&d.baseline?.valid_until&&Date.parse(d.baseline.valid_until)>Date.now());if(!c.candidates.length)fail('DESTINATION_BASELINE_REQUIRED');},
   async delta(c) {c.candidates=c.candidates.filter(d=>d.delta?.signal_revision===c.signal.revision&&d.delta?.meaningful===true&&d.delta?.evidence_ids?.every(id=>c.signal.evidence.includes(id))&&d.delta.evidence_ids.length);},
@@ -106,18 +134,32 @@ const workers={
     c.selection={learning_version:c.state.version,options:options.map(({destination,...o})=>o),selected:c.route?.key||null};
     if(!c.route)fail('CIRCUIT_OPEN_OR_RATE_LIMITED');
   },
-  async editorial_intelligence(c) {
-    // Extract approved source wording. New reasoning/creative copy goes to the existing
-    // Harness contract; it cannot be replaced by unverified local model calls.
-    c.copy=c.signal.approved_copy[0];if(!c.copy)fail('HARNESS_CREATION_REQUIRED');
+  async editorial_intelligence(c,e) {
+    c.allowed_copy=[...(c.signal.approved_copy||[])];
+    if(!c.allowed_copy.length&&c.signal.source_facts?.length){
+      if(c.product.copy_policy?.extractive_template_approved!==true)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
+      const facts=c.signal.source_facts.filter(f=>typeof f.text==='string'&&f.text&&c.signal.evidence.includes(f.id));
+      if(!facts.length)fail('SOURCE_FACT_BINDING_REQUIRED');
+      const state=c.signal.state;
+      c.allowed_copy=[`${c.input.product} — ${state}\n\n${facts[0].text}\n\nUnresolved evidence: ${(c.signal.source_uncertainty||[]).join('; ')||'UNKNOWN'}`];
+      c.fact_bindings=facts.map(f=>f.id);c.copy_method='extractive_template';
+    }
+    if(!c.allowed_copy.length){
+      const context={source:c.signal,brand_system:c.product.brand_system,destination:c.route.id};
+      const work=await e.modelWork(c,'editorial_intelligence',context,'creation_approved');
+      if(!work.proof.evidence_refs.every(id=>c.signal.evidence.includes(id)))fail('HARNESS_COPY_EVIDENCE_OUT_OF_SCOPE');
+      if(!Array.isArray(work.result.copy)||!work.result.copy.every(x=>typeof x==='string'&&x.includes(c.signal.state)))fail('HARNESS_COPY_STATE_NOT_PRESERVED');
+      c.allowed_copy=work.result.copy;c.copy_proof=work.proof;c.copy_method='verified_harness';
+    }
+    c.copy=c.allowed_copy[0];if(!c.copy)fail('COPY_PRODUCTION_FAILED');
   },
   async editorial_quality_gate(c) {
-    if(!c.signal.approved_copy.includes(c.copy)||!c.copy.includes(c.signal.state)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
+    if(!c.allowed_copy.includes(c.copy)||!c.copy.includes(c.signal.state)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
     if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('UNSUPPORTED_FINANCIAL_CLAIM');
   },
   async variant_factory(c) {
     c.state.variants ||= {};
-    c.copy=[...c.signal.approved_copy].sort((a,b)=>(c.state.variants[digest([c.input.product,c.signal.id,c.route.id,c.route.format,b])]?.score||0)-(c.state.variants[digest([c.input.product,c.signal.id,c.route.id,c.route.format,a])]?.score||0))[0];
+    c.copy=[...c.allowed_copy].sort((a,b)=>(c.state.variants[digest([c.input.product,c.signal.id,c.route.id,c.route.format,b])]?.score||0)-(c.state.variants[digest([c.input.product,c.signal.id,c.route.id,c.route.format,a])]?.score||0))[0];
     if(!c.copy.includes(c.signal.state)||/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('VARIANT_EVIDENCE_OR_EDITORIAL_BOUND');
     c.variant_key=digest([c.input.product,c.signal.id,c.route.id,c.route.format,c.copy]);
     c.variant={id:digest([c.signal.id,c.signal.revision,c.copy]).slice(0,16),copy:c.copy,source_state:c.signal.state,evidence:[...c.signal.evidence],voice:c.product.brand_system||'UNDEFINED'};},
@@ -129,20 +171,20 @@ const workers={
     }else if(c.route.format==='image'){
       const a=c.signal.approved_asset;if(!a?.base64||!a.sha256||!a.reviewed||!['image/png','image/jpeg'].includes(a.mime))fail('APPROVED_IMAGE_REQUIRED');
       if(crypto.createHash('sha256').update(Buffer.from(a.base64,'base64')).digest('hex')!==a.sha256)fail('ASSET_HASH_MISMATCH');
-      c.asset={format:'image',copy:c.copy,...a};
+      c.asset={...a,format:'image',copy:c.copy};
     }else if(c.route.format==='text')c.asset={format:'text',copy:c.copy};else fail('FORMAT_WORKER_UNAVAILABLE');
   },
   async adapt(c,e) {c.adapter=e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');},
-  async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.signal.approved_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
+  async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.allowed_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
   async brand_gate(c) {if(!c.product.review.brand||!c.product.review.risk)fail('BRAND_OR_RISK_REVIEW_REQUIRED');},
   async permission_gate(c) {
     const d=c.route.destination;
-    if(!d.permission?.approved||Date.parse(d.permission.valid_until)<=Date.now()||!d.permission.valid_until||d.permission.signal_revision!==c.signal.revision)fail('DESTINATION_PERMISSION_REQUIRED');
+    if(d.permission?.approved!==true||Date.parse(d.permission.valid_until)<=Date.now()||!d.permission.valid_until||d.permission.signal_revision!==c.signal.revision)fail('DESTINATION_PERMISSION_REQUIRED');
     if(c.adapter.authorized&&!await c.adapter.authorized(c.input.product))fail('ACCOUNT_AUTHORIZATION_REQUIRED');
     // UNKNOWN-cost APIs are blocked until a bounded owner budget exists.
     if(c.adapter.cost!=='ZERO'){
       const budget=c.product.budget;
-      if(!budget?.approved||!Number.isFinite(budget.max_action_usd)||budget.max_action_usd<=0||!Number.isFinite(budget.max_cycle_usd)||budget.max_cycle_usd<budget.max_action_usd||!Number.isFinite(d.max_api_calls)||d.max_api_calls<1)fail('API_COST_APPROVAL_REQUIRED');
+      if(budget?.approved!==true||!Number.isFinite(budget.max_action_usd)||budget.max_action_usd<=0||!Number.isFinite(budget.max_cycle_usd)||budget.max_cycle_usd<budget.max_action_usd||!Number.isFinite(d.max_api_calls)||d.max_api_calls<1)fail('API_COST_APPROVAL_REQUIRED');
       if(c.adapter.publishCalls&&d.max_api_calls<c.adapter.publishCalls(c.asset))fail('API_CALL_BOUND_TOO_LOW');
       if(!Number.isFinite(d.max_action_usd)||d.max_action_usd>budget.max_action_usd)fail('API_COST_BOUND_REQUIRED');
     }
@@ -159,7 +201,7 @@ const workers={
       if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||ledger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||ledger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
       ledger.reserved_usd+=c.route.destination.max_action_usd;ledger.calls+=c.route.destination.max_api_calls;await e.store.put(ledgerKey,ledger);c.reserved_cost_usd=c.route.destination.max_action_usd;
     }
-    c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
+    c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     const pendingKey='pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision;
     await e.store.put(pendingKey,{receipt_id:c.publication_key,status:'IN_FLIGHT'});
@@ -172,11 +214,11 @@ const workers={
       // A timeout/5xx after POST might already have published. Never repeat it blindly.
       Object.assign(c.receipt,{execution_status:status===429?'RATE_LIMITED':status&&status>=400&&status<500?'FAILED':'AMBIGUOUS',error:String(error.message).slice(0,200),retry_at:status===429?new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString():null});
     }
-    if(c.receipt.execution_status!=='AMBIGUOUS')await e.store.put(pendingKey,null);
     await e.store.put('receipt:'+c.publication_key,c.receipt);
+    if(c.receipt.execution_status!=='AMBIGUOUS')await e.store.put(pendingKey,null);
   },
   async receipt(c,e) {
-    if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',api_cost_usd:0,ad_spend_usd:0};
+    if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
     await e.store.put('receipt:'+c.receipt.id,c.receipt);await e.store.put('latest_receipt',c.receipt);
     const index=await e.store.get('receipt_index')||[];const filtered=index.filter(r=>r.id!==c.receipt.id);filtered.push({...c.receipt,last_collection:now()});await e.store.put('receipt_index',filtered.slice(-200));
   },
@@ -219,7 +261,9 @@ const workers={
     const impressions=c.outcome.measurements.impression_count;
     if(likes?.scope==='x_public_metrics'&&impressions?.scope==='x_public_metrics'&&impressions.value>=100&&likes.value<=impressions.value)record.measurement_adjustment=Math.min(0.2,likes.value/impressions.value);
     record.last_receipt=r.id;record.timing_observations={last_execution_at:r.timestamp,last_observed_at:c.outcome.observed_at,optimal_time:'UNKNOWN'};
-    record.measurements=c.outcome.measurements;
+    record.current_measurement_state=c.performance.status;
+    if(Object.keys(c.outcome.measurements).length)record.measurements=c.outcome.measurements;
+    record.last_known_evidence_strength=record.evidence_strength==='DIRECT_MEASUREMENT'?'DIRECT_MEASUREMENT':old.last_known_evidence_strength||'UNKNOWN';
     c.state.routes[r.route_key]=record;
     c.state.variants ||= {};if(r.variant_key)c.state.variants[r.variant_key]={score:record.measurement_adjustment||0,evidence_strength:record.evidence_strength,receipt_id:r.id};c.state.processed[event]=true;c.state.processed[observation]=true;c.state.version++;
     c.state.history.push({version:c.state.version,route_key:r.route_key,receipt_id:r.id,before:old,after:record});c.state.history=c.state.history.slice(-100);

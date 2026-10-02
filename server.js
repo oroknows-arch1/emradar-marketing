@@ -5,6 +5,8 @@ import { createClient } from "redis";
 import fs from 'node:fs/promises';
 import { GraphEngine } from './runtime/graph.js';
 import { RedisStore } from './runtime/store.js';
+import {ProductIntake,loadPolicies} from './runtime/intake.js';
+import {loadHarness} from './runtime/harness.js';
 import { xAdapter, localAdapter } from './runtime/adapters.js';
 
 const PORT=Number(process.env.PORT||10000);
@@ -51,7 +53,7 @@ async function xFetch(url,token,options={}){
   const r=await fetch(url,{...options,headers:{authorization:`Bearer ${token}`,...(options.headers||{})}});
   const data=await r.json().catch(()=>({})); if(!r.ok) {const error=new Error(`X API failed (${r.status})`);error.status=r.status;error.retry_at=Number(r.headers.get('x-rate-limit-reset')||0)*1000;throw error;} return data;
 }
-async function readBody(req){const chunks=[];for await(const c of req)chunks.push(c);return Buffer.concat(chunks);}
+async function readBody(req){const chunks=[];let bytes=0;for await(const c of req){bytes+=c.length;if(bytes>12000000)throw new Error('INPUT_TOO_LARGE');chunks.push(c);}return Buffer.concat(chunks);}
 function failReceipt(stage,error){const receipt={ok:false,stage,timestamp:new Date().toISOString(),error:String(error?.message||error).slice(0,240)};receipts.push(receipt);return receipt;}
 
 function authorizedRequest(req){
@@ -78,17 +80,19 @@ async function publishX(asset,key,product){
   if(!post?.data?.id)throw new Error('X publication receipt missing post id');
   return {status:'PUBLISHED',id:post.data.id,url:`https://x.com/i/web/status/${post.data.id}`,cost_usd:'UNKNOWN'};
 }
+async function productIntake(){
+  const policies=await loadPolicies(process.env.MARKETING_PRODUCTS_FILE,process.env.MARKETING_PRODUCTS_JSON);
+  return new ProductIntake({store:new RedisStore(await store()),policies,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});
+}
 async function marketingEngine(){
-  const file=process.env.MARKETING_PRODUCTS_FILE;
-  if(!file)throw new Error('TRUSTED_PRODUCT_PACKAGES_REQUIRED');
-  const products=JSON.parse(await fs.readFile(file,'utf8'));
+  const products=await (await productIntake()).products();
   const adapters={X:xAdapter({publish:publishX,authorized:async product=>!!(await currentAuth(product))?.access_token,fetchMetrics:async(id,product)=>{
     const auth=await currentAuth(product);
     if(!auth?.access_token)throw new Error('X authorization required');
     return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);
   }})};
   if(process.env.MARKETING_TEST_DIRECTORY)adapters.LOCAL=localAdapter(process.env.MARKETING_TEST_DIRECTORY);
-  return new GraphEngine({store:new RedisStore(await store()),products,adapters});
+  return new GraphEngine({store:new RedisStore(await store()),products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)});
 }
 
 const server=http.createServer(async(req,res)=>{
@@ -112,10 +116,13 @@ const server=http.createServer(async(req,res)=>{
     try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});const auth={...t,authorized_at:new Date().toISOString(),expires_at:Date.now()+(Number(t.expires_in||7200)*1000)};await saveAuth(s.product,auth);sessions.set(`authorized:${productKey(s.product)}`,auth);sessions.delete(state);res.writeHead(302,{location:"/"});return res.end();}
     catch(e){return json(res,502,failReceipt("oauth_callback",e));}
   }
-  if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE"].includes(u.pathname)){
+  if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
+    try{const envelope=JSON.parse(await readBody(req));const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE","/CYCLE"].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
     let input;try{input=JSON.parse(await readBody(req));}catch{return json(res,400,{ok:false,error:"invalid JSON"});}
-    try{const engine=await marketingEngine();const result=u.pathname==="/RUN_MARKETING"?await engine.run(input):await engine.feedback(input.receipt_id);return json(res,200,result);}
+    try{const engine=await marketingEngine();const result=u.pathname==='/CYCLE'?await engine.tick():u.pathname==="/RUN_MARKETING"?await engine.run(input):await engine.feedback(input.receipt_id);return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:"BLOCKED",reason:e.message});}
   }
   if(req.method==="GET"&&u.pathname==="/receipts/latest"){

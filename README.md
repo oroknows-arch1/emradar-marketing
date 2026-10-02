@@ -61,3 +61,11 @@ model calls. X supports reviewed image bytes or approved short text. Missing nov
 copy, destination research, or image review is an explicit bounded Harness-required
 blocker; the engine never silently substitutes an unreviewed model or weakens a gate.
 The existing VC Harness contract remains the sole owner of provider/model routing.
+
+Signed `/PRODUCT_INPUT` now persists source revisions without granting marketing
+permissions. `runtime/intake.js` translates native EMRADAR scans, preserving
+uncertainty. Source-bound templates can manufacture copy from facts; the configured
+Harness bridge handles verified creation/discovery with bounded cost reservations.
+`/CYCLE` permits an authorized external scheduler. Observation re-entry follows the
+same executable graph edges. See the activation contract for the genuine deployment,
+source signing, runtime and financial prerequisites.

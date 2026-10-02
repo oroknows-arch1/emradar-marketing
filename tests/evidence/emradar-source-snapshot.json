@@ -1,0 +1,126 @@
+{
+  "version": 6,
+  "snapshot_date": "2026-09-30",
+  "previous_scan_date": "2026-09-23",
+  "contract": "causal-chain-evolution-v1",
+  "rule": "Blank global candidate set first. Prior holdings, watchlists, themes and findings do not constrain discovery.",
+  "scope_note": "Fresh world-change-first replacement scan after loss of the earlier 30 September payload. Evidence checked; this file is preserved before any publication attempt.",
+  "records": [
+    {
+      "id": "global-grid-equipment-bottleneck",
+      "theme": "Grid equipment manufacturing is becoming a financed industrial bottleneck rather than only a utility capex story",
+      "status": "CONFIRMED",
+      "new_to_radar": true,
+      "location": "Global / Europe / United States / Asia",
+      "why_surfaced": "Electricity demand, data centres and electrification are colliding with multi-year lead times for transformers, cables and related grid equipment. New financing and manufacturing-capacity commitments show capital moving directly toward the bottleneck.",
+      "causal_chain": {
+        "world_change": ["Electricity demand from data centres and electrification is rising while grids require expansion."],
+        "pressure": ["Utilities and governments need more transmission and distribution equipment."],
+        "bottleneck_or_scarcity": ["Multi-year lead times for transformers, cables and related grid equipment."],
+        "formation": ["Financing and factory investment are moving directly toward grid-equipment capacity."],
+        "industries": ["Electrical equipment", "Transmission and distribution infrastructure"],
+        "connected_companies_and_tickers": ["Hitachi Ltd (Tokyo:6501)", "GE Vernova (NYSE:GEV)", "Siemens Energy (Xetra:ENR)"],
+        "consequences": ["New manufacturing capacity", "Potential margin pressure from copper, aluminium and electrical steel"],
+        "evidence": ["IEA Electricity 2026", "European Investment Bank guarantee arrangement", "Hitachi Energy Mississippi factory announcement"]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null, "current_scan_state": "CONFIRMED",
+        "what_changed": "Newly discovered chain; no matching formation ID existed in the previous scan.",
+        "why_state_changed": "First observation in this chain identity; status is supported by multiple independent demand, finance and capacity signals.",
+        "strengthening_evidence": ["Financing and factory commitments independently support the equipment bottleneck."],
+        "weakening_evidence": [],
+        "break_conditions": ["Sustained lead-time normalisation", "Capacity expansion removes equipment scarcity", "Grid-capex cancellations materially reduce demand"],
+        "actual_breaks": [],
+        "unresolved_evidence": ["Order-backlog duration", "Factory utilisation", "Margins after input-cost inflation"],
+        "new_links": ["Financing is now linked directly to European grid-component manufacturers", "Hitachi Energy added a major US transformer-capacity commitment"],
+        "removed_links": []
+      },
+      "listed_players": [
+        {"name":"Hitachi Ltd","ticker":"6501","exchange":"Tokyo","role":"Parent of Hitachi Energy; transformer and grid equipment exposure"},
+        {"name":"GE Vernova","ticker":"GEV","exchange":"NYSE","role":"Grid equipment exposure"},
+        {"name":"Siemens Energy","ticker":"ENR","exchange":"Xetra","role":"Grid technology and transmission equipment exposure"}
+      ],
+      "evidence": [
+        {"fact":"IEA says more than 2,500 GW of projects are stalled in grid queues and annual grid investment needs to rise about 50% by 2030 from roughly $400 billion.","source":"IEA Electricity 2026"},
+        {"fact":"EIB and BNP Paribas signed a €700 million guarantee arrangement on 29 September specifically to support European grid-component manufacturers.","source":"European Investment Bank"},
+        {"fact":"Hitachi Energy announced a $528 million Mississippi transformer factory, its largest single U.S. manufacturing investment.","source":"Reuters"}
+      ],
+      "contradictions":["Permitting remains a major grid constraint, so equipment supply is not the only bottleneck.","Higher copper, aluminium and electrical-steel input costs can pressure manufacturer margins."],
+      "what_to_check_next":["Order backlogs and lead times","Factory commissioning and utilisation","Margins versus input-cost inflation","Valuation and price-entry thresholds"]
+    },
+    {
+      "id":"singapore-specialty-semiconductor-capacity",
+      "theme":"Singapore is adding strategic 300mm specialty-chip capacity for automotive, industrial, power-management and physical-AI demand",
+      "status":"FORMING","new_to_radar":true,"location":"Singapore",
+      "why_surfaced":"VSMC has moved from construction into risk production, with volume production scheduled for Q1 2027. The facility targets mature and specialty nodes used across automotive, industrial, power-management, HPC and consumer applications rather than leading-edge AI accelerators alone.",
+      "causal_chain": {
+        "world_change": ["Singapore is adding strategic 300mm specialty-semiconductor capacity."],
+        "pressure": ["Automotive, industrial, power-management and physical-AI applications require mature and specialty nodes."],
+        "bottleneck_or_scarcity": ["Regional specialty-node manufacturing capacity and production readiness."],
+        "formation": ["VSMC has entered risk production with volume production scheduled for Q1 2027."],
+        "industries": ["Semiconductor foundries", "Automotive and industrial electronics", "Power management"],
+        "connected_companies_and_tickers": ["NXP Semiconductors (NASDAQ:NXPI)", "Vanguard International Semiconductor (Taipei:5347)"],
+        "consequences": ["More geographically diversified specialty-chip supply", "Utilisation and production economics remain unproven"],
+        "evidence": ["NXP / VSMC fab opening", "NXP / VSMC capacity target", "Singapore Ministry of Trade and Industry statement"]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null, "current_scan_state": "FORMING",
+        "what_changed": "Newly discovered chain; no matching formation ID existed in the previous scan.",
+        "why_state_changed": "First observation; physical capacity and risk production are verified, but commercial utilisation is not.",
+        "strengthening_evidence": ["Risk production began and the physical fab opened."],
+        "weakening_evidence": [],
+        "break_conditions": ["Volume-production cancellation", "Sustained inability to qualify customers", "Commercially uneconomic utilisation"],
+        "actual_breaks": [],
+        "unresolved_evidence": ["Q1 2027 production start", "Customer commitments", "Utilisation and returns on invested capital"],
+        "new_links": ["Risk production links construction to operational readiness", "Specialty capacity links to automotive, industrial and power-management demand"],
+        "removed_links": []
+      },
+      "listed_players":[
+        {"name":"NXP Semiconductors","ticker":"NXPI","exchange":"NASDAQ","role":"VSMC joint-venture owner and intended capacity user"},
+        {"name":"Vanguard International Semiconductor","ticker":"5347","exchange":"Taipei Exchange","role":"VSMC joint-venture owner and foundry operator"}
+      ],
+      "evidence":[
+        {"fact":"VSMC opened its first Singapore 300mm fab on 28 September; risk production has begun and volume production is scheduled for Q1 2027.","source":"NXP / VSMC"},
+        {"fact":"The fab is expected to reach about 44,000 12-inch wafers per month at full capacity by 2029.","source":"NXP / VSMC"},
+        {"fact":"Singapore's trade ministry says the facility was built and fitted out in less than two years and is preparing to begin production.","source":"Singapore Ministry of Trade and Industry"}
+      ],
+      "contradictions":["Volume production has not started, so commercial utilisation and economics are not yet proven.","Singapore faces high operating costs and labour constraints."],
+      "what_to_check_next":["Q1 2027 production start","Customer commitments and utilisation","Second-fab decision","NXP/VIS returns on invested capital"]
+    },
+    {
+      "id":"east-africa-refining-localisation",
+      "theme":"East Africa is attempting to localise petroleum refining at very large scale",
+      "status":"INVESTIGATE","new_to_radar":true,"location":"Lamu, Kenya / East Africa",
+      "why_surfaced":"A proposed 700,000-barrel-per-day refinery would materially change East Africa's dependence on imported refined fuels and could create adjacent petrochemical, bitumen, logistics and infrastructure demand.",
+      "causal_chain": {
+        "world_change": ["Kenya and Dangote proposed a large refinery at Lamu."],
+        "pressure": ["East Africa depends on imported refined fuels."],
+        "bottleneck_or_scarcity": ["Local refining capacity, feedstock logistics and project finance."],
+        "formation": ["A proposed 700,000-barrel-per-day refinery could localise fuel processing."],
+        "industries": ["Petroleum refining", "Petrochemicals", "Bitumen", "Ports and logistics"],
+        "connected_companies_and_tickers": [],
+        "consequences": ["Potential reduction in refined-fuel imports", "Potential adjacent infrastructure demand", "Large execution and environmental risk"],
+        "evidence": ["Reuters / AP project announcement", "Reuters / AP regional-government stake report"]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null, "current_scan_state": "INVESTIGATE",
+        "what_changed": "Newly discovered chain; no matching formation ID existed in the previous scan.",
+        "why_state_changed": "First observation; scale is material but financing, land, feedstock and construction are unresolved.",
+        "strengthening_evidence": ["The proposed capacity and regional-government participation were publicly announced."],
+        "weakening_evidence": ["Land, legal, environmental and feedstock uncertainties weaken execution confidence."],
+        "break_conditions": ["Financing failure", "Land or court decision prevents construction", "Project cancellation"],
+        "actual_breaks": [],
+        "unresolved_evidence": ["Final financing", "Land and court resolution", "Crude supply agreements", "Construction milestones"],
+        "new_links": ["The refinery proposal links import dependence to local processing and logistics demand"],
+        "removed_links": []
+      },
+      "listed_players":[],
+      "evidence":[
+        {"fact":"Dangote and Kenya announced construction of a $16 billion Lamu refinery with planned capacity of 700,000 barrels per day and target completion in 2030.","source":"Reuters / AP"},
+        {"fact":"Regional governments have been offered a combined 30% stake.","source":"Reuters / AP"}
+      ],
+      "contradictions":["The project faces land/legal and environmental objections.","Kenya currently lacks commercial domestic crude production, increasing feedstock and logistics uncertainty.","Completion is targeted for 2030, leaving substantial execution risk."],
+      "what_to_check_next":["Final financing","Land/court resolution","Crude supply agreements","Construction milestones","Listed suppliers and infrastructure beneficiaries"]
+    }
+  ]
+}

@@ -73,3 +73,52 @@ Redis and live X metric access must be verified in the hosting environment after
 activation; existing OAuth is preserved. The optional Harness-required paths are
 explicit blockers because this repository contains a routing contract, not a callable
 Harness service. No claim is made that fresh discovery/model creation is connected.
+
+## Signed source handoff and graph workers
+
+`POST /PRODUCT_INPUT` accepts `{product,sequence,source}` with an
+`x-product-signature` HMAC-SHA256 over its JSON serialization. Keys are per product
+in `MARKETING_SOURCE_KEYS_JSON`; registered owner policy comes from
+`MARKETING_PRODUCTS_FILE` or `MARKETING_PRODUCTS_JSON`. Sequences are monotonic;
+exact duplicate input is idempotent. Source authority is limited to signals, source
+release and evidence/editorial attestations. Input cannot change destination
+permission, budgets, autonomous activation or product brand policy.
+
+`runtime/intake.js` exposes `emradarSource` for the native discovery schema. It
+preserves source state, causal chain, evolution, facts and uncertainty. No release
+approval is inferred from a publicly readable scan. The real snapshot handoff proof
+is `tests/evidence/native-source-handoff.json` (`npm run test:native-source`).
+
+Approved extractive templates can generate text from bound source facts without
+model usage (`copy_policy.extractive_template_approved`). Missing facts are not
+invented. All existing release, evidence, editorial and permission gates still apply.
+The native adapter is an engine-side handoff; the product publisher still needs its
+registered signing key and a source trigger to call this endpoint.
+
+For fresh discovery/creation, `MARKETING_HARNESS_MODULE` names a trusted deployed
+module exporting the canonical Harness `routeWorkUnit`,
+`createRuntimeProviderRegistry`, plus `executeMarketingWorkUnit` and
+`verifyMarketingWorkUnit` transport wrappers. The existing Harness router remains
+responsible for lane/provider selection. Verification binds input/output hashes and
+source evidence IDs. Attempts are capped at two, with numeric worker-budget
+reservations before dispatch (`creation_approved`/`discovery_approved`,
+`max_worker_usd`, `max_worker_daily_usd`, `max_worker_calls`). No configured runtime
+means `HARNESS_DISPATCH_NOT_CONNECTED`; the repository contract alone is not a
+running model service. Discovered destinations inherit only current owner permission,
+including when loaded from cache. Model-created PASS strings confer no authority.
+
+Authenticated `POST /CYCLE` invokes the same bounded scheduler node. This permits
+an authorized external scheduler where an in-process timer cannot stay running.
+Observation re-entry now traverses graph edges, rather than a hard-coded worker list.
+
+## Live inspection on 2026-10-02 UTC
+
+Workspace: approved `My Workspace` (`tea-d79k6muuk2gs73eesr2g`).
+Marketing service: `srv-dav3uj60tbcc73dggrag`, live main commit `0a782880`.
+Plan: free web service. Key Value: `emradar-x-auth`, plan `256mb`, available.
+Exact account billing and API prices were not exposed and remain UNKNOWN.
+Health reported EMRADAR X disconnected and Atlasoquence X connected. This proves
+reported availability at inspection time, not that refresh failure/revocation was
+independently diagnosed. No reconnect was attempted and no credentials were replaced.
+No Harness service appears in the approved workspace's service inventory.
+No new paid service, external campaign or API-metrics purchase was created.
