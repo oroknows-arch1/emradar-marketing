@@ -1,0 +1,7 @@
+{
+  "version": "2026-10-03",
+  "source_release": {"automatic_after_native_gates": true, "required_gates": ["evidence", "editorial", "brand", "risk", "publication"]},
+  "providers": {"automatic_connected_approved_only": true},
+  "spending": {"currency": "AUD", "campaign_limit": 5, "calendar_month_limit": 50, "timezone": "Australia/Sydney", "unknown_blocks_paid": true},
+  "routine_human_approval": false
+}

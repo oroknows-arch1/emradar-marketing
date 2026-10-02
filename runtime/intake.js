@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import {nativeReleasePassed} from './authority.js';
 
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 export const signSource=(envelope,key)=>crypto.createHmac('sha256',key).update(JSON.stringify(envelope)).digest('hex');
@@ -17,7 +18,9 @@ export class ProductIntake {
       const old=await this.store.get('source:'+envelope.product);const digest=hash(envelope);
       if(old?.sequence===envelope.sequence&&old.digest===digest)return {status:'DUPLICATE_INPUT',digest};
       if(old&&envelope.sequence<=old.sequence)throw new Error('STALE_OR_CONFLICTING_SOURCE');
-      const source={signals:envelope.source.signals,release_approved:envelope.source.release_approved===true,review:{evidence:envelope.source.review?.evidence===true,editorial:envelope.source.review?.editorial===true}};
+      const automatic=policy.source_release_authority?.automatic_after_native_gates===true;
+      const passed=nativeReleasePassed(envelope.source);
+      const source={signals:envelope.source.signals,native_gates:envelope.source.native_gates||null,release_approved:automatic?!!passed:envelope.source.release_approved===true,review:automatic?{evidence:!!passed,editorial:!!passed,brand:!!passed,risk:!!passed}:{evidence:envelope.source.review?.evidence===true,editorial:envelope.source.review?.editorial===true}};
       await this.store.put('source:'+envelope.product,{source,sequence:envelope.sequence,digest,received_at:new Date().toISOString()});
       const receipt={node:'product_context_intake',status:'ACCEPTED_SOURCE',product:envelope.product,sequence:envelope.sequence,digest,ignored_authority_fields:['budget','destinations','permissions','brand_system','autonomous'],next:'ingest'};
       await this.store.put('source_receipt:'+envelope.product,receipt);return receipt;
