@@ -19,7 +19,7 @@ async function store(){
 const PRODUCTS=["EMRADAR","Atlasoquence"];
 const productKey=p=>String(p||"EMRADAR").toLowerCase();
 async function saveAuth(product,auth){const s=await store();await s.set(`marketing:x:authorized:${productKey(product)}`,JSON.stringify(auth));}
-async function loadAuth(product){try{const s=await store(),raw=await s.get(`marketing:x:authorized:${productKey(product)}`);return raw?JSON.parse(raw):null;}catch(e){console.error("Key Value load failed",e.message);return null;}}
+async function loadAuth(product){try{const s=await store();let raw=await s.get(`marketing:x:authorized:${productKey(product)}`);if(!raw&&product==="EMRADAR")raw=await s.get("emradar:x:authorized");return raw?JSON.parse(raw):null;}catch(e){console.error("Key Value load failed",e.message);return null;}}
 async function currentAuth(product="EMRADAR"){
   let auth=sessions.get(`authorized:${productKey(product)}`)||await loadAuth(product);
   if(!auth?.access_token) return null;
