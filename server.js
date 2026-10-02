@@ -64,6 +64,11 @@ function authorizedRequest(req){
   const expected='Bearer '+secret;
   return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
 }
+function authorizedPublicationReview(req){
+  const secret=process.env.MARKETING_PUBLICATION_REVIEW_TOKEN;
+  const actual=String(req.headers.authorization||'');const expected='Bearer '+secret;
+  return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
+}
 async function publishX(asset,key,product){
   const auth=await currentAuth(product);if(!auth?.access_token){const error=new Error('X authorization required');error.status=401;throw error;}
   let media;
@@ -124,6 +129,19 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
     try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));if(process.env.MARKETING_AUTONOMOUS!=='true')return json(res,200,{status:'SCHEDULER_DISABLED',result:null,feedback:null});const result=await (await marketingEngine()).tick();return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
+    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{
+      if(req.method==='GET'){
+        const id=u.searchParams.get('proposal_id');if(!id||!/^[a-f0-9]{64}$/.test(id))return json(res,400,{ok:false,reason:'PROPOSAL_ID_REQUIRED'});
+        const proposal=await new RedisStore(await store()).get('publication_review:'+id);
+        return json(res,proposal?200:404,proposal||{ok:false,reason:'PUBLICATION_REVIEW_NOT_FOUND'});
+      }
+      const decision=JSON.parse(await readBody(req));
+      if(!/^[a-f0-9]{64}$/.test(decision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(decision?.review_hash||''))return json(res,400,{ok:false,reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});
+      return json(res,200,await (await marketingEngine()).approvePublication(decision));
+    }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE","/CYCLE"].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
