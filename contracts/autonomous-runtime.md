@@ -118,6 +118,25 @@ and audience. The endpoint safely skips while `MARKETING_AUTONOMOUS` is false.
 Scheduled runs may be delayed; the persistent scheduler de-duplicates revisions
 and observations. No Render cron/worker resource is added.
 
+## Final publication review
+
+For every non-LOCAL destination, the `publication_review` node is the final owner
+gate after the existing automated gates. A run returns `AWAITING_REVIEW` with a
+proposal ID and review hash. No destination call occurs. The proposal holds the
+exact copy, asset, source state/evidence, destination, format and 24-hour expiry.
+Set `MARKETING_PUBLICATION_REVIEW_TOKEN` as a separate owner-only Render secret;
+do not give it to the scheduler, source publisher or Harness. The existing engine
+token cannot grant this approval.
+
+`GET /PUBLICATION_REVIEW?proposal_id=<id>` with that bearer token returns the full
+proposal for owner inspection. `POST /PUBLICATION_REVIEW` with the same bearer token
+and `{ "proposal_id": "...", "review_hash": "..." }` records an owner decision and
+immediately reruns the graph. All automated gates execute again, and publication
+proceeds only if the exact draft still matches. A changed source revision, copy,
+destination or product policy produces a new `AWAITING_REVIEW` proposal. Receipt
+idempotency prevents a second post from a repeated approval. This is a deliberate
+human gate at submission, not recurring approvals throughout preparation.
+
 For fresh discovery/creation, `MARKETING_HARNESS_MODULE` names a trusted deployed
 module exporting the canonical Harness `routeWorkUnit`,
 `createRuntimeProviderRegistry`, plus `executeMarketingWorkUnit` and

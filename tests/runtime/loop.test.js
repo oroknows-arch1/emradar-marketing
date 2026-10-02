@@ -8,7 +8,7 @@ import {xAdapter} from '../../runtime/adapters.js';
 test('A–J: actual local delivery, measurement, learning and next graph consumption',async()=>{
  const f=await fixture();const r=await f.engine.run(f.input);
  assert.equal(r.status,'PASS');assert.equal(r.receipt.execution_status,'PUBLISHED');
- for(const node of ['ingest','signal_extraction','signal_library','priority','campaign','scout','baseline','delta','novelty_gate','route','editorial_intelligence','editorial_quality_gate','variant_factory','format','adapt','evidence_gate','brand_gate','permission_gate','execute','receipt','observe','normalize','learn','distribution_map'])assert(r.nodes.some(n=>n.node===node&&n.status==='PASS'),node);
+ for(const node of ['ingest','signal_extraction','signal_library','priority','campaign','scout','baseline','delta','novelty_gate','route','editorial_intelligence','editorial_quality_gate','variant_factory','format','adapt','evidence_gate','brand_gate','permission_gate','publication_review','execute','receipt','observe','normalize','learn','distribution_map'])assert(r.nodes.some(n=>n.node===node&&n.status==='PASS'),node);
  assert.equal((await f.store.get('receipt:'+r.receipt.id)).external_id,r.receipt.external_id);
  assert.equal(r.outcome.measurements.content_verified.value,1);assert(r.outcome.measurements.delivered_bytes.value>0);assert.equal(r.outcome.engagement_rate,'UNKNOWN');
  assert.equal(r.learning_before.version,0);assert.equal(r.learning_after.version,1);

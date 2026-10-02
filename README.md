@@ -88,3 +88,10 @@ repo's `main` workflow; it skips while `MARKETING_AUTONOMOUS` is disabled. Sourc
 publishers still need an actual native gate event and signed handoff; a deployed
 Harness executor and reconciled provider billing remain unavailable. Do not equate
 this draft with full autonomous external distribution.
+
+External publication now stops at the `publication_review` graph node after the
+evidence, editorial, brand, risk, destination permission and cost gates. The engine
+persists an exact draft with its source state, copy, asset, destination and hash,
+returns `AWAITING_REVIEW`, and performs no external action. An owner-only approval
+for that exact hash resumes execution, receipt, measurement and learning. A changed
+asset, route or product truth needs a new review. Local safe tests remain unattended.

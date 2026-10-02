@@ -254,11 +254,23 @@
       "authority": "verify_only",
       "failure_state": "BLOCKED_OR_UNKNOWN",
       "handoff": [
-        "execute",
+        "publication_review",
         "receipt"
       ],
       "max_attempts": 1,
       "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "publication_review",
+      "worker": "owner_publication_review",
+      "hard": true,
+      "inputs": ["gated_asset", "destination", "product_truth_hash", "source_revision", "current_permission", "owner_decision"],
+      "outputs": ["review_proposal_or_exact_approval"],
+      "authority": "owner_approval_only_for_external_publication",
+      "failure_state": "AWAITING_REVIEW_OR_BLOCKED",
+      "handoff": ["execute", "receipt"],
+      "max_attempts": 1,
+      "execution_lane": "human_required_for_external_publication"
     },
     {
       "id": "execute",
@@ -613,6 +625,7 @@
     "scan_research_reuse": true,
     "marketing_may_prepare_in_parallel": true,
     "distribution_requires_final_scan_gate": true,
+    "external_publication_requires_exact_owner_review": true,
     "t_plus_tracking_never_blocks_marketing": true
   },
   "execution_routing": {
@@ -671,6 +684,11 @@
       "aiRequired": true
     },
     "permission_gate": {
+      "complexity": "fixed",
+      "separable": false,
+      "aiRequired": false
+    },
+    "publication_review": {
       "complexity": "fixed",
       "separable": false,
       "aiRequired": false
@@ -829,8 +847,18 @@
     },
     {
       "from": "permission_gate",
+      "to": "publication_review",
+      "event": "success"
+    },
+    {
+      "from": "publication_review",
       "to": "execute",
       "event": "success"
+    },
+    {
+      "from": "publication_review",
+      "to": "receipt",
+      "event": "awaiting_review"
     },
     {
       "from": "execute",
@@ -944,6 +972,11 @@
     },
     {
       "from": "permission_gate",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "publication_review",
       "to": "receipt",
       "event": "blocked"
     },

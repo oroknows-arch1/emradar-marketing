@@ -18,6 +18,17 @@ function approved(p,s) {
 
 export class GraphEngine {
   constructor({store,products,adapters,harness=null,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;this.spend=new SpendEnvelope(store);}
+  async approvePublication({proposal_id,review_hash}) {
+    const proposal=await this.store.locked('engine',async()=>{
+      const p=await this.store.get('publication_review:'+proposal_id);
+      if(!p||p.review_hash!==review_hash||Date.parse(p.expires_at)<=Date.now())fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
+      const existing=await this.store.get('receipt:'+p.publication_key);
+      if(existing?.execution_status==='PUBLISHED')fail('PUBLICATION_ALREADY_EXECUTED');
+      await this.store.put('publication_approval:'+proposal_id,{review_hash,approved_by:'OWNER',approved_at:now(),expires_at:p.expires_at});
+      return p;
+    });
+    return this.run(proposal.input);
+  }
   async modelWork(c,node,context,approvalKey) {
     if(!this.harness)fail('HARNESS_DISPATCH_NOT_CONNECTED');
     const b=c.product.budget;
@@ -70,7 +81,7 @@ export class GraphEngine {
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
       c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
       if(c.status==='RUNNING')c.status=c.receipt?.execution_status==='PUBLISHED'?'PASS':c.receipt?.execution_status||'BLOCKED';
-      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
+      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
@@ -83,7 +94,7 @@ export class GraphEngine {
         try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}
         entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
         const edges=graph.edges.filter(e=>e.from===id);
-        const event=entry.status==='BLOCKED'?'blocked':c.duplicate&&id==='execute'?'duplicate':'success';
+        const event=entry.status==='BLOCKED'?'blocked':c.review_pending&&id==='publication_review'?'awaiting_review':c.duplicate&&id==='execute'?'duplicate':'success';
         const edge=edges.find(e=>e.event===event);id=edge?.to||null;
       }
   }
@@ -196,6 +207,20 @@ const workers={
       if(!Number.isFinite(d.max_action_usd)||d.max_action_usd>budget.max_action_usd)fail('API_COST_BOUND_REQUIRED');
     }
   },
+  async publication_review(c,e) {
+    if(c.route.destination.platform==='LOCAL')return;
+    const publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
+    const review_hash=digest({product_truth:c.truth_hash,signal_revision:c.signal.revision,asset:c.asset,destination:c.route.destination,source_receipt:c.product.source_receipt||null});
+    const proposal_id=digest([publication_key,review_hash]);
+    const approval=await e.store.get('publication_approval:'+proposal_id);
+    if(approval?.review_hash===review_hash&&approval.approved_by==='OWNER'&&Date.parse(approval.expires_at)>Date.now()){
+      c.review={proposal_id,review_hash,decision:'APPROVED',approved_at:approval.approved_at};return;
+    }
+    const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
+    await e.store.put('publication_review:'+proposal_id,proposal);
+    c.review={proposal_id,review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs};
+    c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
+  },
   async execute(c,e) {
     c.publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const prior=await e.store.get('receipt:'+c.publication_key);
@@ -212,7 +237,7 @@ const workers={
     const costQuote=c.adapter.cost==='ZERO'?zeroQuote(c.publication_key):await c.adapter.quote({operation:'publish',asset:c.asset,product:c.input.product});
     c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish'});
     if(dailyLedger){dailyLedger.reserved_usd+=c.route.destination.max_action_usd;dailyLedger.calls+=c.route.destination.max_api_calls;await e.store.put(dailyLedgerKey,dailyLedger);c.reserved_cost_usd=c.route.destination.max_action_usd;}
-    c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
+    c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,publication_review:c.review||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     const pendingKey='pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision;
     await e.store.put(pendingKey,{receipt_id:c.publication_key,status:'IN_FLIGHT'});
@@ -231,7 +256,7 @@ const workers={
     if(c.receipt.execution_status!=='AMBIGUOUS')await e.store.put(pendingKey,null);
   },
   async receipt(c,e) {
-    if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
+    if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:c.review_pending?'AWAITING_REVIEW':'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',review:c.review||null,api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
     c.receipt.worker_costs=c.provider_costs||[];
     await e.store.put('receipt:'+c.receipt.id,c.receipt);await e.store.put('latest_receipt',c.receipt);
     const index=await e.store.get('receipt_index')||[];const filtered=index.filter(r=>r.id!==c.receipt.id);filtered.push({...c.receipt,last_collection:now()});await e.store.put('receipt_index',filtered.slice(-200));
