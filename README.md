@@ -69,3 +69,11 @@ Harness bridge handles verified creation/discovery with bounded cost reservation
 `/CYCLE` permits an authorized external scheduler. Observation re-entry follows the
 same executable graph edges. See the activation contract for the genuine deployment,
 source signing, runtime and financial prerequisites.
+
+Hosted verification now passes on the existing Render service at commit `dd1ee68`:
+real local destination delivery/read-back, Redis receipts and learning, a second
+request consuming version 1 and changing its route score, and duplicate prevention.
+Exact receipts are in `tests/evidence/hosted-closed-loop.json`; the concise verdict
+is `tests/evidence/hosted-loop-summary.json`. The real source handoff blocks at
+missing release authority, and an invalid signature is rejected. This demonstrates
+the hosted executable feedback loop; it does not release external campaigns.
