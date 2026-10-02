@@ -1,28 +1,89 @@
 {
   "version": "1.0",
   "architecture": "agentic_graph_with_persistent_feedback_loop",
-  "source_of_truth": "EMRADAR",
+  "source_of_truth": "plugged-in product contract",
   "nodes": [
     {
       "id": "ingest",
       "worker": "source",
-      "output": "formation"
+      "output": "formation",
+      "inputs": [
+        "registered_product",
+        "signal_id",
+        "release_review"
+      ],
+      "outputs": [
+        "formation"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "signal_extraction",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "campaign",
       "worker": "campaign",
-      "output": "campaign_hypotheses"
+      "output": "campaign_hypotheses",
+      "inputs": [
+        "selected_signal",
+        "campaign_id"
+      ],
+      "outputs": [
+        "campaign_hypotheses"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "relevance",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "scout",
       "worker": "scout",
-      "output": "candidate_destinations"
+      "output": "candidate_destinations",
+      "inputs": [
+        "product.destinations",
+        "pending_publication_state"
+      ],
+      "outputs": [
+        "candidate_destinations"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "baseline",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "baseline",
       "worker": "destination_baseline",
       "rule": "retrieve only directly relevant material needed to establish what destination already knows",
-      "output": "conversation_baseline"
+      "output": "conversation_baseline",
+      "inputs": [
+        "candidate_destinations",
+        "baseline_expiry"
+      ],
+      "outputs": [
+        "conversation_baseline"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "delta",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "delta",
@@ -31,19 +92,65 @@
         "formation",
         "conversation_baseline"
       ],
-      "output": "novel_contribution"
+      "output": "novel_contribution",
+      "inputs": [
+        "source_revision",
+        "evidence_ids",
+        "destination_delta"
+      ],
+      "outputs": [
+        "novel_contribution"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "novelty_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "novelty_gate",
       "worker": "gate",
       "hard": true,
       "pass": "meaningful_delta",
-      "fail": "retire_or_reroute"
+      "fail": "retire_or_reroute",
+      "inputs": [
+        "meaningful_delta_candidates"
+      ],
+      "outputs": [
+        "novelty_gate_result"
+      ],
+      "authority": "verify_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "route",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "route",
-      "worker": "relevance_router",
-      "output": "native_insertion_method"
+      "worker": "bounded_route_decision",
+      "output": "native_insertion_method",
+      "inputs": [
+        "eligible_destinations",
+        "learning.routes",
+        "learning.platforms"
+      ],
+      "outputs": [
+        "native_insertion_method"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "editorial_intelligence",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "editorial_intelligence",
@@ -54,7 +161,22 @@
         "native_insertion_method"
       ],
       "rule": "preserve evidence and uncertainty while adding publication-grade factual discipline, consequence mapping, market relevance, emerging-market depth and digital clarity",
-      "output": "editorial_master_copy"
+      "output": "editorial_master_copy",
+      "inputs": [
+        "approved_copy",
+        "product_copy_profile"
+      ],
+      "outputs": [
+        "editorial_master_copy"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "editorial_quality_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "editorial_quality_gate",
@@ -69,7 +191,23 @@
         "no_generic_finance_hype",
         "destination_appropriate"
       ],
-      "fail": "repair_or_retire"
+      "fail": "repair_or_retire",
+      "inputs": [
+        "source_copy",
+        "editorial_review",
+        "uncertainty_state"
+      ],
+      "outputs": [
+        "editorial_quality_gate_result"
+      ],
+      "authority": "verify_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "variant_factory",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "adapt",
@@ -78,7 +216,22 @@
       "input": [
         "editorial_master_copy",
         "native_insertion_method"
-      ]
+      ],
+      "inputs": [
+        "format_asset",
+        "platform_adapter"
+      ],
+      "outputs": [
+        "destination_native_asset"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "evidence_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "permission_gate",
@@ -89,28 +242,106 @@
         "identity",
         "permission",
         "risk"
-      ]
+      ],
+      "inputs": [
+        "revision_permission",
+        "account_auth",
+        "budget_bounds"
+      ],
+      "outputs": [
+        "permission_gate_result"
+      ],
+      "authority": "verify_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "execute",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "execute",
       "worker": "executor",
-      "output": "external_action"
+      "output": "external_action",
+      "inputs": [
+        "gated_asset",
+        "receipt_history",
+        "cost_ledger",
+        "publication_hold"
+      ],
+      "outputs": [
+        "external_action"
+      ],
+      "authority": "authorized_external_action",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "receipt",
+        "receipt",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "receipt",
       "worker": "deterministic_recorder",
       "hard": true,
-      "output": "execution_receipt"
+      "output": "execution_receipt",
+      "inputs": [
+        "execution_or_blocked_state",
+        "lineage"
+      ],
+      "outputs": [
+        "execution_receipt"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "observe"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "observe",
       "worker": "observer",
-      "output": "measured_result_or_UNKNOWN"
+      "output": "measured_result_or_UNKNOWN",
+      "inputs": [
+        "receipt",
+        "platform_capabilities",
+        "metrics_budget"
+      ],
+      "outputs": [
+        "measured_result_or_UNKNOWN"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "normalize"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "learn",
       "worker": "learning",
-      "output": "route_learning"
+      "output": "route_learning",
+      "inputs": [
+        "normalized_outcome",
+        "processed_observation_ids",
+        "route_state"
+      ],
+      "outputs": [
+        "route_learning"
+      ],
+      "authority": "route_learning_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "distribution_map"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
     },
     {
       "id": "distribution_map",
@@ -120,7 +351,213 @@
         "scout",
         "route",
         "campaign"
-      ]
+      ],
+      "inputs": [
+        "bounded_learning_update",
+        "product_truth_hash"
+      ],
+      "outputs": [
+        "distribution_map_result"
+      ],
+      "authority": "route_learning_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "signal_extraction",
+      "worker": "signal_extractor",
+      "inputs": [
+        "product.signals"
+      ],
+      "outputs": [
+        "signal_extraction_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "signal_library",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "signal_library",
+      "worker": "persistent_signal_library",
+      "inputs": [
+        "source_signals",
+        "truth_hash"
+      ],
+      "outputs": [
+        "signal_library_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "priority",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "priority",
+      "worker": "bounded_signal_priority",
+      "inputs": [
+        "source_signals",
+        "requested_signal"
+      ],
+      "outputs": [
+        "priority_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "campaign",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "variant_factory",
+      "worker": "variant_factory",
+      "inputs": [
+        "verified_copy",
+        "source_state"
+      ],
+      "outputs": [
+        "variant_factory_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "format",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "format",
+      "worker": "format_worker",
+      "inputs": [
+        "selected_format",
+        "variant",
+        "approved_asset"
+      ],
+      "outputs": [
+        "format_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "adapt",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "evidence_gate",
+      "worker": "gate",
+      "inputs": [
+        "truth_hash",
+        "source_state",
+        "evidence",
+        "asset_copy"
+      ],
+      "outputs": [
+        "evidence_gate_result"
+      ],
+      "authority": "verify_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "brand_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "brand_gate",
+      "worker": "gate",
+      "inputs": [
+        "product.brand_review",
+        "product.risk_review"
+      ],
+      "outputs": [
+        "brand_gate_result"
+      ],
+      "authority": "verify_only",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "permission_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "normalize",
+      "worker": "outcome_normalizer",
+      "inputs": [
+        "native_measurements",
+        "execution_state"
+      ],
+      "outputs": [
+        "normalize_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "learn"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "autonomous_scheduler",
+      "worker": "GraphEngine.tick",
+      "inputs": [
+        "trusted_product_revisions",
+        "receipt_index",
+        "scheduler_seen"
+      ],
+      "outputs": [
+        "next_cycle_input",
+        "due_performance_receipt"
+      ],
+      "authority": "bounded scheduling; product autonomous flag required",
+      "failure_state": "BLOCKED_NO_EXTERNAL_ACTION",
+      "handoff": [
+        "ingest",
+        "observe"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "relevance",
+      "worker": "relevance_router",
+      "inputs": [
+        "source_signal",
+        "verified_destinations",
+        "learning.routes"
+      ],
+      "outputs": [
+        "relevance_ranked_destinations"
+      ],
+      "authority": "bounded ranking only",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "scout",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
     }
   ],
   "invariants": {
@@ -210,9 +647,9 @@
       "aiRequired": false
     },
     "learn": {
-      "complexity": "medium",
+      "complexity": "fixed",
       "separable": false,
-      "aiRequired": true
+      "aiRequired": false
     },
     "editorial_intelligence": {
       "complexity": "medium",
@@ -264,5 +701,259 @@
     "rule": "Later reporting may validate or falsify T0 reasoning but must never be backfilled into the T0 evidence set.",
     "metric": "narrative_lead_time_or_lag",
     "claims": "Do not claim EMRADAR was first unless timestamped evidence supports it."
+  },
+  "edges": [
+    {
+      "from": "ingest",
+      "to": "signal_extraction",
+      "event": "success"
+    },
+    {
+      "from": "signal_extraction",
+      "to": "signal_library",
+      "event": "success"
+    },
+    {
+      "from": "signal_library",
+      "to": "priority",
+      "event": "success"
+    },
+    {
+      "from": "priority",
+      "to": "campaign",
+      "event": "success"
+    },
+    {
+      "from": "campaign",
+      "to": "relevance",
+      "event": "success"
+    },
+    {
+      "from": "scout",
+      "to": "baseline",
+      "event": "success"
+    },
+    {
+      "from": "baseline",
+      "to": "delta",
+      "event": "success"
+    },
+    {
+      "from": "delta",
+      "to": "novelty_gate",
+      "event": "success"
+    },
+    {
+      "from": "novelty_gate",
+      "to": "route",
+      "event": "success"
+    },
+    {
+      "from": "route",
+      "to": "editorial_intelligence",
+      "event": "success"
+    },
+    {
+      "from": "editorial_intelligence",
+      "to": "editorial_quality_gate",
+      "event": "success"
+    },
+    {
+      "from": "editorial_quality_gate",
+      "to": "variant_factory",
+      "event": "success"
+    },
+    {
+      "from": "variant_factory",
+      "to": "format",
+      "event": "success"
+    },
+    {
+      "from": "format",
+      "to": "adapt",
+      "event": "success"
+    },
+    {
+      "from": "adapt",
+      "to": "evidence_gate",
+      "event": "success"
+    },
+    {
+      "from": "evidence_gate",
+      "to": "brand_gate",
+      "event": "success"
+    },
+    {
+      "from": "brand_gate",
+      "to": "permission_gate",
+      "event": "success"
+    },
+    {
+      "from": "permission_gate",
+      "to": "execute",
+      "event": "success"
+    },
+    {
+      "from": "execute",
+      "to": "receipt",
+      "event": "success"
+    },
+    {
+      "from": "receipt",
+      "to": "observe",
+      "event": "success"
+    },
+    {
+      "from": "observe",
+      "to": "normalize",
+      "event": "success"
+    },
+    {
+      "from": "normalize",
+      "to": "learn",
+      "event": "success"
+    },
+    {
+      "from": "learn",
+      "to": "distribution_map",
+      "event": "success"
+    },
+    {
+      "from": "ingest",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "signal_extraction",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "signal_library",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "priority",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "campaign",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "scout",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "baseline",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "delta",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "novelty_gate",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "route",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "editorial_intelligence",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "editorial_quality_gate",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "variant_factory",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "format",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "adapt",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "evidence_gate",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "brand_gate",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "permission_gate",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "execute",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "execute",
+      "to": "receipt",
+      "event": "duplicate"
+    },
+    {
+      "from": "distribution_map",
+      "to": null,
+      "event": "success",
+      "next_cycle": "ingest",
+      "feedback_state": "learning",
+      "rule": "persist now; next triggered cycle consumes version; never recurse indefinitely"
+    },
+    {
+      "from": "autonomous_scheduler",
+      "to": "ingest",
+      "event": "new_approved_revision"
+    },
+    {
+      "from": "autonomous_scheduler",
+      "to": "observe",
+      "event": "due_performance_receipt"
+    },
+    {
+      "from": "relevance",
+      "to": "scout",
+      "event": "success"
+    },
+    {
+      "from": "relevance",
+      "to": "receipt",
+      "event": "blocked"
+    }
+  ],
+  "runtime": {
+    "module": "runtime/graph.js",
+    "entrypoint": "GraphEngine.run",
+    "state_store": "Redis production / atomic files for safe tests",
+    "max_steps": 40,
+    "next_cycle": "New campaign/input or configured trigger; persistent learning loaded on each entry",
+    "creative_fallback": "Missing approved source/copy/destination is a bounded Harness-required blocker; do not fabricate",
+    "autonomous_trigger": "MARKETING_AUTONOMOUS=true; bounded tick every >=60s; per-product autonomous.enabled required"
   }
 }

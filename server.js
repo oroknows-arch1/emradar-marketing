@@ -2,6 +2,10 @@ import http from "node:http";
 import crypto from "node:crypto";
 import { URL, URLSearchParams } from "node:url";
 import { createClient } from "redis";
+import fs from 'node:fs/promises';
+import { GraphEngine } from './runtime/graph.js';
+import { RedisStore } from './runtime/store.js';
+import { xAdapter, localAdapter } from './runtime/adapters.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -30,7 +34,7 @@ async function currentAuth(product="EMRADAR"){
   }
   return auth;
 }
-const receipts=[];
+const receipts=[]; // OAuth diagnostics only; graph publication receipts live in Redis.
 
 const json=(res,status,body)=>{res.writeHead(status,{"content-type":"application/json","cache-control":"no-store"});res.end(JSON.stringify(body));};
 const base64url=b=>Buffer.from(b).toString("base64url");
@@ -45,17 +49,54 @@ async function tokenExchange(body){
 }
 async function xFetch(url,token,options={}){
   const r=await fetch(url,{...options,headers:{authorization:`Bearer ${token}`,...(options.headers||{})}});
-  const data=await r.json().catch(()=>({})); if(!r.ok) throw new Error(`X API failed (${r.status})`); return data;
+  const data=await r.json().catch(()=>({})); if(!r.ok) {const error=new Error(`X API failed (${r.status})`);error.status=r.status;error.retry_at=Number(r.headers.get('x-rate-limit-reset')||0)*1000;throw error;} return data;
 }
 async function readBody(req){const chunks=[];for await(const c of req)chunks.push(c);return Buffer.concat(chunks);}
 function failReceipt(stage,error){const receipt={ok:false,stage,timestamp:new Date().toISOString(),error:String(error?.message||error).slice(0,240)};receipts.push(receipt);return receipt;}
+
+function authorizedRequest(req){
+  const secret=process.env.MARKETING_ENGINE_TOKEN;
+  const actual=String(req.headers.authorization||'');
+  const expected='Bearer '+secret;
+  return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
+}
+async function publishX(asset,key,product){
+  const auth=await currentAuth(product);if(!auth?.access_token){const error=new Error('X authorization required');error.status=401;throw error;}
+  let media;
+  if(asset.format==='image'){
+    const bytes=Buffer.from(asset.base64,'base64');
+    const init=await xFetch("https://api.x.com/2/media/upload/initialize",auth.access_token,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({media_type:asset.mime,total_bytes:bytes.length,media_category:"tweet_image"})});
+    const mediaId=init?.data?.id||init?.data?.media_id||init?.media_id_string||init?.id;
+    if(!mediaId)throw new Error('X media receipt missing');
+    const append=new FormData();append.set('segment_index','0');append.set('media',new Blob([bytes],{type:asset.mime}),'asset');
+    await xFetch(`https://api.x.com/2/media/upload/${mediaId}/append`,auth.access_token,{method:'POST',body:append});
+    const final=await xFetch(`https://api.x.com/2/media/upload/${mediaId}/finalize`,auth.access_token,{method:'POST'});
+    if(final?.data?.processing_info||final?.processing_info)throw new Error('X_MEDIA_PROCESSING_REQUIRES_STATUS_CHECK');
+    media={media_ids:[String(mediaId)]};
+  }
+  const post=await xFetch('https://api.x.com/2/tweets',auth.access_token,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:asset.copy,...(media?{media}:{})})});
+  if(!post?.data?.id)throw new Error('X publication receipt missing post id');
+  return {status:'PUBLISHED',id:post.data.id,url:`https://x.com/i/web/status/${post.data.id}`,cost_usd:'UNKNOWN'};
+}
+async function marketingEngine(){
+  const file=process.env.MARKETING_PRODUCTS_FILE;
+  if(!file)throw new Error('TRUSTED_PRODUCT_PACKAGES_REQUIRED');
+  const products=JSON.parse(await fs.readFile(file,'utf8'));
+  const adapters={X:xAdapter({publish:publishX,authorized:async product=>!!(await currentAuth(product))?.access_token,fetchMetrics:async(id,product)=>{
+    const auth=await currentAuth(product);
+    if(!auth?.access_token)throw new Error('X authorization required');
+    return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);
+  }})};
+  if(process.env.MARKETING_TEST_DIRECTORY)adapters.LOCAL=localAdapter(process.env.MARKETING_TEST_DIRECTORY);
+  return new GraphEngine({store:new RedisStore(await store()),products,adapters});
+}
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
   if(req.method==="GET"&&u.pathname==="/"){const states=await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token]));return html(res,`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Marketing Engine</title><style>body{font-family:system-ui;margin:0;background:#0b0d10;color:#f4f4f4}main{max-width:760px;margin:auto;padding:40px 20px}h1{font-size:32px}.sub{color:#9aa3ad}.grid{display:grid;gap:16px;margin-top:32px}.card{border:1px solid #2b3037;border-radius:16px;padding:22px;background:#12161b}.row{display:flex;justify-content:space-between;align-items:center;gap:16px}.status{color:#9aa3ad}.on{color:#9fe3b1}a,button{display:inline-block;margin-top:18px;padding:11px 14px;border-radius:9px;border:1px solid #3b424c;background:#fff;color:#111;text-decoration:none;font-weight:650}.secondary{background:transparent;color:#fff}</style></head><body><main><h1>Marketing Engine</h1><div class="sub">Products, connections and execution.</div><div class="grid">${states.map(([p,on])=>`<section class="card"><div class="row"><div><h2>${p}</h2><div class="status">X <span class="${on?"on":""}">● ${on?"Connected":"Not connected"}</span></div></div><div>Adapter ● Ready</div></div><a href="/oauth/x/start?product=${encodeURIComponent(p)}">${on?"Reconnect X":"Connect X"}</a> <a class="secondary" href="/product?name=${encodeURIComponent(p)}">Open product</a></section>`).join("")}</div><a class="secondary" href="/onboarding">+ Add product</a></main></body></html>`);}
   if(req.method==="GET"&&u.pathname==="/onboarding") return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><h1>Add product</h1><p>The first onboarding contract captures identity, source of truth, channels, rules and goal. Atlasoquence is already registered through its adapter.</p><p><a href="/">Back to products</a></p></body></html>`);
   if(req.method==="GET"&&u.pathname==="/product"){const p=u.searchParams.get("name");if(!PRODUCTS.includes(p))return json(res,404,{ok:false,error:"unknown_product"});const auth=await currentAuth(p).catch(()=>null);return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><a href="/">← Products</a><h1>${p}</h1><p>Adapter: Ready</p><p>X: ${auth?.access_token?"Connected":"Not connected"}</p><p>Additional spend: owner approval required</p><p>Execution endpoint: POST /RUN_MARKETING</p></body></html>`);}
-  if(req.method==="GET"&&u.pathname==="/health"){const states=Object.fromEntries(await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token])));return json(res,200,{ok:true,service:"MARKETING_ENGINE_X_EXECUTOR_V0_2",products:states,auth_store:KEY_VALUE_URL?"persistent":"memory_only",cost_gate:{additional_spend_without_owner_approval:0}});}
+  if(req.method==="GET"&&u.pathname==="/health"){const states=Object.fromEntries(await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token])));return json(res,200,{ok:true,service:"MARKETING_ENGINE_X_EXECUTOR_V0_2",products:states,auth_store:KEY_VALUE_URL?"persistent":"memory_only",cost_gate:{additional_spend_without_owner_approval:0,api_billing:"UNKNOWN"}});}
   if(req.method==="GET"&&u.pathname==="/oauth/x/start"){
     const product=u.searchParams.get("product")||"EMRADAR";if(!PRODUCTS.includes(product))return json(res,400,{ok:false,error:"unknown_product"});
     if(!X_CLIENT_ID) return json(res,503,{ok:false,blocker:"X_CLIENT_ID_NOT_CONFIGURED",callback_url:callbackUrl(req)});
@@ -71,31 +112,24 @@ const server=http.createServer(async(req,res)=>{
     try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});const auth={...t,authorized_at:new Date().toISOString(),expires_at:Date.now()+(Number(t.expires_in||7200)*1000)};await saveAuth(s.product,auth);sessions.set(`authorized:${productKey(s.product)}`,auth);sessions.delete(state);res.writeHead(302,{location:"/"});return res.end();}
     catch(e){return json(res,502,failReceipt("oauth_callback",e));}
   }
-  if(req.method==="POST"&&u.pathname==="/RUN_MARKETING"){
-    let input={};try{const raw=await readBody(req);input=raw.length?JSON.parse(raw):{};}catch(e){return json(res,400,failReceipt("input","invalid JSON"));}
-    if(!PRODUCTS.includes(input.product)) return json(res,400,failReceipt("product_contract","unknown product"));
-    const auth=await currentAuth(input.product);
-    if(!auth?.access_token) return json(res,403,failReceipt("permission_gate","X authorization required"));
-    try{
-      if(input.additional_spend_usd&&Number(input.additional_spend_usd)>0) return json(res,403,failReceipt("cost_gate","additional spend requires owner approval"));
-      if(input.novelty_gate!=="PASS"||input.editorial_quality_gate!=="PASS"||input.asset_exists_gate!=="PASS") return json(res,409,failReceipt("hard_gate","novelty, editorial quality and asset existence must all PASS"));
-      if(!input.text||!input.asset_base64||!input.asset_sha256) return json(res,400,failReceipt("asset_gate","text, asset_base64 and asset_sha256 required"));
-      const asset=Buffer.from(input.asset_base64,"base64"),hash=crypto.createHash("sha256").update(asset).digest("hex");
-      if(hash!==input.asset_sha256) return json(res,409,failReceipt("asset_hash","asset hash mismatch"));
-      const mediaType=input.asset_mime||"image/png";
-      const init=await xFetch("https://api.x.com/2/media/upload/initialize",auth.access_token,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({media_type:mediaType,total_bytes:asset.length,media_category:"tweet_image"})});
-      const mediaId=init?.data?.id||init?.data?.media_id||init?.media_id_string||init?.id;
-      if(!mediaId) throw new Error("X media initialize receipt missing media id");
-      const appendForm=new FormData();appendForm.set("segment_index","0");appendForm.set("media",new Blob([asset],{type:mediaType}),input.asset_filename||"asset.png");
-      await xFetch(`https://api.x.com/2/media/upload/${mediaId}/append`,auth.access_token,{method:"POST",body:appendForm});
-      await xFetch(`https://api.x.com/2/media/upload/${mediaId}/finalize`,auth.access_token,{method:"POST"});
-      const post=await xFetch("https://api.x.com/2/tweets",auth.access_token,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({text:input.text,media:{media_ids:[String(mediaId)]}})});
-      const postId=post?.data?.id;if(!postId) throw new Error("X publication receipt missing post id");
-      const receipt={ok:true,platform:"X",post_id:postId,post_url:`https://x.com/i/web/status/${postId}`,published_at:new Date().toISOString(),asset_hash:hash,additional_cost_usd:0,measurement_state:"UNKNOWN",learning_handoff:"READY"};
-      receipts.push(receipt);return json(res,200,receipt);
-    }catch(e){return json(res,502,failReceipt("publish",e));}
+  if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE"].includes(u.pathname)){
+    if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
+    let input;try{input=JSON.parse(await readBody(req));}catch{return json(res,400,{ok:false,error:"invalid JSON"});}
+    try{const engine=await marketingEngine();const result=u.pathname==="/RUN_MARKETING"?await engine.run(input):await engine.feedback(input.receipt_id);return json(res,200,result);}
+    catch(e){return json(res,409,{ok:false,status:"BLOCKED",reason:e.message});}
   }
-  if(req.method==="GET"&&u.pathname==="/receipts/latest") return json(res,200,receipts.at(-1)||{measurement_state:"UNKNOWN",status:"NO_RECEIPT"});
+  if(req.method==="GET"&&u.pathname==="/receipts/latest"){
+    if(!authorizedRequest(req))return json(res,403,{ok:false,reason:"ENGINE_AUTHORIZATION_REQUIRED"});
+    try{return json(res,200,await new RedisStore(await store()).get('latest_receipt')||{status:"NO_RECEIPT",measurement_state:"UNKNOWN"});}catch(e){return json(res,503,{ok:false,reason:e.message});}
+  }
   return json(res,404,{ok:false,error:"not_found"});
 });
 server.listen(PORT,()=>console.log("EMRADAR X executor listening"));
+
+// No per-request polling loop. Every bounded tick loads the trusted current source
+// package, so new product revisions can enter without a human triggering each run.
+if(process.env.MARKETING_AUTONOMOUS==='true'){
+  let ticking=false;
+  const interval=Math.max(60000,Number(process.env.MARKETING_CYCLE_INTERVAL_MS)||300000);
+  setInterval(async()=>{if(ticking)return;ticking=true;try{await (await marketingEngine()).tick();}catch(e){console.error('Marketing scheduler blocked:',e.message);}finally{ticking=false;}},interval).unref();
+}

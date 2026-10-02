@@ -1,0 +1,1477 @@
+{
+  "scope": "REAL_LOCAL_FILE_EXECUTION_NO_EXTERNAL_PUBLICATION",
+  "first": {
+    "run_id": "99460ce6-f077-4811-81ea-94d381c95998",
+    "product": "TEST_PRODUCT",
+    "campaign_id": "SAFE_TEST_1",
+    "status": "PASS",
+    "blocker": null,
+    "nodes": [
+      {
+        "node": "ingest",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.169Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "signal_extraction",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.170Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "signal_library",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.170Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "priority",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.172Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "campaign",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.172Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "relevance",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.172Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "scout",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.172Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "baseline",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.173Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "delta",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.174Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "novelty_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.174Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+      },
+      {
+        "node": "route",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.174Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+      },
+      {
+        "node": "editorial_intelligence",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.185Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+      },
+      {
+        "node": "editorial_quality_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.185Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+      },
+      {
+        "node": "variant_factory",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.186Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+      },
+      {
+        "node": "format",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.187Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+      },
+      {
+        "node": "adapt",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.188Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+      },
+      {
+        "node": "evidence_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.188Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+      },
+      {
+        "node": "brand_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.188Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+      },
+      {
+        "node": "permission_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.188Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+      },
+      {
+        "node": "execute",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.188Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "baf71ce85b7893f26cf171548581de943f129d2905cf042691b5bdf6b0adb5a0"
+      },
+      {
+        "node": "receipt",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.195Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "baf71ce85b7893f26cf171548581de943f129d2905cf042691b5bdf6b0adb5a0"
+      },
+      {
+        "node": "observe",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.197Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "baf71ce85b7893f26cf171548581de943f129d2905cf042691b5bdf6b0adb5a0"
+      },
+      {
+        "node": "normalize",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.199Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "80e0eb39c9cbd36f224dc0490af177c72a885bc759a2fa736542ee7567d6c9b7"
+      },
+      {
+        "node": "learn",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.200Z",
+        "status": "PASS",
+        "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
+        "output_hash": "64f82219eec9094ae71eee443099e3f0e1d5478b3ccbd277521fb2fc4e373a02"
+      },
+      {
+        "node": "distribution_map",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.201Z",
+        "status": "PASS",
+        "input_hash": "22ab2928ac1ec39474a1bcc330df7408fb476ac03c5afa8553347a7ac2d71ac2",
+        "output_hash": "64f82219eec9094ae71eee443099e3f0e1d5478b3ccbd277521fb2fc4e373a02"
+      }
+    ],
+    "selection": {
+      "learning_version": 0,
+      "options": [
+        {
+          "id": "local-a",
+          "format": "svg",
+          "key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-a",
+          "format": "text",
+          "key": "TEST_PRODUCT:test-signal:local-a:text",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-b",
+          "format": "svg",
+          "key": "TEST_PRODUCT:test-signal:local-b:svg",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-b",
+          "format": "text",
+          "key": "TEST_PRODUCT:test-signal:local-b:text",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        }
+      ],
+      "selected": "TEST_PRODUCT:test-signal:local-a:svg"
+    },
+    "receipt": {
+      "id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+      "destination": "local-a",
+      "platform": "LOCAL",
+      "variant": "94e2578ca30d5cd7",
+      "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
+      "format": "svg",
+      "timestamp": "2026-10-02T10:28:50.191Z",
+      "execution_status": "PUBLISHED",
+      "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+      "url": "file:///tmp/marketing-graph-817um2/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+      "campaign_id": "SAFE_TEST_1",
+      "product": "TEST_PRODUCT",
+      "signal_id": "test-signal",
+      "signal_revision": "r1",
+      "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+      "attempts": 1,
+      "max_attempts": 2,
+      "retry_at": null,
+      "error": null,
+      "api_cost_usd": 0,
+      "ad_spend_usd": 0,
+      "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
+      "reserved_cost_usd": 0
+    },
+    "performance": {
+      "status": "AVAILABLE",
+      "source": "local_file_readback",
+      "observed_at": "2026-10-02T10:28:50.198Z",
+      "metrics": {
+        "delivered_bytes": {
+          "value": 478,
+          "unit": "bytes",
+          "scope": "local_delivery"
+        },
+        "content_verified": {
+          "value": 1,
+          "unit": "boolean",
+          "scope": "local_delivery"
+        }
+      },
+      "cost_usd": 0
+    },
+    "outcome": {
+      "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+      "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+      "execution_status": "PUBLISHED",
+      "observed_at": "2026-10-02T10:28:50.198Z",
+      "source": "local_file_readback",
+      "measurements": {
+        "delivered_bytes": {
+          "value": 478,
+          "unit": "bytes",
+          "scope": "local_delivery"
+        },
+        "content_verified": {
+          "value": 1,
+          "unit": "boolean",
+          "scope": "local_delivery"
+        }
+      },
+      "engagement_rate": "UNKNOWN",
+      "reach": "UNKNOWN",
+      "conversion": "UNKNOWN",
+      "cost_usd": 0,
+      "evidence_strength": "DIRECT_MEASUREMENT"
+    },
+    "learning_before": {
+      "version": 0,
+      "routes": {},
+      "platforms": {},
+      "processed": {},
+      "history": []
+    },
+    "learning_after": {
+      "version": 1,
+      "routes": {
+        "TEST_PRODUCT:test-signal:local-a:svg": {
+          "successes": 1,
+          "failures": 0,
+          "confidence": 0.1,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "failed_routes": [],
+          "retry_at": null,
+          "measurement_adjustment": 0.05,
+          "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "timing_observations": {
+            "last_execution_at": "2026-10-02T10:28:50.191Z",
+            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "optimal_time": "UNKNOWN"
+          },
+          "measurements": {
+            "delivered_bytes": {
+              "value": 478,
+              "unit": "bytes",
+              "scope": "local_delivery"
+            },
+            "content_verified": {
+              "value": 1,
+              "unit": "boolean",
+              "scope": "local_delivery"
+            }
+          }
+        }
+      },
+      "platforms": {
+        "TEST_PRODUCT:LOCAL": {
+          "failures": 0,
+          "retry_at": null
+        }
+      },
+      "processed": {
+        "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+        "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+      },
+      "history": [
+        {
+          "version": 1,
+          "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "before": {
+            "successes": 0,
+            "failures": 0,
+            "confidence": 0,
+            "evidence_strength": "UNKNOWN",
+            "failed_routes": []
+          },
+          "after": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.191Z",
+              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          }
+        }
+      ],
+      "variants": {
+        "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+          "score": 0.05,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+        }
+      }
+    }
+  },
+  "duplicate": {
+    "run_id": "31c41843-a287-4fd3-b2ba-bedb228716db",
+    "product": "TEST_PRODUCT",
+    "campaign_id": "SAFE_TEST_DUPLICATE",
+    "status": "PASS",
+    "blocker": null,
+    "nodes": [
+      {
+        "node": "ingest",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.208Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "signal_extraction",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.208Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "signal_library",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.208Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "priority",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.210Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "campaign",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.210Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "relevance",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.210Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "scout",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.210Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "baseline",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "delta",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "novelty_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "route",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "editorial_intelligence",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "editorial_quality_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "variant_factory",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "format",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "adapt",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "evidence_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "brand_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "permission_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "execute",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.211Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "0bdf55d087ffd9e77bdfc881201cf644636663404eb36beb98691ccefa02e0ae"
+      },
+      {
+        "node": "receipt",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.212Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "0bdf55d087ffd9e77bdfc881201cf644636663404eb36beb98691ccefa02e0ae"
+      },
+      {
+        "node": "observe",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.218Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "0bdf55d087ffd9e77bdfc881201cf644636663404eb36beb98691ccefa02e0ae"
+      },
+      {
+        "node": "normalize",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.220Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "a98487b567fb04d2874e0b55dfd71333fddabeb5f7c060eda287eacc75a2ce10"
+      },
+      {
+        "node": "learn",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.221Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "a98487b567fb04d2874e0b55dfd71333fddabeb5f7c060eda287eacc75a2ce10"
+      },
+      {
+        "node": "distribution_map",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.221Z",
+        "status": "PASS",
+        "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
+        "output_hash": "a98487b567fb04d2874e0b55dfd71333fddabeb5f7c060eda287eacc75a2ce10"
+      }
+    ],
+    "selection": {
+      "learning_version": 1,
+      "options": [
+        {
+          "id": "local-a",
+          "format": "svg",
+          "key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "score": 0.3833333333333333,
+          "learned": 0.3833333333333333,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-a",
+          "format": "text",
+          "key": "TEST_PRODUCT:test-signal:local-a:text",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-b",
+          "format": "svg",
+          "key": "TEST_PRODUCT:test-signal:local-b:svg",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-b",
+          "format": "text",
+          "key": "TEST_PRODUCT:test-signal:local-b:text",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        }
+      ],
+      "selected": "TEST_PRODUCT:test-signal:local-a:svg"
+    },
+    "receipt": {
+      "id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+      "destination": "local-a",
+      "platform": "LOCAL",
+      "variant": "94e2578ca30d5cd7",
+      "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
+      "format": "svg",
+      "timestamp": "2026-10-02T10:28:50.191Z",
+      "execution_status": "PUBLISHED",
+      "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+      "url": "file:///tmp/marketing-graph-817um2/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+      "campaign_id": "SAFE_TEST_1",
+      "product": "TEST_PRODUCT",
+      "signal_id": "test-signal",
+      "signal_revision": "r1",
+      "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+      "attempts": 1,
+      "max_attempts": 2,
+      "retry_at": null,
+      "error": null,
+      "api_cost_usd": 0,
+      "ad_spend_usd": 0,
+      "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
+      "reserved_cost_usd": 0
+    },
+    "performance": {
+      "status": "AVAILABLE",
+      "source": "local_file_readback",
+      "observed_at": "2026-10-02T10:28:50.219Z",
+      "metrics": {
+        "delivered_bytes": {
+          "value": 478,
+          "unit": "bytes",
+          "scope": "local_delivery"
+        },
+        "content_verified": {
+          "value": 1,
+          "unit": "boolean",
+          "scope": "local_delivery"
+        }
+      },
+      "cost_usd": 0
+    },
+    "outcome": {
+      "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+      "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+      "execution_status": "PUBLISHED",
+      "observed_at": "2026-10-02T10:28:50.219Z",
+      "source": "local_file_readback",
+      "measurements": {
+        "delivered_bytes": {
+          "value": 478,
+          "unit": "bytes",
+          "scope": "local_delivery"
+        },
+        "content_verified": {
+          "value": 1,
+          "unit": "boolean",
+          "scope": "local_delivery"
+        }
+      },
+      "engagement_rate": "UNKNOWN",
+      "reach": "UNKNOWN",
+      "conversion": "UNKNOWN",
+      "cost_usd": 0,
+      "evidence_strength": "DIRECT_MEASUREMENT"
+    },
+    "learning_before": {
+      "version": 1,
+      "routes": {
+        "TEST_PRODUCT:test-signal:local-a:svg": {
+          "successes": 1,
+          "failures": 0,
+          "confidence": 0.1,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "failed_routes": [],
+          "retry_at": null,
+          "measurement_adjustment": 0.05,
+          "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "timing_observations": {
+            "last_execution_at": "2026-10-02T10:28:50.191Z",
+            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "optimal_time": "UNKNOWN"
+          },
+          "measurements": {
+            "delivered_bytes": {
+              "value": 478,
+              "unit": "bytes",
+              "scope": "local_delivery"
+            },
+            "content_verified": {
+              "value": 1,
+              "unit": "boolean",
+              "scope": "local_delivery"
+            }
+          }
+        }
+      },
+      "platforms": {
+        "TEST_PRODUCT:LOCAL": {
+          "failures": 0,
+          "retry_at": null
+        }
+      },
+      "processed": {
+        "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+        "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+      },
+      "history": [
+        {
+          "version": 1,
+          "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "before": {
+            "successes": 0,
+            "failures": 0,
+            "confidence": 0,
+            "evidence_strength": "UNKNOWN",
+            "failed_routes": []
+          },
+          "after": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.191Z",
+              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          }
+        }
+      ],
+      "variants": {
+        "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+          "score": 0.05,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+        }
+      }
+    },
+    "learning_after": {
+      "version": 1,
+      "routes": {
+        "TEST_PRODUCT:test-signal:local-a:svg": {
+          "successes": 1,
+          "failures": 0,
+          "confidence": 0.1,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "failed_routes": [],
+          "retry_at": null,
+          "measurement_adjustment": 0.05,
+          "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "timing_observations": {
+            "last_execution_at": "2026-10-02T10:28:50.191Z",
+            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "optimal_time": "UNKNOWN"
+          },
+          "measurements": {
+            "delivered_bytes": {
+              "value": 478,
+              "unit": "bytes",
+              "scope": "local_delivery"
+            },
+            "content_verified": {
+              "value": 1,
+              "unit": "boolean",
+              "scope": "local_delivery"
+            }
+          }
+        }
+      },
+      "platforms": {
+        "TEST_PRODUCT:LOCAL": {
+          "failures": 0,
+          "retry_at": null
+        }
+      },
+      "processed": {
+        "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+        "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+      },
+      "history": [
+        {
+          "version": 1,
+          "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "before": {
+            "successes": 0,
+            "failures": 0,
+            "confidence": 0,
+            "evidence_strength": "UNKNOWN",
+            "failed_routes": []
+          },
+          "after": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.191Z",
+              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          }
+        }
+      ],
+      "variants": {
+        "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+          "score": 0.05,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+        }
+      }
+    }
+  },
+  "next": {
+    "run_id": "6e789362-3aaf-4ef0-84c2-b21e46353eb4",
+    "product": "TEST_PRODUCT",
+    "campaign_id": "SAFE_TEST_NEXT",
+    "status": "PASS",
+    "blocker": null,
+    "nodes": [
+      {
+        "node": "ingest",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.225Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "signal_extraction",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.225Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "signal_library",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.225Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "priority",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "campaign",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "relevance",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "scout",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "baseline",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "delta",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "novelty_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+      },
+      {
+        "node": "route",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "editorial_intelligence",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "editorial_quality_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "variant_factory",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+      },
+      {
+        "node": "format",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "adapt",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "evidence_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "brand_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "permission_gate",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+      },
+      {
+        "node": "execute",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.226Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "ff52f37bda1e4ace4b355ee61da5c2e4b28994e915baaccebbdec1cccb7f0c01"
+      },
+      {
+        "node": "receipt",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.232Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "ff52f37bda1e4ace4b355ee61da5c2e4b28994e915baaccebbdec1cccb7f0c01"
+      },
+      {
+        "node": "observe",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.234Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "ff52f37bda1e4ace4b355ee61da5c2e4b28994e915baaccebbdec1cccb7f0c01"
+      },
+      {
+        "node": "normalize",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.235Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "852953a91a0216176886a3231cf4852ea24bb0861af398da9d6b67db8a7bea47"
+      },
+      {
+        "node": "learn",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.235Z",
+        "status": "PASS",
+        "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
+        "output_hash": "4d983de7737170a43569419702d55b0acd7ebda30fbe5238d85109a3c40ff1a6"
+      },
+      {
+        "node": "distribution_map",
+        "lane": "deterministic",
+        "at": "2026-10-02T10:28:50.235Z",
+        "status": "PASS",
+        "input_hash": "dc74de771aebff26800c3c0fb6e2904cfdd69f6fe8f7f4270088ec85373c7139",
+        "output_hash": "4d983de7737170a43569419702d55b0acd7ebda30fbe5238d85109a3c40ff1a6"
+      }
+    ],
+    "selection": {
+      "learning_version": 1,
+      "options": [
+        {
+          "id": "local-a",
+          "format": "svg",
+          "key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "score": 0.3833333333333333,
+          "learned": 0.3833333333333333,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-a",
+          "format": "text",
+          "key": "TEST_PRODUCT:test-signal:local-a:text",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-b",
+          "format": "svg",
+          "key": "TEST_PRODUCT:test-signal:local-b:svg",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        },
+        {
+          "id": "local-b",
+          "format": "text",
+          "key": "TEST_PRODUCT:test-signal:local-b:text",
+          "score": 0,
+          "learned": 0,
+          "breaker": false,
+          "cooldown": false
+        }
+      ],
+      "selected": "TEST_PRODUCT:test-signal:local-a:svg"
+    },
+    "receipt": {
+      "id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+      "destination": "local-a",
+      "platform": "LOCAL",
+      "variant": "227717681c132fcf",
+      "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
+      "format": "svg",
+      "timestamp": "2026-10-02T10:28:50.231Z",
+      "execution_status": "PUBLISHED",
+      "external_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+      "url": "file:///tmp/marketing-graph-817um2/destination/83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736.json",
+      "campaign_id": "SAFE_TEST_NEXT",
+      "product": "TEST_PRODUCT",
+      "signal_id": "test-signal",
+      "signal_revision": "r2",
+      "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+      "attempts": 1,
+      "max_attempts": 2,
+      "retry_at": null,
+      "error": null,
+      "api_cost_usd": 0,
+      "ad_spend_usd": 0,
+      "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
+      "reserved_cost_usd": 0
+    },
+    "performance": {
+      "status": "AVAILABLE",
+      "source": "local_file_readback",
+      "observed_at": "2026-10-02T10:28:50.234Z",
+      "metrics": {
+        "delivered_bytes": {
+          "value": 478,
+          "unit": "bytes",
+          "scope": "local_delivery"
+        },
+        "content_verified": {
+          "value": 1,
+          "unit": "boolean",
+          "scope": "local_delivery"
+        }
+      },
+      "cost_usd": 0
+    },
+    "outcome": {
+      "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+      "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+      "execution_status": "PUBLISHED",
+      "observed_at": "2026-10-02T10:28:50.234Z",
+      "source": "local_file_readback",
+      "measurements": {
+        "delivered_bytes": {
+          "value": 478,
+          "unit": "bytes",
+          "scope": "local_delivery"
+        },
+        "content_verified": {
+          "value": 1,
+          "unit": "boolean",
+          "scope": "local_delivery"
+        }
+      },
+      "engagement_rate": "UNKNOWN",
+      "reach": "UNKNOWN",
+      "conversion": "UNKNOWN",
+      "cost_usd": 0,
+      "evidence_strength": "DIRECT_MEASUREMENT"
+    },
+    "learning_before": {
+      "version": 1,
+      "routes": {
+        "TEST_PRODUCT:test-signal:local-a:svg": {
+          "successes": 1,
+          "failures": 0,
+          "confidence": 0.1,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "failed_routes": [],
+          "retry_at": null,
+          "measurement_adjustment": 0.05,
+          "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "timing_observations": {
+            "last_execution_at": "2026-10-02T10:28:50.191Z",
+            "last_observed_at": "2026-10-02T10:28:50.198Z",
+            "optimal_time": "UNKNOWN"
+          },
+          "measurements": {
+            "delivered_bytes": {
+              "value": 478,
+              "unit": "bytes",
+              "scope": "local_delivery"
+            },
+            "content_verified": {
+              "value": 1,
+              "unit": "boolean",
+              "scope": "local_delivery"
+            }
+          }
+        }
+      },
+      "platforms": {
+        "TEST_PRODUCT:LOCAL": {
+          "failures": 0,
+          "retry_at": null
+        }
+      },
+      "processed": {
+        "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+        "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+      },
+      "history": [
+        {
+          "version": 1,
+          "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "before": {
+            "successes": 0,
+            "failures": 0,
+            "confidence": 0,
+            "evidence_strength": "UNKNOWN",
+            "failed_routes": []
+          },
+          "after": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.191Z",
+              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          }
+        }
+      ],
+      "variants": {
+        "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+          "score": 0.05,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+        }
+      }
+    },
+    "learning_after": {
+      "version": 2,
+      "routes": {
+        "TEST_PRODUCT:test-signal:local-a:svg": {
+          "successes": 2,
+          "failures": 0,
+          "confidence": 0.2,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "failed_routes": [],
+          "retry_at": null,
+          "measurement_adjustment": 0.05,
+          "last_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+          "timing_observations": {
+            "last_execution_at": "2026-10-02T10:28:50.231Z",
+            "last_observed_at": "2026-10-02T10:28:50.234Z",
+            "optimal_time": "UNKNOWN"
+          },
+          "measurements": {
+            "delivered_bytes": {
+              "value": 478,
+              "unit": "bytes",
+              "scope": "local_delivery"
+            },
+            "content_verified": {
+              "value": 1,
+              "unit": "boolean",
+              "scope": "local_delivery"
+            }
+          }
+        }
+      },
+      "platforms": {
+        "TEST_PRODUCT:LOCAL": {
+          "failures": 0,
+          "retry_at": null
+        }
+      },
+      "processed": {
+        "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+        "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true,
+        "5523455d67f9892fe42be4e341bd24cec450443592b986bae0441281fa3edc93": true,
+        "4d75aee1ad0180c084ae133961780dcbc1d04d4a10667c8f6e949c4e379ffbd6": true
+      },
+      "history": [
+        {
+          "version": 1,
+          "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "before": {
+            "successes": 0,
+            "failures": 0,
+            "confidence": 0,
+            "evidence_strength": "UNKNOWN",
+            "failed_routes": []
+          },
+          "after": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.191Z",
+              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          }
+        },
+        {
+          "version": 2,
+          "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+          "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+          "before": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.191Z",
+              "last_observed_at": "2026-10-02T10:28:50.198Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          },
+          "after": {
+            "successes": 2,
+            "failures": 0,
+            "confidence": 0.2,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T10:28:50.231Z",
+              "last_observed_at": "2026-10-02T10:28:50.234Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            }
+          }
+        }
+      ],
+      "variants": {
+        "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+          "score": 0.05,
+          "evidence_strength": "DIRECT_MEASUREMENT",
+          "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736"
+        }
+      }
+    }
+  },
+  "pass": true,
+  "financial_cost_usd": 0
+}
