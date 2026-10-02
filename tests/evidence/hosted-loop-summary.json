@@ -1,0 +1,69 @@
+{
+  "hosted_loop": "PASS",
+  "full_live_autonomy": "FAIL_PENDING",
+  "deployed_commit": "dd1ee68c92ace53ba6deb6a0d9cfa92bae760d13",
+  "first_run_id": "cdcfcbe7-0522-4753-8693-b14dfa6cb7a1",
+  "second_run_id": "68f07bd9-9ec1-4f74-b461-52082f39e197",
+  "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+  "nodes": [
+    "ingest",
+    "signal_extraction",
+    "signal_library",
+    "priority",
+    "campaign",
+    "relevance",
+    "scout",
+    "baseline",
+    "delta",
+    "novelty_gate",
+    "route",
+    "editorial_intelligence",
+    "editorial_quality_gate",
+    "variant_factory",
+    "format",
+    "adapt",
+    "evidence_gate",
+    "brand_gate",
+    "permission_gate",
+    "execute",
+    "receipt",
+    "observe",
+    "normalize",
+    "learn",
+    "distribution_map"
+  ],
+  "measurement": {
+    "delivered_bytes": {
+      "value": 478,
+      "unit": "bytes",
+      "scope": "local_delivery"
+    },
+    "content_verified": {
+      "value": 1,
+      "unit": "boolean",
+      "scope": "local_delivery"
+    }
+  },
+  "learning_before": 0,
+  "learning_after": 1,
+  "next_consumed": 1,
+  "route_scores": [
+    0,
+    0.3833333333333333
+  ],
+  "duplicate_prevented": true,
+  "external_campaigns_enabled": false,
+  "native_source_blocker": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+  "new_paid_resources": false,
+  "x_api_billing": "UNKNOWN",
+  "owner_actions": [
+    "EMRADAR X authorization reports disconnected; restore if existing refresh cannot recover",
+    "Approve bounded paid API/model test authority before live paid actions"
+  ],
+  "engineering_remaining": [
+    "Connect source publisher triggers to registered signed handoff",
+    "Deploy callable Harness executor/verifier transport using authorized provider credentials",
+    "Verify live platform metrics under approved budget",
+    "Activate a scheduler that remains available on the chosen hosting plan"
+  ]
+}

@@ -1,0 +1,1 @@
+{"repository":"oroknows-arch1/vcharness","commit":"e6fff4a7e4161f50ec21cd7a79e05542bc734ad4","files":"src/routing/{router,registry,contracts}.ts and src/providers/moonshot.ts","build":"node:module stripTypeScriptTypes, no routing changes"}

@@ -6,8 +6,10 @@ import fs from 'node:fs/promises';
 import { GraphEngine } from './runtime/graph.js';
 import { RedisStore } from './runtime/store.js';
 import {ProductIntake,loadPolicies} from './runtime/intake.js';
+import {applyAuthority} from './runtime/authority.js';
 import {loadHarness} from './runtime/harness.js';
 import { xAdapter, localAdapter } from './runtime/adapters.js';
+import {verifySchedulerToken} from './runtime/scheduler-auth.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -81,7 +83,7 @@ async function publishX(asset,key,product){
   return {status:'PUBLISHED',id:post.data.id,url:`https://x.com/i/web/status/${post.data.id}`,cost_usd:'UNKNOWN'};
 }
 async function productIntake(){
-  const policies=await loadPolicies(process.env.MARKETING_PRODUCTS_FILE,process.env.MARKETING_PRODUCTS_JSON);
+  const policies=applyAuthority(await loadPolicies(process.env.MARKETING_PRODUCTS_FILE,process.env.MARKETING_PRODUCTS_JSON));
   return new ProductIntake({store:new RedisStore(await store()),policies,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});
 }
 async function marketingEngine(){
@@ -118,6 +120,10 @@ const server=http.createServer(async(req,res)=>{
   }
   if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
     try{const envelope=JSON.parse(await readBody(req));const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
+    try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));if(process.env.MARKETING_AUTONOMOUS!=='true')return json(res,200,{status:'SCHEDULER_DISABLED',result:null,feedback:null});const result=await (await marketingEngine()).tick();return json(res,200,result);}
+    catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE","/CYCLE"].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});

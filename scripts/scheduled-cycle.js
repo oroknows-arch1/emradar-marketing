@@ -1,0 +1,12 @@
+const audience='https://emradar-x-executor.onrender.com/SCHEDULED_CYCLE';
+const requestUrl=process.env.ACTIONS_ID_TOKEN_REQUEST_URL;
+const requestToken=process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN;
+if(!requestUrl||!requestToken)throw new Error('GITHUB_OIDC_NOT_AVAILABLE');
+const tokenResponse=await fetch(requestUrl+'&audience='+encodeURIComponent(audience),{headers:{authorization:'Bearer '+requestToken},signal:AbortSignal.timeout(15000)});
+if(!tokenResponse.ok)throw new Error('OIDC_TOKEN_REQUEST_FAILED_'+tokenResponse.status);
+const token=(await tokenResponse.json()).value;
+if(!token)throw new Error('OIDC_TOKEN_MISSING');
+const cycle=await fetch(audience,{method:'POST',headers:{authorization:'Bearer '+token},signal:AbortSignal.timeout(180000)});
+const result=await cycle.json();
+if(!cycle.ok)throw new Error('GRAPH_CYCLE_BLOCKED_'+(result.reason||cycle.status));
+console.log(JSON.stringify({status:'CYCLE_COMPLETED',scheduler:result.scheduler?.status,result:result.result?.status||'NO_NEW_REVISION',feedback:result.feedback?.outcome?.receipt_id||null}));

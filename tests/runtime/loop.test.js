@@ -55,7 +55,7 @@ test('permission is per revision and expires',async()=>{
 });
 
 test('UNKNOWN-cost platform is blocked before publishing or measuring',async()=>{
- const f=await fixture();f.adapter.cost='UNKNOWN';let calls=0;f.adapter.publish=()=>calls++;const r=await f.engine.run(f.input);assert.equal(r.blocker,'API_COST_APPROVAL_REQUIRED');assert.equal(calls,0);
+ const f=await fixture();f.adapter.cost='UNKNOWN';let calls=0;f.adapter.publish=()=>calls++;const r=await f.engine.run(f.input);assert.equal(r.blocker,'ACTUAL_COST_BOUND_UNKNOWN');assert.equal(calls,0);
 });
 
 test('measurement failure preserves UNKNOWN; does not manufacture engagement',async()=>{
@@ -99,11 +99,13 @@ test('scheduler requires explicit per-product opt in',async()=>{
  const f=await fixture();const a=await f.engine.tick();assert.equal(a.result,null);assert.equal(a.feedback,null);
 });
 
-test('paid publication reserves bounded daily budget before action',async()=>{
- const f=await fixture();f.adapter.cost='UNKNOWN';f.p.budget={approved:true,max_action_usd:1,max_cycle_usd:1,max_daily_usd:1,max_daily_api_calls:1};for(const d of f.p.destinations){d.max_api_calls=1;d.max_action_usd=1;}
- const r=await f.engine.run(f.input);assert.equal(r.status,'PASS');assert.equal(r.receipt.reserved_cost_usd,1);
+test('paid publication requires reconciled actual billing and a provider-enforced AUD quote',async()=>{
+ const f=await fixture();f.adapter.cost='UNKNOWN';let calls=0;f.adapter.publish=async()=>{calls++;return {status:'PUBLISHED',id:'test',billing:{currency:'AUD',actual:true,amount:1,receipt_id:'billing'}};};f.adapter.quote=async()=>({currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:1,receipt_id:'quote'});f.p.budget={approved:true,max_action_usd:1,max_cycle_usd:1,max_daily_usd:1,max_daily_api_calls:1};for(const d of f.p.destinations){d.max_api_calls=1;d.max_action_usd=1;}
+ const unknown=await f.engine.run(f.input);assert.equal(unknown.blocker,'MONTHLY_BILLING_UNKNOWN');assert.equal(calls,0);
+ const month=(await import('../../runtime/spending.js')).calendarMonth();await f.store.put('spend:'+month,{month,actual_aud:0,unresolved:{},campaigns:{},receipts:{},historical_billing:'RECONCILED'});
+ const r=await f.engine.run(f.input);assert.equal(r.status,'PASS');assert.equal(r.receipt.provider_cost.amount,1);assert.equal(calls,1);
  f.p.signals[0].revision='r2';for(const d of f.p.destinations){d.delta.signal_revision='r2';d.permission.signal_revision='r2';}
- const blocked=await f.engine.run(f.input);assert.equal(blocked.blocker,'DAILY_COST_OR_CALL_BOUND');
+ const blocked=await f.engine.run(f.input);assert.equal(blocked.blocker,'DAILY_COST_OR_CALL_BOUND');assert.equal(calls,1);
 });
 
 test('retry bound applies independently of global breaker',async()=>{
@@ -111,12 +113,12 @@ test('retry bound applies independently of global breaker',async()=>{
 });
 
 test('cost-bound rejection creates BLOCKED receipt, never phantom IN_FLIGHT',async()=>{
- const f=await fixture();f.adapter.cost='UNKNOWN';f.p.budget={approved:true,max_action_usd:1,max_cycle_usd:1,max_daily_usd:0,max_daily_api_calls:0};for(const d of f.p.destinations){d.max_api_calls=1;d.max_action_usd=1;}
- const r=await f.engine.run(f.input);assert.equal(r.receipt.execution_status,'BLOCKED');assert.equal(r.blocker,'DAILY_COST_OR_CALL_BOUND');
+ const f=await fixture();f.adapter.cost='UNKNOWN';f.adapter.quote=async()=>({currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:1,receipt_id:'quote'});f.p.budget={approved:true,max_action_usd:1,max_cycle_usd:1,max_daily_usd:0,max_daily_api_calls:0};for(const d of f.p.destinations){d.max_api_calls=1;d.max_action_usd=1;}
+ const r=await f.engine.run(f.input);assert.equal(r.receipt.execution_status,'BLOCKED');assert.equal(r.blocker,'DAILY_COST_OR_CALL_BOUND');assert.equal(await f.store.get('spend:'+(await import('../../runtime/spending.js')).calendarMonth()),null);
 });
 
 test('X image API-call budget must cover four calls before publishing',async()=>{
- const f=await fixture();f.adapter.cost='UNKNOWN';f.adapter.publishCalls=()=>4;f.p.budget={approved:true,max_action_usd:1,max_cycle_usd:1,max_daily_usd:10,max_daily_api_calls:10};for(const d of f.p.destinations){d.max_api_calls=1;d.max_action_usd=1;}
+ const f=await fixture();f.adapter.cost='UNKNOWN';f.adapter.quote=async()=>({currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:1,receipt_id:'quote'});f.adapter.publishCalls=()=>4;f.p.budget={approved:true,max_action_usd:1,max_cycle_usd:1,max_daily_usd:10,max_daily_api_calls:10};for(const d of f.p.destinations){d.max_api_calls=1;d.max_action_usd=1;}
  const r=await f.engine.run(f.input);assert.equal(r.blocker,'API_CALL_BOUND_TOO_LOW');
 });
 

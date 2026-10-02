@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
+import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -16,17 +17,22 @@ function approved(p,s) {
 }
 
 export class GraphEngine {
-  constructor({store,products,adapters,harness=null,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;}
+  constructor({store,products,adapters,harness=null,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;this.spend=new SpendEnvelope(store);}
   async modelWork(c,node,context,approvalKey) {
     if(!this.harness)fail('HARNESS_DISPATCH_NOT_CONNECTED');
     const b=c.product.budget;
     if(!b?.[approvalKey]||!Number.isFinite(b.max_worker_usd)||b.max_worker_usd<=0||!Number.isFinite(b.max_worker_daily_usd)||!Number.isSafeInteger(b.max_worker_calls)||b.max_worker_calls<1)fail('WORKER_COST_APPROVAL_REQUIRED');
+    if(!this.harness.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
     const ledgerKey='worker_cost:'+c.input.product+':'+now().slice(0,10);const ledger=await this.store.get(ledgerKey)||{calls:0,reserved_usd:0};
     if(ledger.calls+2>b.max_worker_calls||ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd)fail('WORKER_DAILY_BOUND');
+    const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
+    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node});
     ledger.calls+=2;ledger.reserved_usd+=b.max_worker_usd*2;await this.store.put(ledgerKey,ledger);c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;
     const input={...context,learning_routes:Object.fromEntries(Object.entries(c.state.routes).filter(([key])=>key.startsWith(encodeURIComponent(c.input.product)+':')))};input.input_hash=digest(input);
-    const work=await this.harness.work(marketingWorkUnit(node,c.input.product),input);
-    c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',reserved_usd:b.max_worker_usd*2};
+    let work;try{work=await this.harness.work(marketingWorkUnit(node,c.input.product),{...input,cost_reservation:costReservation});}catch(error){await this.spend.settle(costReservation,error.billing);throw error;}
+    const provider_cost=await this.spend.settle(costReservation,work.proof.billing);
+    c.provider_costs||=[];c.provider_costs.push(provider_cost);
+    c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',provider_cost,reserved_usd:b.max_worker_usd*2};
     await this.store.put('work:'+c.run_id+':'+node,c.node_work);return work;
   }
   async tick() {
@@ -183,6 +189,7 @@ const workers={
     if(c.adapter.authorized&&!await c.adapter.authorized(c.input.product))fail('ACCOUNT_AUTHORIZATION_REQUIRED');
     // UNKNOWN-cost APIs are blocked until a bounded owner budget exists.
     if(c.adapter.cost!=='ZERO'){
+      if(!c.adapter.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
       const budget=c.product.budget;
       if(budget?.approved!==true||!Number.isFinite(budget.max_action_usd)||budget.max_action_usd<=0||!Number.isFinite(budget.max_cycle_usd)||budget.max_cycle_usd<budget.max_action_usd||!Number.isFinite(d.max_api_calls)||d.max_api_calls<1)fail('API_COST_APPROVAL_REQUIRED');
       if(c.adapter.publishCalls&&d.max_api_calls<c.adapter.publishCalls(c.asset))fail('API_CALL_BOUND_TOO_LOW');
@@ -196,11 +203,15 @@ const workers={
     if(prior?.execution_status==='IN_FLIGHT'||prior?.execution_status==='AMBIGUOUS')fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     if(prior?.attempts>=c.max_attempts)fail('RETRY_BOUND');
     if(Date.parse(prior?.retry_at||0)>Date.now())fail('RETRY_NOT_DUE');
+    let dailyLedger;
+    let dailyLedgerKey;
     if(c.adapter.cost!=='ZERO'){
-      const ledgerKey='cost:'+c.input.product+':'+now().slice(0,10);const ledger=await e.store.get(ledgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
-      if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||ledger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||ledger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
-      ledger.reserved_usd+=c.route.destination.max_action_usd;ledger.calls+=c.route.destination.max_api_calls;await e.store.put(ledgerKey,ledger);c.reserved_cost_usd=c.route.destination.max_action_usd;
+      dailyLedgerKey='cost:'+c.input.product+':'+now().slice(0,10);dailyLedger=await e.store.get(dailyLedgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
+      if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||dailyLedger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||dailyLedger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
     }
+    const costQuote=c.adapter.cost==='ZERO'?zeroQuote(c.publication_key):await c.adapter.quote({operation:'publish',asset:c.asset,product:c.input.product});
+    c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish'});
+    if(dailyLedger){dailyLedger.reserved_usd+=c.route.destination.max_action_usd;dailyLedger.calls+=c.route.destination.max_api_calls;await e.store.put(dailyLedgerKey,dailyLedger);c.reserved_cost_usd=c.route.destination.max_action_usd;}
     c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     const pendingKey='pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision;
@@ -209,16 +220,19 @@ const workers={
       const result=await c.adapter.publish(c.asset,c.publication_key,c.input.product);
       if(!result?.id||result.status!=='PUBLISHED')fail('PUBLICATION_RECEIPT_MISSING');
       Object.assign(c.receipt,{execution_status:'PUBLISHED',external_id:String(result.id),url:result.url||null,timestamp:now(),api_cost_usd:result.cost_usd??'UNKNOWN'});
+      c.provider_billing=result.billing;
     }catch(error){
       const status=error.status;
       // A timeout/5xx after POST might already have published. Never repeat it blindly.
       Object.assign(c.receipt,{execution_status:status===429?'RATE_LIMITED':status&&status>=400&&status<500?'FAILED':'AMBIGUOUS',error:String(error.message).slice(0,200),retry_at:status===429?new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString():null});
     }
+    c.receipt.provider_cost=await e.spend.settle(c.cost_reservation,c.adapter.cost==='ZERO'?zeroBilling(c.publication_key):c.provider_billing);
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     if(c.receipt.execution_status!=='AMBIGUOUS')await e.store.put(pendingKey,null);
   },
   async receipt(c,e) {
     if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
+    c.receipt.worker_costs=c.provider_costs||[];
     await e.store.put('receipt:'+c.receipt.id,c.receipt);await e.store.put('latest_receipt',c.receipt);
     const index=await e.store.get('receipt_index')||[];const filtered=index.filter(r=>r.id!==c.receipt.id);filtered.push({...c.receipt,last_collection:now()});await e.store.put('receipt_index',filtered.slice(-200));
   },
@@ -228,16 +242,16 @@ const workers={
     if(Date.parse(c.state.platforms?.[r.product+':'+r.platform]?.retry_at||0)>Date.now()){c.performance.reason='PLATFORM_RATE_LIMIT_COOLDOWN';await e.store.put('performance:'+r.id,c.performance);return;}
     if(r.execution_status==='PUBLISHED'&&a?.collect&&a.cost==='ZERO') {try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
     else if(r.execution_status==='PUBLISHED'&&a?.collect){
-      const p=e.products[r.product];if(p?.budget?.metrics_approved&&Number.isFinite(p.budget.max_metrics_calls)&&p.budget.max_metrics_calls>0){
+      const p=e.products[r.product];if(!a.quote){c.performance.reason='ACTUAL_COST_BOUND_UNKNOWN';await e.store.put('performance:'+r.id,c.performance);return;}if(p?.budget?.metrics_approved&&Number.isFinite(p.budget.max_metrics_calls)&&p.budget.max_metrics_calls>0){
         const ledgerKey='metrics_cost:'+r.product+':'+now().slice(0,10);const ledger=await e.store.get(ledgerKey)||{calls:0,reserved_usd:0};const b=p.budget;
         if(!Number.isFinite(b.max_metrics_action_usd)||b.max_metrics_action_usd<=0||!Number.isFinite(b.max_metrics_daily_usd)||ledger.calls>=b.max_metrics_calls||ledger.reserved_usd+b.max_metrics_action_usd>b.max_metrics_daily_usd)c.performance.reason='METRICS_COST_OR_CALL_BOUND';
-        else{ledger.calls++;ledger.reserved_usd+=b.max_metrics_action_usd;await e.store.put(ledgerKey,ledger);try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
+        else{const quote=await a.quote({operation:'collect',receipt:r});const reservation=await e.spend.reserve({campaign_id:r.campaign_id,quote});ledger.calls++;ledger.reserved_usd+=b.max_metrics_action_usd;await e.store.put(ledgerKey,ledger);try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}c.performance.provider_cost=await e.spend.settle(reservation,c.performance.billing);}
       }else c.performance.reason='METRICS_API_COST_APPROVAL_REQUIRED';
     }
     await e.store.put('performance:'+r.id,c.performance);
   },
   async normalize(c,e) {
-    c.outcome={receipt_id:c.receipt.id,route_key:c.receipt.route_key,execution_status:c.receipt.execution_status,observed_at:c.performance.observed_at,source:c.performance.source,measurements:c.performance.metrics,engagement_rate:'UNKNOWN',reach:'UNKNOWN',conversion:'UNKNOWN',cost_usd:c.performance.cost_usd??'UNKNOWN',evidence_strength:c.performance.status==='AVAILABLE'?'DIRECT_MEASUREMENT':'EXECUTION_ONLY'};
+    c.outcome={receipt_id:c.receipt.id,route_key:c.receipt.route_key,execution_status:c.receipt.execution_status,observed_at:c.performance.observed_at,source:c.performance.source,measurements:c.performance.metrics,engagement_rate:'UNKNOWN',reach:'UNKNOWN',conversion:'UNKNOWN',cost_usd:c.performance.cost_usd??'UNKNOWN',provider_costs:{execution:c.receipt.provider_cost||'UNKNOWN',workers:c.receipt.worker_costs||[],observation:c.performance.provider_cost||'UNKNOWN'},evidence_strength:c.performance.status==='AVAILABLE'?'DIRECT_MEASUREMENT':'EXECUTION_ONLY'};
     // Channel-native values retain names/units/scopes. No email/X/local pseudo-score.
     if(!Object.values(c.outcome.measurements).every(m=>Number.isFinite(m.value)&&m.value>=0&&m.unit&&m.scope))fail('INVALID_MEASUREMENT');
     await e.store.put('outcome:'+c.receipt.id,c.outcome);
@@ -260,7 +274,7 @@ const workers={
     const likes=c.outcome.measurements.like_count;
     const impressions=c.outcome.measurements.impression_count;
     if(likes?.scope==='x_public_metrics'&&impressions?.scope==='x_public_metrics'&&impressions.value>=100&&likes.value<=impressions.value)record.measurement_adjustment=Math.min(0.2,likes.value/impressions.value);
-    record.last_receipt=r.id;record.timing_observations={last_execution_at:r.timestamp,last_observed_at:c.outcome.observed_at,optimal_time:'UNKNOWN'};
+    record.provider_costs=c.outcome.provider_costs;record.last_receipt=r.id;record.timing_observations={last_execution_at:r.timestamp,last_observed_at:c.outcome.observed_at,optimal_time:'UNKNOWN'};
     record.current_measurement_state=c.performance.status;
     if(Object.keys(c.outcome.measurements).length)record.measurements=c.outcome.measurements;
     record.last_known_evidence_strength=record.evidence_strength==='DIRECT_MEASUREMENT'?'DIRECT_MEASUREMENT':old.last_known_evidence_strength||'UNKNOWN';

@@ -1,0 +1,1433 @@
+{
+  "scope": "HOSTED_REDIS_REAL_LOCAL_DELIVERY_NO_EXTERNAL_CAMPAIGN",
+  "service": "https://emradar-x-executor.onrender.com",
+  "deployed_commit": "dd1ee68c92ace53ba6deb6a0d9cfa92bae760d13",
+  "first": {
+    "http_status": 200,
+    "body": {
+      "run_id": "cdcfcbe7-0522-4753-8693-b14dfa6cb7a1",
+      "product": "TEST_PRODUCT",
+      "campaign_id": "HOSTED_SAFE_TEST_1",
+      "status": "PASS",
+      "blocker": null,
+      "nodes": [
+        {
+          "node": "ingest",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.163Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "signal_extraction",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.163Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "signal_library",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.163Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "priority",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.165Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "campaign",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.165Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "relevance",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.165Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "scout",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.166Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "baseline",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.167Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "delta",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.167Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "novelty_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.167Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
+        },
+        {
+          "node": "route",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.167Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+        },
+        {
+          "node": "editorial_intelligence",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.271Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+        },
+        {
+          "node": "editorial_quality_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.271Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+        },
+        {
+          "node": "variant_factory",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.271Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
+        },
+        {
+          "node": "format",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.272Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+        },
+        {
+          "node": "adapt",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.272Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+        },
+        {
+          "node": "evidence_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.272Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+        },
+        {
+          "node": "brand_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.272Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+        },
+        {
+          "node": "permission_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.272Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
+        },
+        {
+          "node": "execute",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.273Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "cbae3fb73066f379afb6cc8aa18ea7a2196b310b6fc030b47de432d4dcf90e05"
+        },
+        {
+          "node": "receipt",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.279Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "cbae3fb73066f379afb6cc8aa18ea7a2196b310b6fc030b47de432d4dcf90e05"
+        },
+        {
+          "node": "observe",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.282Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "cbae3fb73066f379afb6cc8aa18ea7a2196b310b6fc030b47de432d4dcf90e05"
+        },
+        {
+          "node": "normalize",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.284Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "64f9e65c0d30842260c594adf5c0c829447820c9494dfc83ede27faee30a8dd2"
+        },
+        {
+          "node": "learn",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.344Z",
+          "status": "PASS",
+          "input_hash": "afbb93fb62515f12fb1a8bcc52f1d826b6272808ef89255d7fbd55e73ca43619",
+          "output_hash": "ad4e8b4c59fdfb989531da6792d795015d0d19d71e8a9ecb7b2040c672d2af23"
+        },
+        {
+          "node": "distribution_map",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:39.345Z",
+          "status": "PASS",
+          "input_hash": "542fcdf4fc147c9102ada701fb4badce18c1b3a72cb8ca47932be3a6a7a5fa9b",
+          "output_hash": "ad4e8b4c59fdfb989531da6792d795015d0d19d71e8a9ecb7b2040c672d2af23"
+        }
+      ],
+      "selection": {
+        "learning_version": 0,
+        "options": [
+          {
+            "id": "local-a",
+            "format": "svg",
+            "key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          },
+          {
+            "id": "local-a",
+            "format": "text",
+            "key": "TEST_PRODUCT:test-signal:local-a:text",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          },
+          {
+            "id": "local-b",
+            "format": "svg",
+            "key": "TEST_PRODUCT:test-signal:local-b:svg",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          },
+          {
+            "id": "local-b",
+            "format": "text",
+            "key": "TEST_PRODUCT:test-signal:local-b:text",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          }
+        ],
+        "selected": "TEST_PRODUCT:test-signal:local-a:svg"
+      },
+      "receipt": {
+        "id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "destination": "local-a",
+        "platform": "LOCAL",
+        "variant": "94e2578ca30d5cd7",
+        "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
+        "format": "svg",
+        "timestamp": "2026-10-02T16:38:39.277Z",
+        "execution_status": "PUBLISHED",
+        "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "url": "file:///tmp/marketing-safe-test-destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+        "campaign_id": "HOSTED_SAFE_TEST_1",
+        "product": "TEST_PRODUCT",
+        "signal_id": "test-signal",
+        "signal_revision": "r1",
+        "signal_state": "FORMING",
+        "evidence_refs": [
+          "E1"
+        ],
+        "source_receipt": null,
+        "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+        "attempts": 1,
+        "max_attempts": 2,
+        "retry_at": null,
+        "error": null,
+        "api_cost_usd": 0,
+        "ad_spend_usd": 0,
+        "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
+        "reserved_cost_usd": 0
+      },
+      "performance": {
+        "status": "AVAILABLE",
+        "source": "local_file_readback",
+        "observed_at": "2026-10-02T16:38:39.283Z",
+        "metrics": {
+          "delivered_bytes": {
+            "value": 478,
+            "unit": "bytes",
+            "scope": "local_delivery"
+          },
+          "content_verified": {
+            "value": 1,
+            "unit": "boolean",
+            "scope": "local_delivery"
+          }
+        },
+        "cost_usd": 0
+      },
+      "outcome": {
+        "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+        "execution_status": "PUBLISHED",
+        "observed_at": "2026-10-02T16:38:39.283Z",
+        "source": "local_file_readback",
+        "measurements": {
+          "delivered_bytes": {
+            "value": 478,
+            "unit": "bytes",
+            "scope": "local_delivery"
+          },
+          "content_verified": {
+            "value": 1,
+            "unit": "boolean",
+            "scope": "local_delivery"
+          }
+        },
+        "engagement_rate": "UNKNOWN",
+        "reach": "UNKNOWN",
+        "conversion": "UNKNOWN",
+        "cost_usd": 0,
+        "evidence_strength": "DIRECT_MEASUREMENT"
+      },
+      "learning_before": {
+        "version": 0,
+        "routes": {},
+        "platforms": {},
+        "processed": {},
+        "history": []
+      },
+      "learning_after": {
+        "version": 1,
+        "routes": {
+          "TEST_PRODUCT:test-signal:local-a:svg": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T16:38:39.277Z",
+              "last_observed_at": "2026-10-02T16:38:39.283Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "current_measurement_state": "AVAILABLE",
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+          }
+        },
+        "platforms": {
+          "TEST_PRODUCT:LOCAL": {
+            "failures": 0,
+            "retry_at": null
+          }
+        },
+        "processed": {
+          "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+          "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+        },
+        "history": [
+          {
+            "version": 1,
+            "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "before": {
+              "successes": 0,
+              "failures": 0,
+              "confidence": 0,
+              "evidence_strength": "UNKNOWN",
+              "failed_routes": []
+            },
+            "after": {
+              "successes": 1,
+              "failures": 0,
+              "confidence": 0.1,
+              "evidence_strength": "DIRECT_MEASUREMENT",
+              "failed_routes": [],
+              "retry_at": null,
+              "measurement_adjustment": 0.05,
+              "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "timing_observations": {
+                "last_execution_at": "2026-10-02T16:38:39.277Z",
+                "last_observed_at": "2026-10-02T16:38:39.283Z",
+                "optimal_time": "UNKNOWN"
+              },
+              "current_measurement_state": "AVAILABLE",
+              "measurements": {
+                "delivered_bytes": {
+                  "value": 478,
+                  "unit": "bytes",
+                  "scope": "local_delivery"
+                },
+                "content_verified": {
+                  "value": 1,
+                  "unit": "boolean",
+                  "scope": "local_delivery"
+                }
+              },
+              "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+            }
+          }
+        ],
+        "variants": {
+          "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+            "score": 0.05,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+          }
+        }
+      }
+    }
+  },
+  "second": {
+    "http_status": 200,
+    "body": {
+      "run_id": "68f07bd9-9ec1-4f74-b461-52082f39e197",
+      "product": "TEST_PRODUCT",
+      "campaign_id": "HOSTED_SAFE_TEST_2",
+      "status": "PASS",
+      "blocker": null,
+      "nodes": [
+        {
+          "node": "ingest",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.079Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "signal_extraction",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.079Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "signal_library",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.079Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "priority",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.080Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "campaign",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.080Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "relevance",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.080Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "scout",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.080Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "baseline",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "delta",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "novelty_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "route",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+        },
+        {
+          "node": "editorial_intelligence",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+        },
+        {
+          "node": "editorial_quality_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+        },
+        {
+          "node": "variant_factory",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
+        },
+        {
+          "node": "format",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+        },
+        {
+          "node": "adapt",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+        },
+        {
+          "node": "evidence_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.081Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+        },
+        {
+          "node": "brand_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.082Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+        },
+        {
+          "node": "permission_gate",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.082Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
+        },
+        {
+          "node": "execute",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.082Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "4d0e9f3412b47e4cd7a33dc8defa1f1ed6e64f2a35ca5fd5fe82e39feb3dcd7a"
+        },
+        {
+          "node": "receipt",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.083Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "4d0e9f3412b47e4cd7a33dc8defa1f1ed6e64f2a35ca5fd5fe82e39feb3dcd7a"
+        },
+        {
+          "node": "observe",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.086Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "4d0e9f3412b47e4cd7a33dc8defa1f1ed6e64f2a35ca5fd5fe82e39feb3dcd7a"
+        },
+        {
+          "node": "normalize",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.087Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "835ebeae206e7b27af7ae3740c36912bdf7f49fd9046dea505c09e7674a4b3e8"
+        },
+        {
+          "node": "learn",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.088Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "835ebeae206e7b27af7ae3740c36912bdf7f49fd9046dea505c09e7674a4b3e8"
+        },
+        {
+          "node": "distribution_map",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:49.088Z",
+          "status": "PASS",
+          "input_hash": "3bde94820e7603f5cb475580169632fb0b7102f63d94bc168148828e5e72436d",
+          "output_hash": "835ebeae206e7b27af7ae3740c36912bdf7f49fd9046dea505c09e7674a4b3e8"
+        }
+      ],
+      "selection": {
+        "learning_version": 1,
+        "options": [
+          {
+            "id": "local-a",
+            "format": "svg",
+            "key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "score": 0.3833333333333333,
+            "learned": 0.3833333333333333,
+            "breaker": false,
+            "cooldown": false
+          },
+          {
+            "id": "local-a",
+            "format": "text",
+            "key": "TEST_PRODUCT:test-signal:local-a:text",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          },
+          {
+            "id": "local-b",
+            "format": "svg",
+            "key": "TEST_PRODUCT:test-signal:local-b:svg",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          },
+          {
+            "id": "local-b",
+            "format": "text",
+            "key": "TEST_PRODUCT:test-signal:local-b:text",
+            "score": 0,
+            "learned": 0,
+            "breaker": false,
+            "cooldown": false
+          }
+        ],
+        "selected": "TEST_PRODUCT:test-signal:local-a:svg"
+      },
+      "receipt": {
+        "id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "destination": "local-a",
+        "platform": "LOCAL",
+        "variant": "94e2578ca30d5cd7",
+        "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
+        "format": "svg",
+        "timestamp": "2026-10-02T16:38:39.277Z",
+        "execution_status": "PUBLISHED",
+        "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "url": "file:///tmp/marketing-safe-test-destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+        "campaign_id": "HOSTED_SAFE_TEST_1",
+        "product": "TEST_PRODUCT",
+        "signal_id": "test-signal",
+        "signal_revision": "r1",
+        "signal_state": "FORMING",
+        "evidence_refs": [
+          "E1"
+        ],
+        "source_receipt": null,
+        "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+        "attempts": 1,
+        "max_attempts": 2,
+        "retry_at": null,
+        "error": null,
+        "api_cost_usd": 0,
+        "ad_spend_usd": 0,
+        "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
+        "reserved_cost_usd": 0
+      },
+      "performance": {
+        "status": "AVAILABLE",
+        "source": "local_file_readback",
+        "observed_at": "2026-10-02T16:38:49.086Z",
+        "metrics": {
+          "delivered_bytes": {
+            "value": 478,
+            "unit": "bytes",
+            "scope": "local_delivery"
+          },
+          "content_verified": {
+            "value": 1,
+            "unit": "boolean",
+            "scope": "local_delivery"
+          }
+        },
+        "cost_usd": 0
+      },
+      "outcome": {
+        "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+        "execution_status": "PUBLISHED",
+        "observed_at": "2026-10-02T16:38:49.086Z",
+        "source": "local_file_readback",
+        "measurements": {
+          "delivered_bytes": {
+            "value": 478,
+            "unit": "bytes",
+            "scope": "local_delivery"
+          },
+          "content_verified": {
+            "value": 1,
+            "unit": "boolean",
+            "scope": "local_delivery"
+          }
+        },
+        "engagement_rate": "UNKNOWN",
+        "reach": "UNKNOWN",
+        "conversion": "UNKNOWN",
+        "cost_usd": 0,
+        "evidence_strength": "DIRECT_MEASUREMENT"
+      },
+      "learning_before": {
+        "version": 1,
+        "routes": {
+          "TEST_PRODUCT:test-signal:local-a:svg": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T16:38:39.277Z",
+              "last_observed_at": "2026-10-02T16:38:39.283Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "current_measurement_state": "AVAILABLE",
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+          }
+        },
+        "platforms": {
+          "TEST_PRODUCT:LOCAL": {
+            "failures": 0,
+            "retry_at": null
+          }
+        },
+        "processed": {
+          "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+          "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+        },
+        "history": [
+          {
+            "version": 1,
+            "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "before": {
+              "successes": 0,
+              "failures": 0,
+              "confidence": 0,
+              "evidence_strength": "UNKNOWN",
+              "failed_routes": []
+            },
+            "after": {
+              "successes": 1,
+              "failures": 0,
+              "confidence": 0.1,
+              "evidence_strength": "DIRECT_MEASUREMENT",
+              "failed_routes": [],
+              "retry_at": null,
+              "measurement_adjustment": 0.05,
+              "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "timing_observations": {
+                "last_execution_at": "2026-10-02T16:38:39.277Z",
+                "last_observed_at": "2026-10-02T16:38:39.283Z",
+                "optimal_time": "UNKNOWN"
+              },
+              "current_measurement_state": "AVAILABLE",
+              "measurements": {
+                "delivered_bytes": {
+                  "value": 478,
+                  "unit": "bytes",
+                  "scope": "local_delivery"
+                },
+                "content_verified": {
+                  "value": 1,
+                  "unit": "boolean",
+                  "scope": "local_delivery"
+                }
+              },
+              "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+            }
+          }
+        ],
+        "variants": {
+          "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+            "score": 0.05,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+          }
+        }
+      },
+      "learning_after": {
+        "version": 1,
+        "routes": {
+          "TEST_PRODUCT:test-signal:local-a:svg": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T16:38:39.277Z",
+              "last_observed_at": "2026-10-02T16:38:39.283Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "current_measurement_state": "AVAILABLE",
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+          }
+        },
+        "platforms": {
+          "TEST_PRODUCT:LOCAL": {
+            "failures": 0,
+            "retry_at": null
+          }
+        },
+        "processed": {
+          "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+          "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+        },
+        "history": [
+          {
+            "version": 1,
+            "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "before": {
+              "successes": 0,
+              "failures": 0,
+              "confidence": 0,
+              "evidence_strength": "UNKNOWN",
+              "failed_routes": []
+            },
+            "after": {
+              "successes": 1,
+              "failures": 0,
+              "confidence": 0.1,
+              "evidence_strength": "DIRECT_MEASUREMENT",
+              "failed_routes": [],
+              "retry_at": null,
+              "measurement_adjustment": 0.05,
+              "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "timing_observations": {
+                "last_execution_at": "2026-10-02T16:38:39.277Z",
+                "last_observed_at": "2026-10-02T16:38:39.283Z",
+                "optimal_time": "UNKNOWN"
+              },
+              "current_measurement_state": "AVAILABLE",
+              "measurements": {
+                "delivered_bytes": {
+                  "value": 478,
+                  "unit": "bytes",
+                  "scope": "local_delivery"
+                },
+                "content_verified": {
+                  "value": 1,
+                  "unit": "boolean",
+                  "scope": "local_delivery"
+                }
+              },
+              "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+            }
+          }
+        ],
+        "variants": {
+          "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+            "score": 0.05,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+          }
+        }
+      }
+    }
+  },
+  "later_observation": {
+    "http_status": 200,
+    "body": {
+      "trace": [
+        {
+          "node": "observe",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:59.164Z",
+          "status": "PASS",
+          "input_hash": "542fcdf4fc147c9102ada701fb4badce18c1b3a72cb8ca47932be3a6a7a5fa9b",
+          "output_hash": "0a9e8db2336a929848a0217faf60a309fb67358d3fa52cee2579e927be759510"
+        },
+        {
+          "node": "normalize",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:59.165Z",
+          "status": "PASS",
+          "input_hash": "542fcdf4fc147c9102ada701fb4badce18c1b3a72cb8ca47932be3a6a7a5fa9b",
+          "output_hash": "9c9fcbbabb94124b894665afb143468087ee6934668bb19b83d41cfa6c54839a"
+        },
+        {
+          "node": "learn",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:59.166Z",
+          "status": "PASS",
+          "input_hash": "542fcdf4fc147c9102ada701fb4badce18c1b3a72cb8ca47932be3a6a7a5fa9b",
+          "output_hash": "9c9fcbbabb94124b894665afb143468087ee6934668bb19b83d41cfa6c54839a"
+        },
+        {
+          "node": "distribution_map",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:38:59.166Z",
+          "status": "PASS",
+          "input_hash": "542fcdf4fc147c9102ada701fb4badce18c1b3a72cb8ca47932be3a6a7a5fa9b",
+          "output_hash": "9c9fcbbabb94124b894665afb143468087ee6934668bb19b83d41cfa6c54839a"
+        }
+      ],
+      "outcome": {
+        "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+        "execution_status": "PUBLISHED",
+        "observed_at": "2026-10-02T16:38:59.164Z",
+        "source": "local_file_readback",
+        "measurements": {
+          "delivered_bytes": {
+            "value": 478,
+            "unit": "bytes",
+            "scope": "local_delivery"
+          },
+          "content_verified": {
+            "value": 1,
+            "unit": "boolean",
+            "scope": "local_delivery"
+          }
+        },
+        "engagement_rate": "UNKNOWN",
+        "reach": "UNKNOWN",
+        "conversion": "UNKNOWN",
+        "cost_usd": 0,
+        "evidence_strength": "DIRECT_MEASUREMENT"
+      },
+      "learning": {
+        "version": 1,
+        "routes": {
+          "TEST_PRODUCT:test-signal:local-a:svg": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T16:38:39.277Z",
+              "last_observed_at": "2026-10-02T16:38:39.283Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "current_measurement_state": "AVAILABLE",
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+          }
+        },
+        "platforms": {
+          "TEST_PRODUCT:LOCAL": {
+            "failures": 0,
+            "retry_at": null
+          }
+        },
+        "processed": {
+          "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+          "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+        },
+        "history": [
+          {
+            "version": 1,
+            "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "before": {
+              "successes": 0,
+              "failures": 0,
+              "confidence": 0,
+              "evidence_strength": "UNKNOWN",
+              "failed_routes": []
+            },
+            "after": {
+              "successes": 1,
+              "failures": 0,
+              "confidence": 0.1,
+              "evidence_strength": "DIRECT_MEASUREMENT",
+              "failed_routes": [],
+              "retry_at": null,
+              "measurement_adjustment": 0.05,
+              "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "timing_observations": {
+                "last_execution_at": "2026-10-02T16:38:39.277Z",
+                "last_observed_at": "2026-10-02T16:38:39.283Z",
+                "optimal_time": "UNKNOWN"
+              },
+              "current_measurement_state": "AVAILABLE",
+              "measurements": {
+                "delivered_bytes": {
+                  "value": 478,
+                  "unit": "bytes",
+                  "scope": "local_delivery"
+                },
+                "content_verified": {
+                  "value": 1,
+                  "unit": "boolean",
+                  "scope": "local_delivery"
+                }
+              },
+              "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+            }
+          }
+        ],
+        "variants": {
+          "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+            "score": 0.05,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+          }
+        }
+      }
+    }
+  },
+  "native_intake": {
+    "http_status": 200,
+    "body": {
+      "node": "product_context_intake",
+      "status": "ACCEPTED_SOURCE",
+      "product": "EMRADAR",
+      "sequence": 1,
+      "digest": "bb68c8d1cc9773aa0a45e7e3a7c09ba83902d4e60c3d3409c124c5c5a2905404",
+      "ignored_authority_fields": [
+        "budget",
+        "destinations",
+        "permissions",
+        "brand_system",
+        "autonomous"
+      ],
+      "next": "ingest"
+    }
+  },
+  "native_blocked": {
+    "http_status": 200,
+    "body": {
+      "run_id": "6376c2c1-4c47-4f0c-b0a9-5f1afc44737e",
+      "product": "EMRADAR",
+      "campaign_id": "HOSTED_NATIVE_SOURCE_BLOCKED",
+      "status": "BLOCKED",
+      "blocker": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+      "nodes": [
+        {
+          "node": "ingest",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:39:24.546Z",
+          "status": "BLOCKED",
+          "input_hash": "67bb73fe153c39fb453b4e04370d03f6a366cbc113ecd3cffabfbf3aa4ff66d9",
+          "reason": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+          "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
+        },
+        {
+          "node": "receipt",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:39:24.546Z",
+          "status": "PASS",
+          "input_hash": "67bb73fe153c39fb453b4e04370d03f6a366cbc113ecd3cffabfbf3aa4ff66d9",
+          "output_hash": "2966e643e39de5c55f7c4d54c2ded4bcdf65d20c740f6c9afb7d6aaefdfed78c"
+        },
+        {
+          "node": "observe",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:39:24.550Z",
+          "status": "PASS",
+          "input_hash": "67bb73fe153c39fb453b4e04370d03f6a366cbc113ecd3cffabfbf3aa4ff66d9",
+          "output_hash": "2966e643e39de5c55f7c4d54c2ded4bcdf65d20c740f6c9afb7d6aaefdfed78c"
+        },
+        {
+          "node": "normalize",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:39:24.551Z",
+          "status": "PASS",
+          "input_hash": "67bb73fe153c39fb453b4e04370d03f6a366cbc113ecd3cffabfbf3aa4ff66d9",
+          "output_hash": "6c5f9c50db9378e9540f01773d3577506c7d311acf2b75c7990a12b71d8efb09"
+        },
+        {
+          "node": "learn",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:39:24.552Z",
+          "status": "PASS",
+          "input_hash": "67bb73fe153c39fb453b4e04370d03f6a366cbc113ecd3cffabfbf3aa4ff66d9",
+          "output_hash": "6c5f9c50db9378e9540f01773d3577506c7d311acf2b75c7990a12b71d8efb09"
+        },
+        {
+          "node": "distribution_map",
+          "lane": "deterministic",
+          "at": "2026-10-02T16:39:24.552Z",
+          "status": "PASS",
+          "input_hash": "67bb73fe153c39fb453b4e04370d03f6a366cbc113ecd3cffabfbf3aa4ff66d9",
+          "output_hash": "6c5f9c50db9378e9540f01773d3577506c7d311acf2b75c7990a12b71d8efb09"
+        }
+      ],
+      "receipt": {
+        "id": "753cbed3ec0e3a8b377e4630649fd3bfee5dc4d33e373a3936a95bb00b29f4fd",
+        "destination": "UNKNOWN",
+        "platform": "UNKNOWN",
+        "variant": "UNKNOWN",
+        "format": "UNKNOWN",
+        "timestamp": "2026-10-02T16:39:24.546Z",
+        "execution_status": "BLOCKED",
+        "external_id": null,
+        "url": null,
+        "campaign_id": "HOSTED_NATIVE_SOURCE_BLOCKED",
+        "product": "EMRADAR",
+        "signal_id": "global-grid-equipment-bottleneck",
+        "signal_revision": "11271d319cb6667947360a4ab4237ffbbecd53f543dc347b05f42769966b0b91",
+        "signal_state": "CONFIRMED",
+        "evidence_refs": [
+          "78eadbe89d3c2f4fa91773a78428cd8aec1821b2023f10141e33a634b599c4fe",
+          "43672f31599a08f708097e30c916de70f10543387f110c02e910ff29f383479e",
+          "9e5945f6f5ec3f3b3dc5776e304079c0183379511e7700e431da898703db247c"
+        ],
+        "source_receipt": {
+          "digest": "bb68c8d1cc9773aa0a45e7e3a7c09ba83902d4e60c3d3409c124c5c5a2905404",
+          "sequence": 1
+        },
+        "route_key": null,
+        "attempts": 0,
+        "max_attempts": 0,
+        "retry_at": null,
+        "error": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+        "api_cost_usd": 0,
+        "worker_reserved_usd": 0,
+        "ad_spend_usd": 0
+      },
+      "performance": {
+        "status": "UNKNOWN",
+        "metrics": {},
+        "source": "UNAVAILABLE",
+        "observed_at": "2026-10-02T16:39:24.550Z",
+        "cost_usd": "UNKNOWN"
+      },
+      "outcome": {
+        "receipt_id": "753cbed3ec0e3a8b377e4630649fd3bfee5dc4d33e373a3936a95bb00b29f4fd",
+        "route_key": null,
+        "execution_status": "BLOCKED",
+        "observed_at": "2026-10-02T16:39:24.550Z",
+        "source": "UNAVAILABLE",
+        "measurements": {},
+        "engagement_rate": "UNKNOWN",
+        "reach": "UNKNOWN",
+        "conversion": "UNKNOWN",
+        "cost_usd": "UNKNOWN",
+        "evidence_strength": "EXECUTION_ONLY"
+      },
+      "learning_before": {
+        "version": 1,
+        "routes": {
+          "TEST_PRODUCT:test-signal:local-a:svg": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T16:38:39.277Z",
+              "last_observed_at": "2026-10-02T16:38:39.283Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "current_measurement_state": "AVAILABLE",
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+          }
+        },
+        "platforms": {
+          "TEST_PRODUCT:LOCAL": {
+            "failures": 0,
+            "retry_at": null
+          }
+        },
+        "processed": {
+          "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+          "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+        },
+        "history": [
+          {
+            "version": 1,
+            "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "before": {
+              "successes": 0,
+              "failures": 0,
+              "confidence": 0,
+              "evidence_strength": "UNKNOWN",
+              "failed_routes": []
+            },
+            "after": {
+              "successes": 1,
+              "failures": 0,
+              "confidence": 0.1,
+              "evidence_strength": "DIRECT_MEASUREMENT",
+              "failed_routes": [],
+              "retry_at": null,
+              "measurement_adjustment": 0.05,
+              "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "timing_observations": {
+                "last_execution_at": "2026-10-02T16:38:39.277Z",
+                "last_observed_at": "2026-10-02T16:38:39.283Z",
+                "optimal_time": "UNKNOWN"
+              },
+              "current_measurement_state": "AVAILABLE",
+              "measurements": {
+                "delivered_bytes": {
+                  "value": 478,
+                  "unit": "bytes",
+                  "scope": "local_delivery"
+                },
+                "content_verified": {
+                  "value": 1,
+                  "unit": "boolean",
+                  "scope": "local_delivery"
+                }
+              },
+              "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+            }
+          }
+        ],
+        "variants": {
+          "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+            "score": 0.05,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+          }
+        }
+      },
+      "learning_after": {
+        "version": 1,
+        "routes": {
+          "TEST_PRODUCT:test-signal:local-a:svg": {
+            "successes": 1,
+            "failures": 0,
+            "confidence": 0.1,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "failed_routes": [],
+            "retry_at": null,
+            "measurement_adjustment": 0.05,
+            "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "timing_observations": {
+              "last_execution_at": "2026-10-02T16:38:39.277Z",
+              "last_observed_at": "2026-10-02T16:38:39.283Z",
+              "optimal_time": "UNKNOWN"
+            },
+            "current_measurement_state": "AVAILABLE",
+            "measurements": {
+              "delivered_bytes": {
+                "value": 478,
+                "unit": "bytes",
+                "scope": "local_delivery"
+              },
+              "content_verified": {
+                "value": 1,
+                "unit": "boolean",
+                "scope": "local_delivery"
+              }
+            },
+            "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+          }
+        },
+        "platforms": {
+          "TEST_PRODUCT:LOCAL": {
+            "failures": 0,
+            "retry_at": null
+          }
+        },
+        "processed": {
+          "f1053840b17ab3f71931491bdca3d5f1d2d3fa3565fb9cf3357063d4c5f1ddc0": true,
+          "ca4f1c989318a7c27151c036e459f99d574f2db68dbe7dc0f481e320cb14c02a": true
+        },
+        "history": [
+          {
+            "version": 1,
+            "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+            "before": {
+              "successes": 0,
+              "failures": 0,
+              "confidence": 0,
+              "evidence_strength": "UNKNOWN",
+              "failed_routes": []
+            },
+            "after": {
+              "successes": 1,
+              "failures": 0,
+              "confidence": 0.1,
+              "evidence_strength": "DIRECT_MEASUREMENT",
+              "failed_routes": [],
+              "retry_at": null,
+              "measurement_adjustment": 0.05,
+              "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "timing_observations": {
+                "last_execution_at": "2026-10-02T16:38:39.277Z",
+                "last_observed_at": "2026-10-02T16:38:39.283Z",
+                "optimal_time": "UNKNOWN"
+              },
+              "current_measurement_state": "AVAILABLE",
+              "measurements": {
+                "delivered_bytes": {
+                  "value": 478,
+                  "unit": "bytes",
+                  "scope": "local_delivery"
+                },
+                "content_verified": {
+                  "value": 1,
+                  "unit": "boolean",
+                  "scope": "local_delivery"
+                }
+              },
+              "last_known_evidence_strength": "DIRECT_MEASUREMENT"
+            }
+          }
+        ],
+        "variants": {
+          "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a": {
+            "score": 0.05,
+            "evidence_strength": "DIRECT_MEASUREMENT",
+            "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6"
+          }
+        }
+      }
+    }
+  },
+  "unsigned_rejection": {
+    "http_status": 409,
+    "body": {
+      "ok": false,
+      "status": "BLOCKED",
+      "reason": "INVALID_SOURCE_SIGNATURE"
+    }
+  },
+  "pass": true,
+  "additional_test_cost_usd": 0
+}

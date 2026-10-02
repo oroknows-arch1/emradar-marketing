@@ -69,3 +69,22 @@ Harness bridge handles verified creation/discovery with bounded cost reservation
 `/CYCLE` permits an authorized external scheduler. Observation re-entry follows the
 same executable graph edges. See the activation contract for the genuine deployment,
 source signing, runtime and financial prerequisites.
+
+Hosted verification now passes on the existing Render service at commit `dd1ee68`:
+real local destination delivery/read-back, Redis receipts and learning, a second
+request consuming version 1 and changing its route score, and duplicate prevention.
+Exact receipts are in `tests/evidence/hosted-closed-loop.json`; the concise verdict
+is `tests/evidence/hosted-loop-summary.json`. The real source handoff blocks at
+missing release authority, and an invalid signature is rejected. This demonstrates
+the hosted executable feedback loop; it does not release external campaigns.
+
+The next deployment draft records owner authority in `config/owner-authority.json`.
+It permits automatic source release only on a signed native attestation of all five
+required gates, and requires provider-enforced AUD quotes plus reconciled actual
+billing under A$5/campaign and A$50/calendar-month limits. UNKNOWN paid cost blocks;
+local zero-cost delivery remains usable. Authority does not opt products into
+external campaigns. A GitHub OIDC-authenticated scheduled wake-up is scoped to this
+repo's `main` workflow; it skips while `MARKETING_AUTONOMOUS` is disabled. Source
+publishers still need an actual native gate event and signed handoff; a deployed
+Harness executor and reconciled provider billing remain unavailable. Do not equate
+this draft with full autonomous external distribution.
