@@ -20,6 +20,10 @@ test('source replay is idempotent; rollback and sequence conflict rejected',asyn
 test('native scan maps states/evidence without inventing release approval',()=>{
  const s=emradarSource({snapshot_date:'2026-09-30',records:[{id:'s1',status:'UNKNOWN',theme:'uncertain',evidence:[{fact:'Test fact',source:'Test source'}],contradictions:['Uncertain'],chain_evolution:{unresolved_evidence:['Missing evidence']}}]});assert.equal(s.release_approved,false);assert.equal(s.signals[0].state,'UNKNOWN');assert.equal(s.signals[0].source_facts[0].text,'Test fact');assert.deepEqual(s.signals[0].source_uncertainty,['Uncertain','Missing evidence']);
 });
+test('native weakening and broken states retain their source classification',()=>{
+ const scan={snapshot_date:'2026-10-02',records:['WEAKENING','BROKEN'].map((status,i)=>({id:'s'+i,status,evidence:[{fact:'Verified change '+i,source:'Source'}]}))};
+ assert.deepEqual(emradarSource(scan).signals.map(s=>s.state),['WEAKENING','BROKEN']);
+});
 test('graph produces copy from source facts under approved deterministic template',async()=>{
  const f=await fixture();f.p.copy_policy={extractive_template_approved:true};f.p.signals[0].approved_copy=[];f.p.signals[0].source_facts=[{id:'E1',text:'A verified source fact.'}];f.p.signals[0].source_uncertainty=['Utilisation remains UNKNOWN'];const r=await f.engine.run(f.input);assert.equal(r.status,'PASS');const delivery=JSON.parse(await (await import('node:fs/promises')).readFile(new URL(r.receipt.url),'utf8'));assert(delivery.copy.includes('A verified source fact.'));assert(delivery.copy.includes('FORMING'));assert(delivery.copy.includes('UNKNOWN'));
 });

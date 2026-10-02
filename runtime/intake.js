@@ -32,6 +32,7 @@ export class ProductIntake {
       const record=await this.store.get('source:'+name);if(!record)continue;
       p.signals=record.source.signals;p.release_approved=record.source.release_approved;
       p.review={...p.review,evidence:record.source.review.evidence,editorial:record.source.review.editorial};
+      if(p.source_release_authority?.automatic_after_native_gates===true){p.review.brand=record.source.review.brand;p.review.risk=record.source.review.risk;}
       p.source_receipt={digest:record.digest,sequence:record.sequence};
     }
     return products;
@@ -42,7 +43,7 @@ export async function loadPolicies(file,json){if(json)return JSON.parse(json);if
 // A native scan is data, not permission. Unattested scan files remain release-blocked.
 export function emradarSource(scan,attestation={}){
   if(!Array.isArray(scan?.records))throw new Error('EMRADAR_SCAN_INVALID');
-  const allowed=new Set(['UNKNOWN','INVESTIGATE','FORMING','CONFIRMED','WATCH/NO SIGNAL']);
+  const allowed=new Set(['UNKNOWN','INVESTIGATE','FORMING','CONFIRMED','WEAKENING','BROKEN','WATCH/NO SIGNAL']);
   return {release_approved:attestation.release_approved===true,review:{evidence:attestation.evidence===true,editorial:attestation.editorial===true},signals:scan.records.map(r=>{
     if(!allowed.has(r.status))throw new Error('SOURCE_STATE_UNRECOGNISED');
     const facts=(r.evidence||[]).map(e=>({id:hash(e),text:e.fact,source:e.source||'UNKNOWN',url:e.url||null}));
