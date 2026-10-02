@@ -19,9 +19,12 @@ test('signed native gate attestation releases only after every mandatory gate pa
   const envelope={product:'TEST_PRODUCT',sequence:1,source:{signals:f.p.signals,native_gates:{evidence:'PASS',editorial:'PASS',brand:'PASS',risk:'PASS',publication:'UNKNOWN'},release_approved:true,review:{evidence:true,editorial:true}}};
   await intake.receive(envelope,signSource(envelope,'test-key'));
   assert.equal((await intake.products()).TEST_PRODUCT.release_approved,false);
+  assert.equal((await intake.products()).TEST_PRODUCT.review.brand,false);
   envelope.sequence=2;envelope.source.native_gates.publication='PASS';
   await intake.receive(envelope,signSource(envelope,'test-key'));
   assert.equal((await intake.products()).TEST_PRODUCT.release_approved,true);
+  assert.equal((await intake.products()).TEST_PRODUCT.review.brand,true);
+  assert.equal((await intake.products()).TEST_PRODUCT.review.risk,true);
   assert.equal((await intake.products()).TEST_PRODUCT.autonomous.enabled,false);
 });
 
