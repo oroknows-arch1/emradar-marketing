@@ -11,10 +11,10 @@ export class SpendEnvelope {
     const month=calendarMonth(at);const key='spend:'+month;
     const ledger=await this.store.get(key)||{month,actual_aud:0,unresolved:{},campaigns:{},receipts:{},historical_billing:'UNKNOWN'};
     if(quote.max_cost_aud>0&&ledger.historical_billing!=='RECONCILED')throw new Error('MONTHLY_BILLING_UNKNOWN');
-    if(Object.values(ledger.unresolved).some(x=>x.status==='UNKNOWN'))throw new Error('PROVIDER_BILLING_UNKNOWN');
+    if(quote.max_cost_aud>0&&Object.values(ledger.unresolved).some(x=>x.status==='UNKNOWN'))throw new Error('PROVIDER_BILLING_UNKNOWN');
     const pending=Object.values(ledger.unresolved);const c=ledger.campaigns[campaign_id]||0;
-    if(c+pending.filter(x=>x.campaign_id===campaign_id).reduce((s,x)=>s+x.max_cost_aud,0)+quote.max_cost_aud>5)throw new Error('OWNER_EXCEPTION_CAMPAIGN_AUD_5');
-    if(ledger.actual_aud+pending.reduce((s,x)=>s+x.max_cost_aud,0)+quote.max_cost_aud>50)throw new Error('OWNER_EXCEPTION_MONTH_AUD_50');
+    if(c+pending.filter(x=>x.campaign_id===campaign_id).reduce((s,x)=>s+x.max_cost_aud,0)+quote.max_cost_aud>authority.spending.campaign_limit)throw new Error('OWNER_EXCEPTION_CAMPAIGN_AUD_5');
+    if(ledger.actual_aud+pending.reduce((s,x)=>s+x.max_cost_aud,0)+quote.max_cost_aud>authority.spending.calendar_month_limit)throw new Error('OWNER_EXCEPTION_MONTH_AUD_50');
     const id=action_id||crypto.randomUUID();if(ledger.receipts[id]||ledger.unresolved[id])throw new Error('COST_ACTION_ALREADY_RESERVED');
     ledger.unresolved[id]={campaign_id,max_cost_aud:quote.max_cost_aud,quote_receipt:quote.receipt_id,status:'RESERVED'};await this.store.put(key,ledger);return {id,key,month,campaign_id,max_cost_aud:quote.max_cost_aud};
   }

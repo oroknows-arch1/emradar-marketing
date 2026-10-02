@@ -23,10 +23,10 @@ export class GraphEngine {
     const b=c.product.budget;
     if(!b?.[approvalKey]||!Number.isFinite(b.max_worker_usd)||b.max_worker_usd<=0||!Number.isFinite(b.max_worker_daily_usd)||!Number.isSafeInteger(b.max_worker_calls)||b.max_worker_calls<1)fail('WORKER_COST_APPROVAL_REQUIRED');
     if(!this.harness.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
-    const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
-    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node});
     const ledgerKey='worker_cost:'+c.input.product+':'+now().slice(0,10);const ledger=await this.store.get(ledgerKey)||{calls:0,reserved_usd:0};
     if(ledger.calls+2>b.max_worker_calls||ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd)fail('WORKER_DAILY_BOUND');
+    const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
+    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node});
     ledger.calls+=2;ledger.reserved_usd+=b.max_worker_usd*2;await this.store.put(ledgerKey,ledger);c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;
     const input={...context,learning_routes:Object.fromEntries(Object.entries(c.state.routes).filter(([key])=>key.startsWith(encodeURIComponent(c.input.product)+':')))};input.input_hash=digest(input);
     let work;try{work=await this.harness.work(marketingWorkUnit(node,c.input.product),{...input,cost_reservation:costReservation});}catch(error){await this.spend.settle(costReservation,error.billing);throw error;}
@@ -203,13 +203,15 @@ const workers={
     if(prior?.execution_status==='IN_FLIGHT'||prior?.execution_status==='AMBIGUOUS')fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     if(prior?.attempts>=c.max_attempts)fail('RETRY_BOUND');
     if(Date.parse(prior?.retry_at||0)>Date.now())fail('RETRY_NOT_DUE');
+    let dailyLedger;
+    let dailyLedgerKey;
+    if(c.adapter.cost!=='ZERO'){
+      dailyLedgerKey='cost:'+c.input.product+':'+now().slice(0,10);dailyLedger=await e.store.get(dailyLedgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
+      if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||dailyLedger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||dailyLedger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
+    }
     const costQuote=c.adapter.cost==='ZERO'?zeroQuote(c.publication_key):await c.adapter.quote({operation:'publish',asset:c.asset,product:c.input.product});
     c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish'});
-    if(c.adapter.cost!=='ZERO'){
-      const ledgerKey='cost:'+c.input.product+':'+now().slice(0,10);const ledger=await e.store.get(ledgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
-      if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||ledger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||ledger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
-      ledger.reserved_usd+=c.route.destination.max_action_usd;ledger.calls+=c.route.destination.max_api_calls;await e.store.put(ledgerKey,ledger);c.reserved_cost_usd=c.route.destination.max_action_usd;
-    }
+    if(dailyLedger){dailyLedger.reserved_usd+=c.route.destination.max_action_usd;dailyLedger.calls+=c.route.destination.max_api_calls;await e.store.put(dailyLedgerKey,dailyLedger);c.reserved_cost_usd=c.route.destination.max_action_usd;}
     c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     const pendingKey='pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision;

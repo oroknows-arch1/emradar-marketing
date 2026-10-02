@@ -1,7 +1,7 @@
 {
   "scope": "REAL_LOCAL_FILE_EXECUTION_NO_EXTERNAL_PUBLICATION",
   "first": {
-    "run_id": "fc4e16ed-ba15-4d98-baae-dad6f75db054",
+    "run_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1",
     "product": "TEST_PRODUCT",
     "campaign_id": "SAFE_TEST_1",
     "status": "PASS",
@@ -10,7 +10,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.561Z",
+        "at": "2026-10-02T17:17:11.907Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -18,7 +18,7 @@
       {
         "node": "signal_extraction",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.562Z",
+        "at": "2026-10-02T17:17:11.908Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -26,7 +26,7 @@
       {
         "node": "signal_library",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.562Z",
+        "at": "2026-10-02T17:17:11.908Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -34,7 +34,7 @@
       {
         "node": "priority",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -42,7 +42,7 @@
       {
         "node": "campaign",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -50,7 +50,7 @@
       {
         "node": "relevance",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -58,7 +58,7 @@
       {
         "node": "scout",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -66,7 +66,7 @@
       {
         "node": "baseline",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -74,7 +74,7 @@
       {
         "node": "delta",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -82,7 +82,7 @@
       {
         "node": "novelty_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "8a4d9669945dc4f8b42e982d9fd1f7e6bbf70c632969f7986aaad09d9b334a57"
@@ -90,7 +90,7 @@
       {
         "node": "route",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.563Z",
+        "at": "2026-10-02T17:17:11.909Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -98,7 +98,7 @@
       {
         "node": "editorial_intelligence",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.569Z",
+        "at": "2026-10-02T17:17:11.916Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -106,7 +106,7 @@
       {
         "node": "editorial_quality_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.916Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -114,7 +114,7 @@
       {
         "node": "variant_factory",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.916Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "44036138d9d1616b2b8fb802878e02b5070755344a28ace2ca7a7db017472982"
@@ -122,7 +122,7 @@
       {
         "node": "format",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.917Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -130,7 +130,7 @@
       {
         "node": "adapt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.917Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -138,7 +138,7 @@
       {
         "node": "evidence_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.917Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -146,7 +146,7 @@
       {
         "node": "brand_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.917Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -154,7 +154,7 @@
       {
         "node": "permission_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.917Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
         "output_hash": "3ef0eb5f5a7079ffdb00e1609eef0bed36e8227e826e19e2d221e250c23cc2c9"
@@ -162,50 +162,50 @@
       {
         "node": "execute",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.570Z",
+        "at": "2026-10-02T17:17:11.917Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "0198de06ffc3d476796dae1b8f91cd087c185ab1987ed8dd8e491ed1b4a1a937"
+        "output_hash": "c2fe528612bcbea63aa4534f04fa042ee87397252b2842e1010e9fba2f3ec7e0"
       },
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.572Z",
+        "at": "2026-10-02T17:17:11.928Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "0198de06ffc3d476796dae1b8f91cd087c185ab1987ed8dd8e491ed1b4a1a937"
+        "output_hash": "917eb2b85f6d30dc253c74e780a3467bfc3acc4a42e768e58e1cd804563d9c71"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.574Z",
+        "at": "2026-10-02T17:17:11.930Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "0198de06ffc3d476796dae1b8f91cd087c185ab1987ed8dd8e491ed1b4a1a937"
+        "output_hash": "917eb2b85f6d30dc253c74e780a3467bfc3acc4a42e768e58e1cd804563d9c71"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.575Z",
+        "at": "2026-10-02T17:17:11.931Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "274df56ef31dab8c2374f6c47b45f9f7015c341dc1dcf5aeb81ae008b51aedb8"
+        "output_hash": "8b4dbe16cdacb92f3fa3c7f42e723ca2176a6bf7eb0d26c3dd6c91d4fcd29e81"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.575Z",
+        "at": "2026-10-02T17:17:11.931Z",
         "status": "PASS",
         "input_hash": "9736c64815e0024edb54a350344c13be1f17393797d22d04046670621089c81f",
-        "output_hash": "518fb32600a72931b31eae2013b975a86ff75b26928e0d824b34f3add08c2fa5"
+        "output_hash": "fe644c1ae44439c96c57729bff90b39b760a26f3587fe951ae12dc5a22fce735"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.576Z",
+        "at": "2026-10-02T17:17:11.932Z",
         "status": "PASS",
         "input_hash": "22ab2928ac1ec39474a1bcc330df7408fb476ac03c5afa8553347a7ac2d71ac2",
-        "output_hash": "518fb32600a72931b31eae2013b975a86ff75b26928e0d824b34f3add08c2fa5"
+        "output_hash": "fe644c1ae44439c96c57729bff90b39b760a26f3587fe951ae12dc5a22fce735"
       }
     ],
     "selection": {
@@ -257,10 +257,10 @@
       "variant": "94e2578ca30d5cd7",
       "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
       "format": "svg",
-      "timestamp": "2026-10-02T16:31:32.572Z",
+      "timestamp": "2026-10-02T17:17:11.926Z",
       "execution_status": "PUBLISHED",
       "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
-      "url": "file:///tmp/marketing-graph-O2UbIp/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+      "url": "file:///tmp/marketing-graph-3xkdac/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
       "campaign_id": "SAFE_TEST_1",
       "product": "TEST_PRODUCT",
       "signal_id": "test-signal",
@@ -278,12 +278,24 @@
       "api_cost_usd": 0,
       "ad_spend_usd": 0,
       "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
-      "reserved_cost_usd": 0
+      "reserved_cost_usd": 0,
+      "provider_cost": {
+        "currency": "AUD",
+        "actual": true,
+        "amount": 0,
+        "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "provider": "LOCAL",
+        "campaign_id": "SAFE_TEST_1",
+        "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+        "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "recorded_at": "2026-10-02T17:17:11.927Z"
+      },
+      "worker_costs": []
     },
     "performance": {
       "status": "AVAILABLE",
       "source": "local_file_readback",
-      "observed_at": "2026-10-02T16:31:32.575Z",
+      "observed_at": "2026-10-02T17:17:11.930Z",
       "metrics": {
         "delivered_bytes": {
           "value": 478,
@@ -302,7 +314,7 @@
       "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "execution_status": "PUBLISHED",
-      "observed_at": "2026-10-02T16:31:32.575Z",
+      "observed_at": "2026-10-02T17:17:11.930Z",
       "source": "local_file_readback",
       "measurements": {
         "delivered_bytes": {
@@ -320,6 +332,21 @@
       "reach": "UNKNOWN",
       "conversion": "UNKNOWN",
       "cost_usd": 0,
+      "provider_costs": {
+        "execution": {
+          "currency": "AUD",
+          "actual": true,
+          "amount": 0,
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "provider": "LOCAL",
+          "campaign_id": "SAFE_TEST_1",
+          "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+          "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "recorded_at": "2026-10-02T17:17:11.927Z"
+        },
+        "workers": [],
+        "observation": "UNKNOWN"
+      },
       "evidence_strength": "DIRECT_MEASUREMENT"
     },
     "learning_before": {
@@ -340,10 +367,25 @@
           "failed_routes": [],
           "retry_at": null,
           "measurement_adjustment": 0.05,
+          "provider_costs": {
+            "execution": {
+              "currency": "AUD",
+              "actual": true,
+              "amount": 0,
+              "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "provider": "LOCAL",
+              "campaign_id": "SAFE_TEST_1",
+              "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+              "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "recorded_at": "2026-10-02T17:17:11.927Z"
+            },
+            "workers": [],
+            "observation": "UNKNOWN"
+          },
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T16:31:32.572Z",
-            "last_observed_at": "2026-10-02T16:31:32.575Z",
+            "last_execution_at": "2026-10-02T17:17:11.926Z",
+            "last_observed_at": "2026-10-02T17:17:11.930Z",
             "optimal_time": "UNKNOWN"
           },
           "current_measurement_state": "AVAILABLE",
@@ -392,10 +434,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_1",
+                "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+                "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "recorded_at": "2026-10-02T17:17:11.927Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.572Z",
-              "last_observed_at": "2026-10-02T16:31:32.575Z",
+              "last_execution_at": "2026-10-02T17:17:11.926Z",
+              "last_observed_at": "2026-10-02T17:17:11.930Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",
@@ -425,7 +482,7 @@
     }
   },
   "duplicate": {
-    "run_id": "b3dc529e-bffa-4463-9422-bce367098c01",
+    "run_id": "97d1a9ca-a460-46ce-8e79-a5e319cd67c7",
     "product": "TEST_PRODUCT",
     "campaign_id": "SAFE_TEST_DUPLICATE",
     "status": "PASS",
@@ -434,7 +491,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.933Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -442,7 +499,7 @@
       {
         "node": "signal_extraction",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.933Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -450,7 +507,7 @@
       {
         "node": "signal_library",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.933Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -458,7 +515,7 @@
       {
         "node": "priority",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -466,7 +523,7 @@
       {
         "node": "campaign",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -474,7 +531,7 @@
       {
         "node": "relevance",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -482,7 +539,7 @@
       {
         "node": "scout",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -490,7 +547,7 @@
       {
         "node": "baseline",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -498,7 +555,7 @@
       {
         "node": "delta",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -506,7 +563,7 @@
       {
         "node": "novelty_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -514,7 +571,7 @@
       {
         "node": "route",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -522,7 +579,7 @@
       {
         "node": "editorial_intelligence",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -530,7 +587,7 @@
       {
         "node": "editorial_quality_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -538,7 +595,7 @@
       {
         "node": "variant_factory",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -546,7 +603,7 @@
       {
         "node": "format",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -554,7 +611,7 @@
       {
         "node": "adapt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -562,7 +619,7 @@
       {
         "node": "evidence_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.578Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -570,7 +627,7 @@
       {
         "node": "brand_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.579Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -578,7 +635,7 @@
       {
         "node": "permission_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.579Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -586,50 +643,50 @@
       {
         "node": "execute",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.579Z",
+        "at": "2026-10-02T17:17:11.934Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "5c58a5849810d8fba4f0036dea7e11e2513463ee7c1563d75a28620e0d7545a2"
+        "output_hash": "f15a0536976c6819d810a9dc4505982b047672f12a4e059567c1c25f3b8f8271"
       },
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.579Z",
+        "at": "2026-10-02T17:17:11.935Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "5c58a5849810d8fba4f0036dea7e11e2513463ee7c1563d75a28620e0d7545a2"
+        "output_hash": "f15a0536976c6819d810a9dc4505982b047672f12a4e059567c1c25f3b8f8271"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.580Z",
+        "at": "2026-10-02T17:17:11.936Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "5c58a5849810d8fba4f0036dea7e11e2513463ee7c1563d75a28620e0d7545a2"
+        "output_hash": "f15a0536976c6819d810a9dc4505982b047672f12a4e059567c1c25f3b8f8271"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.581Z",
+        "at": "2026-10-02T17:17:11.937Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "9deeb9843a9a5789de6adf495f589af5189a6354f18b2a3273e388afe11b2fc3"
+        "output_hash": "dce3e5997edef9b69cf3caf0caafa7a3f0907857a07ce30faf7e9b505abb717b"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.581Z",
+        "at": "2026-10-02T17:17:11.937Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "9deeb9843a9a5789de6adf495f589af5189a6354f18b2a3273e388afe11b2fc3"
+        "output_hash": "dce3e5997edef9b69cf3caf0caafa7a3f0907857a07ce30faf7e9b505abb717b"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.581Z",
+        "at": "2026-10-02T17:17:11.937Z",
         "status": "PASS",
         "input_hash": "c6f59455bbb64210a4fcc483ee44acdeff7bed52711ba9bd7347d41a28c3ea18",
-        "output_hash": "9deeb9843a9a5789de6adf495f589af5189a6354f18b2a3273e388afe11b2fc3"
+        "output_hash": "dce3e5997edef9b69cf3caf0caafa7a3f0907857a07ce30faf7e9b505abb717b"
       }
     ],
     "selection": {
@@ -681,10 +738,10 @@
       "variant": "94e2578ca30d5cd7",
       "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
       "format": "svg",
-      "timestamp": "2026-10-02T16:31:32.572Z",
+      "timestamp": "2026-10-02T17:17:11.926Z",
       "execution_status": "PUBLISHED",
       "external_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
-      "url": "file:///tmp/marketing-graph-O2UbIp/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
+      "url": "file:///tmp/marketing-graph-3xkdac/destination/6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6.json",
       "campaign_id": "SAFE_TEST_1",
       "product": "TEST_PRODUCT",
       "signal_id": "test-signal",
@@ -702,12 +759,24 @@
       "api_cost_usd": 0,
       "ad_spend_usd": 0,
       "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
-      "reserved_cost_usd": 0
+      "reserved_cost_usd": 0,
+      "provider_cost": {
+        "currency": "AUD",
+        "actual": true,
+        "amount": 0,
+        "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "provider": "LOCAL",
+        "campaign_id": "SAFE_TEST_1",
+        "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+        "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+        "recorded_at": "2026-10-02T17:17:11.927Z"
+      },
+      "worker_costs": []
     },
     "performance": {
       "status": "AVAILABLE",
       "source": "local_file_readback",
-      "observed_at": "2026-10-02T16:31:32.580Z",
+      "observed_at": "2026-10-02T17:17:11.936Z",
       "metrics": {
         "delivered_bytes": {
           "value": 478,
@@ -726,7 +795,7 @@
       "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "execution_status": "PUBLISHED",
-      "observed_at": "2026-10-02T16:31:32.580Z",
+      "observed_at": "2026-10-02T17:17:11.936Z",
       "source": "local_file_readback",
       "measurements": {
         "delivered_bytes": {
@@ -744,6 +813,21 @@
       "reach": "UNKNOWN",
       "conversion": "UNKNOWN",
       "cost_usd": 0,
+      "provider_costs": {
+        "execution": {
+          "currency": "AUD",
+          "actual": true,
+          "amount": 0,
+          "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "provider": "LOCAL",
+          "campaign_id": "SAFE_TEST_1",
+          "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+          "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+          "recorded_at": "2026-10-02T17:17:11.927Z"
+        },
+        "workers": [],
+        "observation": "UNKNOWN"
+      },
       "evidence_strength": "DIRECT_MEASUREMENT"
     },
     "learning_before": {
@@ -757,10 +841,25 @@
           "failed_routes": [],
           "retry_at": null,
           "measurement_adjustment": 0.05,
+          "provider_costs": {
+            "execution": {
+              "currency": "AUD",
+              "actual": true,
+              "amount": 0,
+              "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "provider": "LOCAL",
+              "campaign_id": "SAFE_TEST_1",
+              "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+              "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "recorded_at": "2026-10-02T17:17:11.927Z"
+            },
+            "workers": [],
+            "observation": "UNKNOWN"
+          },
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T16:31:32.572Z",
-            "last_observed_at": "2026-10-02T16:31:32.575Z",
+            "last_execution_at": "2026-10-02T17:17:11.926Z",
+            "last_observed_at": "2026-10-02T17:17:11.930Z",
             "optimal_time": "UNKNOWN"
           },
           "current_measurement_state": "AVAILABLE",
@@ -809,10 +908,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_1",
+                "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+                "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "recorded_at": "2026-10-02T17:17:11.927Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.572Z",
-              "last_observed_at": "2026-10-02T16:31:32.575Z",
+              "last_execution_at": "2026-10-02T17:17:11.926Z",
+              "last_observed_at": "2026-10-02T17:17:11.930Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",
@@ -851,10 +965,25 @@
           "failed_routes": [],
           "retry_at": null,
           "measurement_adjustment": 0.05,
+          "provider_costs": {
+            "execution": {
+              "currency": "AUD",
+              "actual": true,
+              "amount": 0,
+              "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "provider": "LOCAL",
+              "campaign_id": "SAFE_TEST_1",
+              "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+              "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "recorded_at": "2026-10-02T17:17:11.927Z"
+            },
+            "workers": [],
+            "observation": "UNKNOWN"
+          },
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T16:31:32.572Z",
-            "last_observed_at": "2026-10-02T16:31:32.575Z",
+            "last_execution_at": "2026-10-02T17:17:11.926Z",
+            "last_observed_at": "2026-10-02T17:17:11.930Z",
             "optimal_time": "UNKNOWN"
           },
           "current_measurement_state": "AVAILABLE",
@@ -903,10 +1032,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_1",
+                "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+                "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "recorded_at": "2026-10-02T17:17:11.927Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.572Z",
-              "last_observed_at": "2026-10-02T16:31:32.575Z",
+              "last_execution_at": "2026-10-02T17:17:11.926Z",
+              "last_observed_at": "2026-10-02T17:17:11.930Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",
@@ -936,7 +1080,7 @@
     }
   },
   "next": {
-    "run_id": "0b205aab-dfde-4b40-95b0-7ba59e88654f",
+    "run_id": "4bdd5085-afa8-4f8b-bda1-626a33066e80",
     "product": "TEST_PRODUCT",
     "campaign_id": "SAFE_TEST_NEXT",
     "status": "PASS",
@@ -945,7 +1089,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.582Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -953,7 +1097,7 @@
       {
         "node": "signal_extraction",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.582Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -961,7 +1105,7 @@
       {
         "node": "signal_library",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -969,7 +1113,7 @@
       {
         "node": "priority",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -977,7 +1121,7 @@
       {
         "node": "campaign",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -985,7 +1129,7 @@
       {
         "node": "relevance",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -993,7 +1137,7 @@
       {
         "node": "scout",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -1001,7 +1145,7 @@
       {
         "node": "baseline",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -1009,7 +1153,7 @@
       {
         "node": "delta",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -1017,7 +1161,7 @@
       {
         "node": "novelty_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8"
@@ -1025,7 +1169,7 @@
       {
         "node": "route",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1033,7 +1177,7 @@
       {
         "node": "editorial_intelligence",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.939Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1041,7 +1185,7 @@
       {
         "node": "editorial_quality_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1049,7 +1193,7 @@
       {
         "node": "variant_factory",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "5fd2dcf92c1cb4b1687665cc98d5cb1c2d67e461570bd950ebe451d096c52d7c"
@@ -1057,7 +1201,7 @@
       {
         "node": "format",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1065,7 +1209,7 @@
       {
         "node": "adapt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1073,7 +1217,7 @@
       {
         "node": "evidence_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1081,7 +1225,7 @@
       {
         "node": "brand_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1089,7 +1233,7 @@
       {
         "node": "permission_gate",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
         "output_hash": "22920e7c6feb13250e83c8d139c5da5f527b3dfb0127c2569acb71a61324d45d"
@@ -1097,50 +1241,50 @@
       {
         "node": "execute",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.583Z",
+        "at": "2026-10-02T17:17:11.940Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "279a01906180a9e55144993aee88612781bcc7c1ae86fcb45bc6829cd14857cf"
+        "output_hash": "d32d02a6485e9edfe0c9002c6e721e67ee3d45fe7dd6398b6a9eefa526974f4a"
       },
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.585Z",
+        "at": "2026-10-02T17:17:11.943Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "279a01906180a9e55144993aee88612781bcc7c1ae86fcb45bc6829cd14857cf"
+        "output_hash": "60d15ba0aadf2f661a5504aba53fd3dae280559a0681985ba58313cdc8dd9bf6"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.586Z",
+        "at": "2026-10-02T17:17:11.944Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "279a01906180a9e55144993aee88612781bcc7c1ae86fcb45bc6829cd14857cf"
+        "output_hash": "60d15ba0aadf2f661a5504aba53fd3dae280559a0681985ba58313cdc8dd9bf6"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.586Z",
+        "at": "2026-10-02T17:17:11.945Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "d2c6f1ba80d5137623e44c875c662422ebec86d45f203f12366ac1784eef194a"
+        "output_hash": "f2dd1dd27d2ffe6ca0a10c39dc1c8440c224135b256809e4d24b3c460d9e4ae3"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.586Z",
+        "at": "2026-10-02T17:17:11.945Z",
         "status": "PASS",
         "input_hash": "237c49eaf1460a8b0d70d143b16e710f3b454eadb5b517d0fec272a6d018b903",
-        "output_hash": "ab996c190ad6cc81898961e32a1c572589c59acca67f497f2860a86e27b62194"
+        "output_hash": "700b5a4cb77ef654de2a0dd8e80603b405facbc9ff58096906d0cd978c0166ed"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.586Z",
+        "at": "2026-10-02T17:17:11.945Z",
         "status": "PASS",
         "input_hash": "dc74de771aebff26800c3c0fb6e2904cfdd69f6fe8f7f4270088ec85373c7139",
-        "output_hash": "ab996c190ad6cc81898961e32a1c572589c59acca67f497f2860a86e27b62194"
+        "output_hash": "700b5a4cb77ef654de2a0dd8e80603b405facbc9ff58096906d0cd978c0166ed"
       }
     ],
     "selection": {
@@ -1192,10 +1336,10 @@
       "variant": "227717681c132fcf",
       "variant_key": "b366cd80fb2e5854f827cf7c480905f3fb62071e45e34716b337ff702951f85a",
       "format": "svg",
-      "timestamp": "2026-10-02T16:31:32.584Z",
+      "timestamp": "2026-10-02T17:17:11.941Z",
       "execution_status": "PUBLISHED",
       "external_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
-      "url": "file:///tmp/marketing-graph-O2UbIp/destination/83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736.json",
+      "url": "file:///tmp/marketing-graph-3xkdac/destination/83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736.json",
       "campaign_id": "SAFE_TEST_NEXT",
       "product": "TEST_PRODUCT",
       "signal_id": "test-signal",
@@ -1213,12 +1357,24 @@
       "api_cost_usd": 0,
       "ad_spend_usd": 0,
       "delivery_hash": "7336741d8ce4ed1e9bc591908373e947e42c45f4a359b122e32f804cf2a61619",
-      "reserved_cost_usd": 0
+      "reserved_cost_usd": 0,
+      "provider_cost": {
+        "currency": "AUD",
+        "actual": true,
+        "amount": 0,
+        "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+        "provider": "LOCAL",
+        "campaign_id": "SAFE_TEST_NEXT",
+        "action_id": "4bdd5085-afa8-4f8b-bda1-626a33066e80:publish",
+        "quote_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+        "recorded_at": "2026-10-02T17:17:11.942Z"
+      },
+      "worker_costs": []
     },
     "performance": {
       "status": "AVAILABLE",
       "source": "local_file_readback",
-      "observed_at": "2026-10-02T16:31:32.586Z",
+      "observed_at": "2026-10-02T17:17:11.944Z",
       "metrics": {
         "delivered_bytes": {
           "value": 478,
@@ -1237,7 +1393,7 @@
       "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
       "route_key": "TEST_PRODUCT:test-signal:local-a:svg",
       "execution_status": "PUBLISHED",
-      "observed_at": "2026-10-02T16:31:32.586Z",
+      "observed_at": "2026-10-02T17:17:11.944Z",
       "source": "local_file_readback",
       "measurements": {
         "delivered_bytes": {
@@ -1255,6 +1411,21 @@
       "reach": "UNKNOWN",
       "conversion": "UNKNOWN",
       "cost_usd": 0,
+      "provider_costs": {
+        "execution": {
+          "currency": "AUD",
+          "actual": true,
+          "amount": 0,
+          "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+          "provider": "LOCAL",
+          "campaign_id": "SAFE_TEST_NEXT",
+          "action_id": "4bdd5085-afa8-4f8b-bda1-626a33066e80:publish",
+          "quote_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+          "recorded_at": "2026-10-02T17:17:11.942Z"
+        },
+        "workers": [],
+        "observation": "UNKNOWN"
+      },
       "evidence_strength": "DIRECT_MEASUREMENT"
     },
     "learning_before": {
@@ -1268,10 +1439,25 @@
           "failed_routes": [],
           "retry_at": null,
           "measurement_adjustment": 0.05,
+          "provider_costs": {
+            "execution": {
+              "currency": "AUD",
+              "actual": true,
+              "amount": 0,
+              "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "provider": "LOCAL",
+              "campaign_id": "SAFE_TEST_1",
+              "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+              "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+              "recorded_at": "2026-10-02T17:17:11.927Z"
+            },
+            "workers": [],
+            "observation": "UNKNOWN"
+          },
           "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T16:31:32.572Z",
-            "last_observed_at": "2026-10-02T16:31:32.575Z",
+            "last_execution_at": "2026-10-02T17:17:11.926Z",
+            "last_observed_at": "2026-10-02T17:17:11.930Z",
             "optimal_time": "UNKNOWN"
           },
           "current_measurement_state": "AVAILABLE",
@@ -1320,10 +1506,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_1",
+                "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+                "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "recorded_at": "2026-10-02T17:17:11.927Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.572Z",
-              "last_observed_at": "2026-10-02T16:31:32.575Z",
+              "last_execution_at": "2026-10-02T17:17:11.926Z",
+              "last_observed_at": "2026-10-02T17:17:11.930Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",
@@ -1362,10 +1563,25 @@
           "failed_routes": [],
           "retry_at": null,
           "measurement_adjustment": 0.05,
+          "provider_costs": {
+            "execution": {
+              "currency": "AUD",
+              "actual": true,
+              "amount": 0,
+              "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+              "provider": "LOCAL",
+              "campaign_id": "SAFE_TEST_NEXT",
+              "action_id": "4bdd5085-afa8-4f8b-bda1-626a33066e80:publish",
+              "quote_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+              "recorded_at": "2026-10-02T17:17:11.942Z"
+            },
+            "workers": [],
+            "observation": "UNKNOWN"
+          },
           "last_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
           "timing_observations": {
-            "last_execution_at": "2026-10-02T16:31:32.584Z",
-            "last_observed_at": "2026-10-02T16:31:32.586Z",
+            "last_execution_at": "2026-10-02T17:17:11.941Z",
+            "last_observed_at": "2026-10-02T17:17:11.944Z",
             "optimal_time": "UNKNOWN"
           },
           "current_measurement_state": "AVAILABLE",
@@ -1416,10 +1632,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_1",
+                "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+                "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "recorded_at": "2026-10-02T17:17:11.927Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.572Z",
-              "last_observed_at": "2026-10-02T16:31:32.575Z",
+              "last_execution_at": "2026-10-02T17:17:11.926Z",
+              "last_observed_at": "2026-10-02T17:17:11.930Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",
@@ -1450,10 +1681,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_1",
+                "action_id": "c5a73c2f-caca-4875-8f3c-37dc348717e1:publish",
+                "quote_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
+                "recorded_at": "2026-10-02T17:17:11.927Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "6175d5b4ade3e5a5cab71fa8e6246180c24a56df2da40c36dd9adaa9159d9ab6",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.572Z",
-              "last_observed_at": "2026-10-02T16:31:32.575Z",
+              "last_execution_at": "2026-10-02T17:17:11.926Z",
+              "last_observed_at": "2026-10-02T17:17:11.930Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",
@@ -1479,10 +1725,25 @@
             "failed_routes": [],
             "retry_at": null,
             "measurement_adjustment": 0.05,
+            "provider_costs": {
+              "execution": {
+                "currency": "AUD",
+                "actual": true,
+                "amount": 0,
+                "receipt_id": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+                "provider": "LOCAL",
+                "campaign_id": "SAFE_TEST_NEXT",
+                "action_id": "4bdd5085-afa8-4f8b-bda1-626a33066e80:publish",
+                "quote_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
+                "recorded_at": "2026-10-02T17:17:11.942Z"
+              },
+              "workers": [],
+              "observation": "UNKNOWN"
+            },
             "last_receipt": "83d1e5723349e0173298c48102111e871a77fcfee38507579f4750be34ba4736",
             "timing_observations": {
-              "last_execution_at": "2026-10-02T16:31:32.584Z",
-              "last_observed_at": "2026-10-02T16:31:32.586Z",
+              "last_execution_at": "2026-10-02T17:17:11.941Z",
+              "last_observed_at": "2026-10-02T17:17:11.944Z",
               "optimal_time": "UNKNOWN"
             },
             "current_measurement_state": "AVAILABLE",

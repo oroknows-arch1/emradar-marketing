@@ -95,6 +95,29 @@ invented. All existing release, evidence, editorial and permission gates still a
 The native adapter is an engine-side handoff; the product publisher still needs its
 registered signing key and a source trigger to call this endpoint.
 
+Owner authority is recorded in `config/owner-authority.json`: automatic release
+after signed native `evidence`, `editorial`, `brand`, `risk` and `publication` gates
+all say PASS; automatic selection only among connected/approved providers; A$5 per
+campaign and A$50 per Sydney-calendar-month hard limits. A source's self-declared
+`release_approved` does not override a missing native gate when automatic release is
+enabled. It does not turn on `autonomous.enabled` for any product. No native source
+publisher trigger is connected yet, so the actual gate attestations remain UNKNOWN.
+
+`runtime/spending.js` holds one shared AUD ledger under the engine lock for workers,
+publication and collection. A positive-cost action requires a verified,
+provider-enforced upper bound and reconciled monthly billing, then settles an actual
+receipt. Unresolved billed cost remains UNKNOWN and blocks further paid actions;
+local zero-cost execution can continue. Legacy USD reservations do not prove an AUD
+actual-cost bound. The current X adapter has no verified cost quote, so it remains
+blocked despite owner approval. Do not mark prior unobserved spending as zero.
+
+`.github/workflows/marketing-cycle.yml` uses public-repo standard GitHub runners
+to wake `POST /SCHEDULED_CYCLE` twice hourly, authenticating with a short-lived
+GitHub OIDC token restricted to this repository, workflow, default branch, event
+and audience. The endpoint safely skips while `MARKETING_AUTONOMOUS` is false.
+Scheduled runs may be delayed; the persistent scheduler de-duplicates revisions
+and observations. No Render cron/worker resource is added.
+
 For fresh discovery/creation, `MARKETING_HARNESS_MODULE` names a trusted deployed
 module exporting the canonical Harness `routeWorkUnit`,
 `createRuntimeProviderRegistry`, plus `executeMarketingWorkUnit` and

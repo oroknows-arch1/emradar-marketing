@@ -19,7 +19,7 @@
     "next": "ingest"
   },
   "run": {
-    "run_id": "0c2cff8c-14d0-4bb2-bd11-9811931bdbc2",
+    "run_id": "73f62c31-300b-4aab-8ffd-24b4e9bfc21c",
     "product": "EMRADAR",
     "campaign_id": "NATIVE_SOURCE_SAFE_BLOCKED_PROOF",
     "status": "BLOCKED",
@@ -28,7 +28,7 @@
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.776Z",
+        "at": "2026-10-02T17:17:12.125Z",
         "status": "BLOCKED",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
         "reason": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
@@ -37,51 +37,51 @@
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.776Z",
+        "at": "2026-10-02T17:17:12.126Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "d00c7760c3ec9a2aec13f9f971d51cb476b618586ac668b494755dbc84294fbe"
+        "output_hash": "5cb15077e9cf275efd19737e1abc66a0a5e16e6d20d3939863a05565b0425136"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.777Z",
+        "at": "2026-10-02T17:17:12.127Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "d00c7760c3ec9a2aec13f9f971d51cb476b618586ac668b494755dbc84294fbe"
+        "output_hash": "5cb15077e9cf275efd19737e1abc66a0a5e16e6d20d3939863a05565b0425136"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.778Z",
+        "at": "2026-10-02T17:17:12.127Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "e4f54b74cc90be2aeb22ba3cc878ad7acb441bfb4221b32b7c4a588be0327abe"
+        "output_hash": "d64ab5b694999e1d5019d550c659f54c3509bfc2f70caf632d241cd99d698c69"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.778Z",
+        "at": "2026-10-02T17:17:12.128Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "e4f54b74cc90be2aeb22ba3cc878ad7acb441bfb4221b32b7c4a588be0327abe"
+        "output_hash": "d64ab5b694999e1d5019d550c659f54c3509bfc2f70caf632d241cd99d698c69"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T16:31:32.779Z",
+        "at": "2026-10-02T17:17:12.128Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "e4f54b74cc90be2aeb22ba3cc878ad7acb441bfb4221b32b7c4a588be0327abe"
+        "output_hash": "d64ab5b694999e1d5019d550c659f54c3509bfc2f70caf632d241cd99d698c69"
       }
     ],
     "receipt": {
-      "id": "ec2ffdaf5e51ae2817d529800e5e37bb83532021bf45596eb7c80bc522830f85",
+      "id": "88b7a65cb3684c8dc82a49b317dbb2eb9e05a9a7de586da214084fee515a70c5",
       "destination": "UNKNOWN",
       "platform": "UNKNOWN",
       "variant": "UNKNOWN",
       "format": "UNKNOWN",
-      "timestamp": "2026-10-02T16:31:32.776Z",
+      "timestamp": "2026-10-02T17:17:12.126Z",
       "execution_status": "BLOCKED",
       "external_id": null,
       "url": null,
@@ -106,26 +106,32 @@
       "error": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
       "api_cost_usd": 0,
       "worker_reserved_usd": 0,
-      "ad_spend_usd": 0
+      "ad_spend_usd": 0,
+      "worker_costs": []
     },
     "performance": {
       "status": "UNKNOWN",
       "metrics": {},
       "source": "UNAVAILABLE",
-      "observed_at": "2026-10-02T16:31:32.777Z",
+      "observed_at": "2026-10-02T17:17:12.127Z",
       "cost_usd": "UNKNOWN"
     },
     "outcome": {
-      "receipt_id": "ec2ffdaf5e51ae2817d529800e5e37bb83532021bf45596eb7c80bc522830f85",
+      "receipt_id": "88b7a65cb3684c8dc82a49b317dbb2eb9e05a9a7de586da214084fee515a70c5",
       "route_key": null,
       "execution_status": "BLOCKED",
-      "observed_at": "2026-10-02T16:31:32.777Z",
+      "observed_at": "2026-10-02T17:17:12.127Z",
       "source": "UNAVAILABLE",
       "measurements": {},
       "engagement_rate": "UNKNOWN",
       "reach": "UNKNOWN",
       "conversion": "UNKNOWN",
       "cost_usd": "UNKNOWN",
+      "provider_costs": {
+        "execution": "UNKNOWN",
+        "workers": [],
+        "observation": "UNKNOWN"
+      },
       "evidence_strength": "EXECUTION_ONLY"
     },
     "learning_before": {

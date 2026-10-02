@@ -6,7 +6,9 @@ export function applyAuthority(policies){
     p.source_release_authority=authority.source_release;
     p.provider_authority=authority.providers;
     p.spending_envelope=authority.spending;
-    p.autonomous={...p.autonomous,enabled:true};
+    // Owner authority permits automatic operation; it does not opt every
+    // product into an external campaign or bypass its release policy.
+    p.autonomous={...p.autonomous,enabled:p.autonomous?.enabled===true};
     // Permission to release is not evidence that native gates actually passed.
   }
   return result;
