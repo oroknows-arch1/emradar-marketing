@@ -192,7 +192,8 @@ server.listen(PORT,()=>{
 async function runPendingSourceRelease(){
   if(!process.env.MARKETING_PENDING_SOURCE_RELEASE_JSON)return;
   const pending=JSON.parse(process.env.MARKETING_PENDING_SOURCE_RELEASE_JSON);
-  if(pending?.product!=='EMRADAR'||pending?.sequence!==2||!/^https:\/\/raw\.githubusercontent\.com\/oroknows-arch1\/emerging-markets-radar\/[a-f0-9]{40}\/(data\/checkpoints\/discovery-2026-10-03\.json|verification\/downstream-release-attestation-2026-10-03\.json)$/.test(pending.scan_url)||!/^https:\/\/raw\.githubusercontent\.com\/oroknows-arch1\/emerging-markets-radar\/[a-f0-9]{40}\/(data\/checkpoints\/discovery-2026-10-03\.json|verification\/downstream-release-attestation-2026-10-03\.json)$/.test(pending.attestation_url))throw new Error('PENDING_SOURCE_RELEASE_INVALID');
+  const sourceUrl=/^https:\/\/emerging-markets-radar\.onrender\.com\/(data\/checkpoints\/discovery-2026-10-03\.json|verification\/downstream-release-attestation-2026-10-03\.json)$/;
+  if(pending?.product!=='EMRADAR'||pending?.sequence!==2||!sourceUrl.test(pending.scan_url)||!sourceUrl.test(pending.attestation_url))throw new Error('PENDING_SOURCE_RELEASE_INVALID');
   const [scanResponse,attestationResponse]=await Promise.all([fetch(pending.scan_url),fetch(pending.attestation_url)]);
   if(!scanResponse.ok||!attestationResponse.ok)throw new Error('AUTHORITATIVE_SOURCE_FETCH_FAILED');
   const scanBytes=Buffer.from(await scanResponse.arrayBuffer()),attestation=await attestationResponse.json();
