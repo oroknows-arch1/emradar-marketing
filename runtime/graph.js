@@ -104,8 +104,10 @@ export class GraphEngine {
         if(++count>this.maxSteps){c.status='FAILED';c.blocker='STEP_BOUND';if(!c.read_only)await workers.receipt(c,this);break;}
         const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
         const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:c.input.product,campaign:c.input.campaign_id,learning:c.state.version})};
+        if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:'RUNNING'}));
         try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}
         entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
+        if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:entry.status,reason:entry.reason||null}));
         const edges=graph.edges.filter(e=>e.from===id);
         const event=entry.status==='BLOCKED'?'blocked':c.review_pending&&id==='publication_review'?'awaiting_review':c.duplicate&&id==='execute'?'duplicate':'success';
         const edge=edges.find(e=>e.event===event);id=edge?.to||null;
