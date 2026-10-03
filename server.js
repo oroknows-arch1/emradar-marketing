@@ -5,7 +5,7 @@ import { createClient } from "redis";
 import fs from 'node:fs/promises';
 import { GraphEngine } from './runtime/graph.js';
 import { RedisStore } from './runtime/store.js';
-import {ProductIntake,loadPolicies} from './runtime/intake.js';
+import {ProductIntake,loadPolicies,emradarSource,signSource} from './runtime/intake.js';
 import {applyAuthority} from './runtime/authority.js';
 import {loadHarness} from './runtime/harness.js';
 import { xAdapter, localAdapter } from './runtime/adapters.js';
@@ -94,9 +94,7 @@ async function publishX(asset,key,product){
 }
 async function productIntake(){
   const policies=applyAuthority(await loadPolicies(process.env.MARKETING_PRODUCTS_FILE,process.env.MARKETING_PRODUCTS_JSON));
-  const sourceKeys=JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}');
-  if(process.env.MARKETING_EMRADAR_SOURCE_KEY)sourceKeys.EMRADAR=process.env.MARKETING_EMRADAR_SOURCE_KEY;
-  return new ProductIntake({store:new RedisStore(await store()),policies,sourceKeys});
+  return new ProductIntake({store:new RedisStore(await store()),policies,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});
 }
 async function marketingEngine(){
   const products=await (await productIntake()).products();
@@ -188,8 +186,25 @@ const server=http.createServer(async(req,res)=>{
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
   runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
-  runPendingCampaign().catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+  runPendingSourceRelease().then(()=>runPendingCampaign()).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
 });
+
+async function runPendingSourceRelease(){
+  if(!process.env.MARKETING_PENDING_SOURCE_RELEASE_JSON)return;
+  const pending=JSON.parse(process.env.MARKETING_PENDING_SOURCE_RELEASE_JSON);
+  if(pending?.product!=='EMRADAR'||pending?.sequence!==2||!/^https:\/\/raw\.githubusercontent\.com\/oroknows-arch1\/emerging-markets-radar\/[a-f0-9]{40}\/(data\/checkpoints\/discovery-2026-10-03\.json|verification\/downstream-release-attestation-2026-10-03\.json)$/.test(pending.scan_url)||!/^https:\/\/raw\.githubusercontent\.com\/oroknows-arch1\/emerging-markets-radar\/[a-f0-9]{40}\/(data\/checkpoints\/discovery-2026-10-03\.json|verification\/downstream-release-attestation-2026-10-03\.json)$/.test(pending.attestation_url))throw new Error('PENDING_SOURCE_RELEASE_INVALID');
+  const [scanResponse,attestationResponse]=await Promise.all([fetch(pending.scan_url),fetch(pending.attestation_url)]);
+  if(!scanResponse.ok||!attestationResponse.ok)throw new Error('AUTHORITATIVE_SOURCE_FETCH_FAILED');
+  const scanBytes=Buffer.from(await scanResponse.arrayBuffer()),attestation=await attestationResponse.json();
+  if(crypto.createHash('sha256').update(scanBytes).digest('hex')!==pending.scan_sha256||attestation.source_sha256!==pending.scan_sha256||attestation.product!=='EMRADAR'||attestation.snapshot_date!=='2026-10-03'||attestation.publication_state!=='PUBLISHED'||attestation.downstream_release_allowed!==true||attestation.campaign_authority?.campaign_id!=='EMRADAR_2026_10_03_LAUNCH'||attestation.campaign_authority?.external_publication_allowed!==false)throw new Error('AUTHORITATIVE_SOURCE_ATTESTATION_MISMATCH');
+  const required=['evidence','editorial','brand','risk','publication'];
+  if(!required.every(g=>attestation.native_gates?.[g]==='PASS'))throw new Error('AUTHORITATIVE_SOURCE_GATES_INCOMPLETE');
+  const scan=JSON.parse(scanBytes),source=emradarSource(scan,{release_approved:true,evidence:true,editorial:true});source.native_gates=attestation.native_gates;
+  const envelope={product:'EMRADAR',sequence:2,source},key=JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}').EMRADAR;
+  if(!key)throw new Error('SOURCE_NOT_REGISTERED');
+  const result=await (await productIntake()).receive(envelope,signSource(envelope,key));
+  console.log('MARKETING_SOURCE_RELEASE '+JSON.stringify(result));
+}
 
 async function runPendingCampaign(){
   if(!process.env.MARKETING_PENDING_CAMPAIGN_JSON)return;
