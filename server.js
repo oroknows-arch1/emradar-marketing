@@ -186,7 +186,25 @@ const server=http.createServer(async(req,res)=>{
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
   runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+  runPendingCampaign().catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
 });
+
+async function runPendingCampaign(){
+  if(!process.env.MARKETING_PENDING_CAMPAIGN_JSON)return;
+  const input=JSON.parse(process.env.MARKETING_PENDING_CAMPAIGN_JSON);
+  if(input?.product!=='EMRADAR'||!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(input?.campaign_id||''))throw new Error('PENDING_CAMPAIGN_INPUT_INVALID');
+  const s=new RedisStore(await store()),key='campaign_launch:'+input.campaign_id;
+  const prior=await s.get(key);if(prior)return console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'ALREADY_PROCESSED',campaign_id:input.campaign_id,result:prior}));
+  await s.put(key,{status:'IN_FLIGHT',input,started_at:new Date().toISOString()});
+  try{
+    const result=await (await marketingEngine()).run(input);
+    await s.put(key,{status:'COMPLETE',input,completed_at:new Date().toISOString(),result});
+    console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));
+  }catch(error){
+    const blocked={status:'BLOCKED',input,blocked_at:new Date().toISOString(),blocker:error.message};
+    await s.put(key,blocked);console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(blocked));
+  }
+}
 
 // No per-request polling loop. Every bounded tick loads the trusted current source
 // package, so new product revisions can enter without a human triggering each run.
