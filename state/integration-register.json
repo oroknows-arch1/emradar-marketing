@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "reviewed_at": "2026-10-03",
+  "owner_time_policy": "Owner involvement is limited to platform-required account creation, identity/security verification, consent, cost approval, and exceptional reauthorization.",
+  "status_lifecycle": [
+    "NOT_CREATED",
+    "ACCOUNT_CREATED",
+    "VERIFIED",
+    "CONNECTED",
+    "AUTH_PERSISTED",
+    "TESTED",
+    "AUTONOMOUS"
+  ],
+  "secret_storage_rule": "Passwords, tokens, recovery codes, phone numbers, private email addresses, and client secrets must never be stored in this repository.",
+  "platforms": [
+    {
+      "id": "X",
+      "priority": 1,
+      "status": "TESTED",
+      "account": "@oroknows",
+      "account_url": "https://x.com/oroknows",
+      "distribution_mode": "AUTOMATIC_AFTER_GATES_AND_EXACT_PUBLICATION_REVIEW",
+      "connection": "OAuth 2.0 PKCE with offline access; persistent runtime authorization supported",
+      "cost_state": "UNKNOWN_BLOCKS_AUTOMATIC_EXTERNAL_EXECUTION",
+      "evidence": {
+        "route_id": "EMRADAR-X-OROKNOWS",
+        "live_receipt": "https://x.com/oroknows/status/2105745130712187147",
+        "source": "state/distribution-map.json"
+      },
+      "owner_actions_remaining": [
+        "Decide whether @oroknows remains the permanent EMRADAR identity or a dedicated EMRADAR account is required",
+        "Reauthorize only if the persisted authorization is revoked or a platform security challenge occurs",
+        "Approve an X API plan only after its AUD cost and limits are verified"
+      ],
+      "autonomy_blockers": [
+        "External scheduler and native SCAN_READY handoff are not yet proven end to end",
+        "X API billing remains UNKNOWN",
+        "Current policy requires exact owner publication review for each external asset"
+      ]
+    },
+    {
+      "id": "LINKEDIN",
+      "priority": 2,
+      "status": "NOT_CREATED",
+      "account": null,
+      "account_url": null,
+      "distribution_mode": "AUTOMATIC_AFTER_GATES_AND_EXACT_PUBLICATION_REVIEW",
+      "connection": "Company Page plus approved Community Management application and organization posting authorization",
+      "cost_state": "ORGANIC_ONLY_UNTIL_SEPARATELY_APPROVED",
+      "evidence": null,
+      "owner_actions_remaining": [
+        "Create or confirm the EMRADAR Company Page",
+        "Hold an administrator or content-administrator role",
+        "Complete LinkedIn developer application verification and access review",
+        "Authorize organization posting when the connector callback is ready"
+      ],
+      "autonomy_blockers": ["No connector", "No verified account", "No authorization receipt"]
+    },
+    {
+      "id": "BLUESKY",
+      "priority": 3,
+      "status": "NOT_CREATED",
+      "account": null,
+      "account_url": null,
+      "distribution_mode": "AUTOMATIC_AFTER_GATES_AND_EXACT_PUBLICATION_REVIEW",
+      "connection": "User-authorized AT Protocol session stored only in the deployment secret store",
+      "cost_state": "ORGANIC_ONLY_UNTIL_SEPARATELY_APPROVED",
+      "evidence": null,
+      "owner_actions_remaining": [
+        "Create and verify the EMRADAR account and handle",
+        "Authorize publishing when the connector is ready"
+      ],
+      "autonomy_blockers": ["No connector", "No verified account", "No authorization receipt"]
+    },
+    {
+      "id": "THREADS",
+      "priority": 4,
+      "status": "NOT_CREATED",
+      "account": null,
+      "account_url": null,
+      "distribution_mode": "AUTOMATIC_AFTER_GATES_AND_EXACT_PUBLICATION_REVIEW",
+      "connection": "Meta developer application and user-authorized Threads publishing access",
+      "cost_state": "ORGANIC_ONLY_UNTIL_SEPARATELY_APPROVED",
+      "evidence": null,
+      "owner_actions_remaining": [
+        "Create or confirm the Meta identity required for the EMRADAR Threads account",
+        "Complete platform verification or security checks",
+        "Approve the Meta developer application and authorize publishing when the connector is ready"
+      ],
+      "autonomy_blockers": ["No connector", "No verified account", "No authorization receipt"]
+    },
+    {
+      "id": "MASTODON",
+      "priority": 5,
+      "status": "NOT_CREATED",
+      "account": null,
+      "account_url": null,
+      "distribution_mode": "AUTOMATIC_AFTER_GATES_AND_EXACT_PUBLICATION_REVIEW",
+      "connection": "OAuth user authorization with write:statuses on the selected server",
+      "cost_state": "ORGANIC_ONLY_UNLESS_SELECTED_SERVER_CHARGES",
+      "evidence": null,
+      "owner_actions_remaining": [
+        "Select a suitable server and accept its rules",
+        "Create and verify the EMRADAR account",
+        "Authorize publishing when the connector is ready"
+      ],
+      "autonomy_blockers": ["Server not selected", "No connector", "No verified account", "No authorization receipt"]
+    },
+    {
+      "id": "REDDIT",
+      "priority": 6,
+      "status": "NOT_CREATED",
+      "account": null,
+      "account_url": null,
+      "distribution_mode": "REVIEW_REQUIRED_PER_COMMUNITY",
+      "connection": "Authorized integration plus a maintained community allow-list and current rule snapshot",
+      "cost_state": "TERMS_AND_COST_REVIEW_REQUIRED_BEFORE_CONNECTION",
+      "evidence": null,
+      "owner_actions_remaining": [
+        "Create and verify the EMRADAR account",
+        "Authorize the integration when the connector is ready",
+        "Approve the initial community allow-list and its rule snapshots"
+      ],
+      "autonomy_blockers": ["No connector", "No verified account", "No community allow-list", "No authorization receipt"],
+      "hard_rule": "Never publish merely to maximize coverage. A relevant community, current rule check, and route-specific review are mandatory; NO_RELEVANT_ROUTE is a successful outcome."
+    }
+  ]
+}

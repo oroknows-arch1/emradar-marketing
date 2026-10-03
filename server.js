@@ -9,6 +9,8 @@ import {ProductIntake,loadPolicies} from './runtime/intake.js';
 import {applyAuthority} from './runtime/authority.js';
 import {loadHarness} from './runtime/harness.js';
 import { xAdapter, localAdapter } from './runtime/adapters.js';
+import {blueskyConnector,linkedinConnector,mastodonConnector,socialAdapter} from './runtime/social-connectors.js';
+import {integrationStatus} from './runtime/integration-status.js';
 import {verifySchedulerToken} from './runtime/scheduler-auth.js';
 
 const PORT=Number(process.env.PORT||10000);
@@ -97,7 +99,7 @@ async function marketingEngine(){
     const auth=await currentAuth(product);
     if(!auth?.access_token)throw new Error('X authorization required');
     return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);
-  }})};
+  }}),LINKEDIN:socialAdapter(linkedinConnector({accessToken:process.env.LINKEDIN_ACCESS_TOKEN,organizationUrn:process.env.LINKEDIN_ORGANIZATION_URN,apiVersion:process.env.LINKEDIN_API_VERSION})),BLUESKY:socialAdapter(blueskyConnector({service:process.env.BLUESKY_SERVICE_URL,identifier:process.env.BLUESKY_IDENTIFIER,appPassword:process.env.BLUESKY_APP_PASSWORD})),MASTODON:socialAdapter(mastodonConnector({server:process.env.MASTODON_SERVER,accessToken:process.env.MASTODON_ACCESS_TOKEN}))};
   if(process.env.MARKETING_TEST_DIRECTORY)adapters.LOCAL=localAdapter(process.env.MARKETING_TEST_DIRECTORY);
   return new GraphEngine({store:new RedisStore(await store()),products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)});
 }
@@ -108,6 +110,11 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/onboarding") return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><h1>Add product</h1><p>The first onboarding contract captures identity, source of truth, channels, rules and goal. Atlasoquence is already registered through its adapter.</p><p><a href="/">Back to products</a></p></body></html>`);
   if(req.method==="GET"&&u.pathname==="/product"){const p=u.searchParams.get("name");if(!PRODUCTS.includes(p))return json(res,404,{ok:false,error:"unknown_product"});const auth=await currentAuth(p).catch(()=>null);return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><a href="/">← Products</a><h1>${p}</h1><p>Adapter: Ready</p><p>X: ${auth?.access_token?"Connected":"Not connected"}</p><p>Additional spend: owner approval required</p><p>Execution endpoint: POST /RUN_MARKETING</p></body></html>`);}
   if(req.method==="GET"&&u.pathname==="/health"){const states=Object.fromEntries(await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token])));return json(res,200,{ok:true,service:"MARKETING_ENGINE_X_EXECUTOR_V0_2",products:states,auth_store:KEY_VALUE_URL?"persistent":"memory_only",cost_gate:{additional_spend_without_owner_approval:0,api_billing:"UNKNOWN"}});}
+  if(req.method==="GET"&&u.pathname==="/integrations/status"){
+    if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
+    const xAuthorized=!!(await currentAuth('EMRADAR').catch(()=>null))?.access_token;
+    return json(res,200,{ok:true,platforms:integrationStatus(process.env,{xAuthorized})});
+  }
   if(req.method==="GET"&&u.pathname==="/oauth/x/start"){
     const product=u.searchParams.get("product")||"EMRADAR";if(!PRODUCTS.includes(product))return json(res,400,{ok:false,error:"unknown_product"});
     if(!X_CLIENT_ID) return json(res,503,{ok:false,blocker:"X_CLIENT_ID_NOT_CONFIGURED",callback_url:callbackUrl(req)});

@@ -27,6 +27,10 @@ Agentic marketing and distribution engine for EMRADAR.
 
 See `graph/marketing-graph-v1.json`.
 
+Social account readiness and the one-time owner setup record live in
+`state/integration-register.json` and `INTEGRATION_REGISTER.md`. This is the
+connection source of truth; `state/distribution-map.json` remains route memory.
+
 Campaign 002 is the first live integration test. Its first external email exposed the missing novelty gate and is retained as a regression case rather than hidden.
 
 ## Executable closed loop
