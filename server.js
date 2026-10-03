@@ -13,10 +13,13 @@ import {blueskyConnector,linkedinConnector,mastodonConnector,socialAdapter} from
 import {integrationStatus} from './runtime/integration-status.js';
 import {verifySchedulerToken} from './runtime/scheduler-auth.js';
 import {createXAuthorization} from './runtime/x-authorization.js';
+import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
 const X_CLIENT_SECRET=process.env.X_CLIENT_SECRET||"";
+const LINKEDIN_CLIENT_ID=process.env.LINKEDIN_CLIENT_ID||"";
+const LINKEDIN_CLIENT_SECRET=process.env.LINKEDIN_CLIENT_SECRET||"";
 const PUBLIC_BASE_URL=(process.env.PUBLIC_BASE_URL||"").replace(/\/$/,"");
 const KEY_VALUE_URL=process.env.KEY_VALUE_URL||"";
 const sessions=new Map();
@@ -33,12 +36,16 @@ async function authorization(){
   if(!xAuthorization)xAuthorization=createXAuthorization({client:await store(),exchange:tokenExchange,clientId:X_CLIENT_ID});
   return xAuthorization;
 }
+const productKey=p=>String(p||"EMRADAR").toLowerCase();
+async function saveLinkedInAuth(product,auth){const s=await store();await s.set(`marketing:linkedin:authorized:${productKey(product)}`,JSON.stringify(auth));}
+async function loadLinkedInAuth(product){try{const s=await store();const raw=await s.get(`marketing:linkedin:authorized:${productKey(product)}`);return raw?JSON.parse(raw):null;}catch(e){console.error("Key Value load failed",e.message);return null;}}
 async function currentAuth(product="EMRADAR"){return (await authorization()).current(product);}
 const receipts=[]; // OAuth diagnostics only; graph publication receipts live in Redis.
 
 const json=(res,status,body)=>{res.writeHead(status,{"content-type":"application/json","cache-control":"no-store"});res.end(JSON.stringify(body));};
 const base64url=b=>Buffer.from(b).toString("base64url");
 const callbackUrl=(req)=>`${PUBLIC_BASE_URL||`https://${req.headers.host}`}/oauth/x/callback`;
+const linkedinRedirectUrl=req=>linkedinCallbackUrl({publicBaseUrl:PUBLIC_BASE_URL,host:req.headers.host});
 const html=(res,body)=>{res.writeHead(200,{"content-type":"text/html; charset=utf-8","cache-control":"no-store"});res.end(body);};
 
 async function tokenExchange(body){
@@ -89,11 +96,12 @@ async function productIntake(){
 }
 async function marketingEngine(){
   const products=await (await productIntake()).products();
+  const linkedinAuth=await loadLinkedInAuth('EMRADAR');
   const adapters={X:xAdapter({publish:publishX,authorized:async product=>!!(await currentAuth(product))?.access_token,fetchMetrics:async(id,product)=>{
     const auth=await currentAuth(product);
     if(!auth?.access_token)throw new Error('X authorization required');
     return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);
-  }}),LINKEDIN:socialAdapter(linkedinConnector({accessToken:process.env.LINKEDIN_ACCESS_TOKEN,organizationUrn:process.env.LINKEDIN_ORGANIZATION_URN,apiVersion:process.env.LINKEDIN_API_VERSION})),BLUESKY:socialAdapter(blueskyConnector({service:process.env.BLUESKY_SERVICE_URL,identifier:process.env.BLUESKY_IDENTIFIER,appPassword:process.env.BLUESKY_APP_PASSWORD})),MASTODON:socialAdapter(mastodonConnector({server:process.env.MASTODON_SERVER,accessToken:process.env.MASTODON_ACCESS_TOKEN}))};
+  }}),LINKEDIN:socialAdapter(linkedinConnector({accessToken:linkedinAuth?.access_token||process.env.LINKEDIN_ACCESS_TOKEN,organizationUrn:process.env.LINKEDIN_ORGANIZATION_URN,apiVersion:process.env.LINKEDIN_API_VERSION})),BLUESKY:socialAdapter(blueskyConnector({service:process.env.BLUESKY_SERVICE_URL,identifier:process.env.BLUESKY_IDENTIFIER,appPassword:process.env.BLUESKY_APP_PASSWORD})),MASTODON:socialAdapter(mastodonConnector({server:process.env.MASTODON_SERVER,accessToken:process.env.MASTODON_ACCESS_TOKEN}))};
   if(process.env.MARKETING_TEST_DIRECTORY)adapters.LOCAL=localAdapter(process.env.MARKETING_TEST_DIRECTORY);
   return new GraphEngine({store:new RedisStore(await store()),products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)});
 }
@@ -107,7 +115,8 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/integrations/status"){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
     const xAuthorized=!!(await currentAuth('EMRADAR').catch(()=>null))?.access_token;
-    return json(res,200,{ok:true,platforms:integrationStatus(process.env,{xAuthorized})});
+    const linkedinAuthorized=!!((await loadLinkedInAuth('EMRADAR'))?.access_token||process.env.LINKEDIN_ACCESS_TOKEN);
+    return json(res,200,{ok:true,platforms:integrationStatus(process.env,{xAuthorized,linkedinAuthorized})});
   }
   if(req.method==="GET"&&u.pathname==="/oauth/x/start"){
     const product=u.searchParams.get("product")||"EMRADAR";if(!PRODUCTS.includes(product))return json(res,400,{ok:false,error:"unknown_product"});
@@ -123,6 +132,15 @@ const server=http.createServer(async(req,res)=>{
     if(!state||!code||!s||Date.now()-s.created>600000) return json(res,400,{ok:false,error:"invalid_or_expired_oauth_state"});
     try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});await (await authorization()).authorize(s.product,t);sessions.delete(state);res.writeHead(302,{location:"/"});return res.end();}
     catch(e){return json(res,502,failReceipt("oauth_callback",e));}
+  }
+  if(req.method==="GET"&&u.pathname==="/oauth/linkedin/start"){
+    const product=u.searchParams.get("product")||"EMRADAR";if(!PRODUCTS.includes(product))return json(res,400,{ok:false,error:"unknown_product"});
+    const oauth=createLinkedInOAuth({clientId:LINKEDIN_CLIENT_ID,clientSecret:LINKEDIN_CLIENT_SECRET,redirectUri:linkedinRedirectUrl(req),scopes:process.env.LINKEDIN_SCOPES,sessions,saveAuthorization:saveLinkedInAuth});
+    const result=oauth.authorizationRedirect(product);if(result.location){res.writeHead(result.status,{location:result.location,"cache-control":"no-store"});return res.end();}return json(res,result.status,result.body);
+  }
+  if(req.method==="GET"&&u.pathname==="/oauth/linkedin/callback"){
+    const oauth=createLinkedInOAuth({clientId:LINKEDIN_CLIENT_ID,clientSecret:LINKEDIN_CLIENT_SECRET,redirectUri:linkedinRedirectUrl(req),scopes:process.env.LINKEDIN_SCOPES,sessions,saveAuthorization:saveLinkedInAuth});
+    const result=await oauth.callback(Object.fromEntries(u.searchParams));if(result.location){res.writeHead(result.status,{location:result.location,"cache-control":"no-store"});return res.end();}return json(res,result.status,result.body);
   }
   if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
     try{const envelope=JSON.parse(await readBody(req));const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}

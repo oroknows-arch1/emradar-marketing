@@ -31,6 +31,13 @@ Social account readiness and the one-time owner setup record live in
 `state/integration-register.json` and `INTEGRATION_REGISTER.md`. This is the
 connection source of truth; `state/distribution-map.json` remains route memory.
 
+LinkedIn OAuth uses `/oauth/linkedin/start` and the exact callback path
+`/oauth/linkedin/callback`. It requires `LINKEDIN_CLIENT_ID`,
+`LINKEDIN_CLIENT_SECRET`, `KEY_VALUE_URL`, `LINKEDIN_ORGANIZATION_URN`, and
+`LINKEDIN_API_VERSION`. `LINKEDIN_SCOPES` is optional and defaults to the
+least-privilege Share on LinkedIn scopes. Tokens are persisted in the existing
+Key Value store and are never returned by the OAuth endpoints.
+
 Campaign 002 is the first live integration test. Its first external email exposed the missing novelty gate and is retained as a regression case rather than hidden.
 
 ## Executable closed loop

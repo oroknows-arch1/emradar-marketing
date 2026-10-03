@@ -43,7 +43,7 @@ test('integration status distinguishes implemented, configured, authorized and u
   const platforms=integrationStatus({BLUESKY_IDENTIFIER:'emradar.test',BLUESKY_APP_PASSWORD:'set'},{xAuthorized:false});
   const bluesky=platforms.find(p=>p.id==='BLUESKY');const linkedin=platforms.find(p=>p.id==='LINKEDIN');const x=platforms.find(p=>p.id==='X');
   assert.equal(bluesky.connector,'IMPLEMENTED');assert.equal(bluesky.runtime_authorized,true);assert.equal(bluesky.blocker,null);
-  assert.equal(linkedin.connector,'IMPLEMENTED');assert.equal(linkedin.blocker,'CONNECTOR_CONFIGURATION_MISSING');assert(linkedin.missing_configuration.includes('LINKEDIN_ACCESS_TOKEN'));
+  assert.equal(linkedin.connector,'IMPLEMENTED');assert.equal(linkedin.blocker,'CONNECTOR_CONFIGURATION_MISSING');assert(linkedin.missing_configuration.includes('LINKEDIN_CLIENT_ID'));
   assert.equal(x.runtime_authorized,false);assert(x.missing_configuration.includes('X_CLIENT_ID'));
   assert(!JSON.stringify(platforms).includes('not-real'));
 });
