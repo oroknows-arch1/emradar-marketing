@@ -214,12 +214,14 @@ async function runPendingCampaign(){
   const s=new RedisStore(await store()),key='campaign_launch:'+input.campaign_id;
   let prior=await s.get(key);const sourceRecord=await s.get('source:'+input.product);
   if(prior?.status==='IN_FLIGHT'&&Date.now()-Date.parse(prior.started_at)>60000){
+    console.log('MARKETING_CAMPAIGN_RECOVERY '+JSON.stringify({campaign_id:input.campaign_id,status:'CHECKING_RECEIPTS'}));
     const receipts=await s.get('receipt_index')||[];
     if(receipts.some(r=>r.campaign_id===input.campaign_id&&['PUBLISHED','IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)))throw new Error('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     const proposalKeys=await s.client.keys('marketing:graph:publication_review:*');
     for(const proposalKey of proposalKeys){const proposal=JSON.parse(await s.client.get(proposalKey));if(proposal?.input?.campaign_id===input.campaign_id){const result={product:input.product,campaign_id:input.campaign_id,status:'AWAITING_REVIEW',blocker:'PUBLICATION_REVIEW_REQUIRED',review:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs}};await s.put(key,{status:'COMPLETE',input,recovered_at:new Date().toISOString(),result});console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));return;}}
     const history=await s.get(key+':history')||[];history.push({...prior,status:'INTERRUPTED_BEFORE_PUBLICATION'});await s.put(key+':history',history.slice(-20));
     await s.client.del('marketing:graph:lock:engine');await s.put(key,null);prior=null;
+    console.log('MARKETING_CAMPAIGN_RECOVERY '+JSON.stringify({campaign_id:input.campaign_id,status:'STALE_LOCK_CLEARED'}));
   }
   const priorSequence=prior?.result?.receipt?.source_receipt?.sequence||0;
   const currentSequence=sourceRecord?.sequence||0;
@@ -228,6 +230,7 @@ async function runPendingCampaign(){
   if(resumable){const history=await s.get(key+':history')||[];history.push(prior);await s.put(key+':history',history.slice(-20));}
   await s.put(key,{status:'IN_FLIGHT',input,started_at:new Date().toISOString()});
   try{
+    console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'STARTED',campaign_id:input.campaign_id,source_sequence:currentSequence}));
     const result=await (await marketingEngine()).run(input);
     await s.put(key,{status:'COMPLETE',input,completed_at:new Date().toISOString(),result});
     console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));
