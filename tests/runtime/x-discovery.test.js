@@ -27,7 +27,7 @@ test('native auth invalid and API denial stop without reconnect or hidden retry'
 test('executes existing graph to HUMAN_PREVIEW; no campaign, receipts, learning or publishing',async()=>{
   const f=await setup(fakeRead);await f.store.put('learning',{version:7});const r=await f.engine.previewDiscovery(input);
   assert.equal(r.status,'HUMAN_PREVIEW');assert.equal(r.source.blob,'0bc26fe071ede84f389c0ae345afac945d6f951a');assert.equal(r.candidates[0].finding.status,'CONFIRMED');
-  assert.equal(r.candidates[0].decision,'DO_NOT_REPLY');assert.equal(r.candidates[0].reason,'SEMANTIC_INFORMATION_DELTA_UNVERIFIED');assert(r.no_engagement&&r.learning_unchanged);
+  assert.equal(r.candidates[0].decision,'REPLY');assert.equal(r.candidates[0].reason,'SOURCE_BOUND_INFORMATION_DELTA_REVIEW');assert(r.no_engagement&&r.learning_unchanged);
   assert.equal(r.cost.requests,4);assert.equal(r.cost.reserved_micro_usd,355000);assert.equal(r.cost.actual_billed_usd,'UNKNOWN');
   assert.deepEqual(r.nodes.map(n=>n.node),['emradar_finding','x_discovery','conversation_baseline','discovery_relevance_gate','information_delta_gate','reply_draft','discovery_evidence_gate','human_preview','discovery_stop']);
   for(const key of ['latest','latest_receipt','receipt_index','scheduler_seen'])assert.equal(await f.store.get(key),null);
@@ -59,9 +59,16 @@ test('rate exhaustion stops before another request',async()=>{
 test('unbound, generic or excess cost authorization is rejected before X access',async()=>{
   const f=await setup(()=>{throw Error('MUST_NOT_CALL');});await assert.rejects(f.engine.previewDiscovery({...input,test_id:'OTHER'}),/NOT_AUTHORIZED/);const r=await f.engine.previewDiscovery({...input,max_usd:2});assert.equal(r.blocker,'X_DISCOVERY_SPECIFIC_OWNER_AUTHORITY_REQUIRED');
 });
-test('delta review binds source evidence, conversation hash and exact state before draft',async()=>{
-  const finding={status:'FORMING',evidence:[{fact:'Approved financing supports rail infrastructure.',url:'https://example.test/evidence'}],contradictions:['Outcomes unproven'],missing_evidence:['Delivery']};
-  const c={input:{assessments:[{post_id:'12345',baseline_hash:'bound',meaningful:true,reason:'Adds approved financing missing from the conversation.',evidence_index:0}]},candidates:[{finding,post:{id:'12345',text:'Freight bottlenecks',baseline:{hash:'bound',complete:true,recent_replies:[],scope:'Limited'}}}]};
-  await organicWorkers.information_delta_gate(c);await organicWorkers.reply_draft(c);assert.equal(c.candidates[0].decision,'REPLY');assert.equal(c.candidates[0].proposed_reply,'EMRADAR FORMING: Approved financing supports rail infrastructure.');
-  c.candidates[0].post.text=finding.evidence[0].fact;await organicWorkers.information_delta_gate(c);assert.equal(c.candidates[0].reason,'EVIDENCE_ALREADY_PRESENT');assert.equal(c.candidates[0].decision,'DO_NOT_REPLY');assert.equal(c.candidates[0].proposed_reply,null);
+test('semantic delta binds exact baseline, evidence index and state before drafting',async()=>{
+  const finding={status:'FORMING',evidence:[{fact:'The World Bank approved $372 million for a rail infrastructure project.',source:'World Bank',url:'https://example.test/evidence'}],contradictions:['Outcomes remain unproven.'],missing_evidence:['Delivery']};
+  const baseline={root:'The corridor faces freight bottlenecks.',recent_replies:[],complete:true,scope:'Limited'};baseline.hash=(await import('node:crypto')).default.createHash('sha256').update(JSON.stringify(baseline)).digest('hex');
+  const c={candidates:[{finding,post:{id:'12345',text:baseline.root,baseline}}]};
+  await organicWorkers.information_delta_gate(c);await organicWorkers.reply_draft(c);const row=c.candidates[0];
+  assert.equal(row.decision,'REPLY');assert.equal(row.semantic_assessment.baseline_hash,baseline.hash);assert.equal(row.semantic_assessment.source_evidence_index,0);assert.equal(row.semantic_assessment.evidence_state,'FORMING');assert.match(row.proposed_reply,/FORMING.*\$372 million.*Caveat: Outcomes remain unproven/);
+});
+test('semantic delta rejects evidence already represented in the conversation',async()=>{
+  const fact='The World Bank approved $372 million for a rail infrastructure project.';
+  const finding={status:'CONFIRMED',evidence:[{fact,source:'World Bank',url:'https://example.test/evidence'}],contradictions:[],missing_evidence:[]};
+  const baseline={root:fact,recent_replies:[],complete:true,scope:'Limited'};baseline.hash=(await import('node:crypto')).default.createHash('sha256').update(JSON.stringify(baseline)).digest('hex');
+  const c={candidates:[{finding,post:{id:'12345',text:fact,baseline}}]};await organicWorkers.information_delta_gate(c);assert.equal(c.candidates[0].decision,'DO_NOT_REPLY');assert.equal(c.candidates[0].reason,'NO_SUPPORTED_SEMANTIC_INFORMATION_DELTA');
 });

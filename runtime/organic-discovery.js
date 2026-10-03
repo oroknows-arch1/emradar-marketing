@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 
-export const discoveryTestId='EMRADAR_X_DISCOVERY_2026_10_03_V0_1';
+export const discoveryTestId='EMRADAR_X_DISCOVERY_2026_10_03_V0_2';
 export const sourceCommit='9429ada7c2f7a59c3b662d077551c46d0d1e5f03';
 const sourceBlob='0bc26fe071ede84f389c0ae345afac945d6f951a';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
@@ -17,6 +17,33 @@ const queries=[
   '("Northern Sea Route" OR (Dakhla (desalination OR agriculture)) OR (Suzuki (supplier OR maintenance))) -is:retweet -is:reply lang:en'
 ];
 const fields='author_id,created_at,conversation_id,referenced_tweets,public_metrics';
+const stopwords=new Set('a an and are as at be been by for from has have in into is it its of on or that the their this to was were will with'.split(' '));
+const words=value=>new Set((String(value).toLowerCase().match(/[a-z0-9$]+/g)||[]).filter(word=>word.length>2&&!stopwords.has(word)));
+const intersection=(a,b)=>[...a].filter(value=>b.has(value));
+const materialPattern=/\b(?:approved|financ(?:e|ed|ing)|guarantee|million|billion|jobs?|opened|inaugurated|applications?|capacity|factory|facility|site|voyages?|directive|investment|project)\b|(?:US)?\$\s?\d|\b\d+(?:\.\d+)?%/i;
+function semanticAssessment(row){
+  const baselineText=[row.post.text,...row.post.baseline.recent_replies.map(reply=>reply.text||'')].join('\n');
+  const baselineWords=words(baselineText);
+  const ranked=row.finding.evidence.map((evidence,source_evidence_index)=>{
+    const evidenceWords=words(evidence.fact);
+    const shared=intersection(evidenceWords,baselineWords).length;
+    const novelty=[...evidenceWords].filter(word=>!baselineWords.has(word)).length/Math.max(1,evidenceWords.size);
+    const alreadyPresent=baselineText.toLowerCase().includes(evidence.fact.toLowerCase())||baselineText.includes(evidence.url);
+    return {evidence,source_evidence_index,shared,novelty,alreadyPresent,material:materialPattern.test(evidence.fact)};
+  }).filter(item=>!item.alreadyPresent&&item.material&&item.novelty>=0.45)
+    .sort((a,b)=>Number(b.material)-Number(a.material)||b.shared-a.shared||b.novelty-a.novelty||a.source_evidence_index-b.source_evidence_index);
+  const selected=ranked[0];
+  if(!selected)return null;
+  const assessment={
+    baseline_hash:row.post.baseline.hash,
+    source_evidence_index:selected.source_evidence_index,
+    evidence_state:row.finding.status,
+    meaningful:true,
+    reason:`Adds a source-backed ${selected.evidence.source} fact with material implementation, scale or financing detail not present in the fetched conversation baseline.`
+  };
+  assessment.binding_hash=hash(assessment);
+  return assessment;
+}
 function fail(reason){throw new Error(reason);}
 
 async function read(c,e,path,params,maxMicroUsd) {
@@ -90,11 +117,14 @@ export const organicWorkers={
     // Only a review bound to the exact fetched conversation and exact source evidence can pass.
     for(const row of c.candidates){
       row.decision='DO_NOT_REPLY';row.information_delta=null;row.proposed_reply=null;
-      const assessment=c.input.assessments?.find(a=>a.post_id===row.post.id);
+      const assessment=semanticAssessment(row);
+      row.semantic_assessment=assessment;
       row.uncertainty=[...row.finding.contradictions,...row.finding.missing_evidence,row.post.baseline.scope];
       if(!row.post.baseline.complete){row.reason='CONVERSATION_TRUNCATED';continue;}
-      if(!assessment||assessment.baseline_hash!==row.post.baseline.hash||assessment.meaningful!==true||!assessment.reason?.trim()){row.reason='SEMANTIC_INFORMATION_DELTA_UNVERIFIED';continue;}
-      const evidence=row.finding.evidence[assessment.evidence_index];
+      if(!assessment||assessment.baseline_hash!==row.post.baseline.hash||assessment.evidence_state!==row.finding.status||assessment.meaningful!==true||!assessment.reason?.trim()){row.reason='NO_SUPPORTED_SEMANTIC_INFORMATION_DELTA';continue;}
+      const binding={baseline_hash:assessment.baseline_hash,source_evidence_index:assessment.source_evidence_index,evidence_state:assessment.evidence_state,meaningful:assessment.meaningful,reason:assessment.reason};
+      if(assessment.binding_hash!==hash(binding))fail('DISCOVERY_DELTA_BINDING_CHANGED');
+      const evidence=row.finding.evidence[assessment.source_evidence_index];
       if(!evidence)fail('DISCOVERY_DELTA_EVIDENCE_OUT_OF_SCOPE');
       const baseline=[row.post.text,...row.post.baseline.recent_replies.map(p=>p.text)].join('\n');
       if(baseline.includes(evidence.fact)||baseline.includes(evidence.url)){row.reason='EVIDENCE_ALREADY_PRESENT';continue;}
@@ -103,14 +133,17 @@ export const organicWorkers={
   },
   async reply_draft(c) {
     for(const row of c.candidates)if(row.decision==='REPLY'){
-      const copy=`EMRADAR ${row.finding.status}: ${row.evidence.fact}`;
+      const caveat=row.finding.contradictions[0]||row.finding.missing_evidence[0];
+      const copy=`EMRADAR has this at ${row.finding.status}: ${row.evidence.fact}${caveat?` Caveat: ${caveat}`:''}`;
       if(copy.length>280){row.decision='DO_NOT_REPLY';row.reason='SOURCE_FACT_REQUIRES_EDITORIAL_COMPRESSION';continue;}
       row.proposed_reply=copy;
     }
   },
   async discovery_evidence_gate(c,e) {
     for(const row of c.candidates){
-      if(row.decision==='REPLY'&&(!row.finding.evidence.includes(row.evidence)||row.proposed_reply!==`EMRADAR ${row.finding.status}: ${row.evidence.fact}`||/\b(buy|sell|hold)\b/i.test(row.proposed_reply)))fail('DISCOVERY_REPLY_EVIDENCE_OR_EDITORIAL_BOUND');
+      const caveat=row.finding.contradictions[0]||row.finding.missing_evidence[0];
+      const expected=row.evidence&&`EMRADAR has this at ${row.finding.status}: ${row.evidence.fact}${caveat?` Caveat: ${caveat}`:''}`;
+      if(row.decision==='REPLY'&&(!row.finding.evidence.includes(row.evidence)||row.proposed_reply!==expected||/\b(buy|sell|hold)\b/i.test(row.proposed_reply)))fail('DISCOVERY_REPLY_EVIDENCE_OR_EDITORIAL_BOUND');
       if(c.rateExhausted)fail('X_DISCOVERY_RATE_LIMIT_EXHAUSTED');
       const result=await read(c,e,'/2/tweets',{ids:row.post.id,'tweet.fields':fields},5000);
       const verified=result.data?.find(p=>p.id===row.post.id);
