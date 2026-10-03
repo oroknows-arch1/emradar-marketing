@@ -12,6 +12,7 @@ import { xAdapter, localAdapter } from './runtime/adapters.js';
 import {blueskyConnector,linkedinConnector,mastodonConnector,socialAdapter} from './runtime/social-connectors.js';
 import {integrationStatus} from './runtime/integration-status.js';
 import {verifySchedulerToken} from './runtime/scheduler-auth.js';
+import {createXAuthorization} from './runtime/x-authorization.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -27,19 +28,12 @@ async function store(){
   return kv;
 }
 const PRODUCTS=["EMRADAR","Atlasoquence"];
-const productKey=p=>String(p||"EMRADAR").toLowerCase();
-async function saveAuth(product,auth){const s=await store();await s.set(`marketing:x:authorized:${productKey(product)}`,JSON.stringify(auth));}
-async function loadAuth(product){try{const s=await store();let raw=await s.get(`marketing:x:authorized:${productKey(product)}`);if(!raw&&product==="EMRADAR")raw=await s.get("emradar:x:authorized");return raw?JSON.parse(raw):null;}catch(e){console.error("Key Value load failed",e.message);return null;}}
-async function currentAuth(product="EMRADAR"){
-  let auth=sessions.get(`authorized:${productKey(product)}`)||await loadAuth(product);
-  if(!auth?.access_token) return null;
-  if(auth.expires_at&&Date.now()>=auth.expires_at-60000&&auth.refresh_token){
-    const t=await tokenExchange({grant_type:"refresh_token",refresh_token:auth.refresh_token,client_id:X_CLIENT_ID});
-    auth={...auth,...t,authorized_at:auth.authorized_at||new Date().toISOString(),refreshed_at:new Date().toISOString(),expires_at:Date.now()+(Number(t.expires_in||7200)*1000)};
-    sessions.set(`authorized:${productKey(product)}`,auth);await saveAuth(product,auth);
-  }
-  return auth;
+let xAuthorization=null;
+async function authorization(){
+  if(!xAuthorization)xAuthorization=createXAuthorization({client:await store(),exchange:tokenExchange,clientId:X_CLIENT_ID});
+  return xAuthorization;
 }
+async function currentAuth(product="EMRADAR"){return (await authorization()).current(product);}
 const receipts=[]; // OAuth diagnostics only; graph publication receipts live in Redis.
 
 const json=(res,status,body)=>{res.writeHead(status,{"content-type":"application/json","cache-control":"no-store"});res.end(JSON.stringify(body));};
@@ -127,7 +121,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/oauth/x/callback"){
     const state=u.searchParams.get("state"),code=u.searchParams.get("code"),s=sessions.get(state);
     if(!state||!code||!s||Date.now()-s.created>600000) return json(res,400,{ok:false,error:"invalid_or_expired_oauth_state"});
-    try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});const auth={...t,authorized_at:new Date().toISOString(),expires_at:Date.now()+(Number(t.expires_in||7200)*1000)};await saveAuth(s.product,auth);sessions.set(`authorized:${productKey(s.product)}`,auth);sessions.delete(state);res.writeHead(302,{location:"/"});return res.end();}
+    try{const t=await tokenExchange({grant_type:"authorization_code",code,redirect_uri:callbackUrl(req),code_verifier:s.verifier,client_id:X_CLIENT_ID});await (await authorization()).authorize(s.product,t);sessions.delete(state);res.writeHead(302,{location:"/"});return res.end();}
     catch(e){return json(res,502,failReceipt("oauth_callback",e));}
   }
   if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
