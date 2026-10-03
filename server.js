@@ -13,6 +13,8 @@ import {blueskyConnector,linkedinConnector,mastodonConnector,socialAdapter} from
 import {integrationStatus} from './runtime/integration-status.js';
 import {verifySchedulerToken} from './runtime/scheduler-auth.js';
 import {createXAuthorization} from './runtime/x-authorization.js';
+import {xDiscoveryConnector} from './runtime/x-discovery.js';
+import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
 
 const PORT=Number(process.env.PORT||10000);
@@ -97,7 +99,7 @@ async function productIntake(){
 async function marketingEngine(){
   const products=await (await productIntake()).products();
   const linkedinAuth=await loadLinkedInAuth('EMRADAR');
-  const adapters={X:xAdapter({publish:publishX,authorized:async product=>!!(await currentAuth(product))?.access_token,fetchMetrics:async(id,product)=>{
+  const adapters={X:xAdapter({publish:publishX,discovery:xDiscoveryConnector({currentAuth}),authorized:async product=>!!(await currentAuth(product))?.access_token,fetchMetrics:async(id,product)=>{
     const auth=await currentAuth(product);
     if(!auth?.access_token)throw new Error('X authorization required');
     return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);
@@ -108,6 +110,13 @@ async function marketingEngine(){
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
+  if(u.pathname==='/X_DISCOVERY_PREVIEW'&&['GET','POST'].includes(req.method)){
+    if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
+    try{
+      if(req.method==='GET')return json(res,200,await new RedisStore(await store()).get('x_discovery:preview:EMRADAR_X_DISCOVERY_2026_10_03_V0_1')||{status:'NOT_RUN'});
+      return json(res,200,await (await marketingEngine()).previewDiscovery(JSON.parse(await readBody(req))));
+    }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
   if(req.method==="GET"&&u.pathname==="/"){const states=await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token]));return html(res,`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Marketing Engine</title><style>body{font-family:system-ui;margin:0;background:#0b0d10;color:#f4f4f4}main{max-width:760px;margin:auto;padding:40px 20px}h1{font-size:32px}.sub{color:#9aa3ad}.grid{display:grid;gap:16px;margin-top:32px}.card{border:1px solid #2b3037;border-radius:16px;padding:22px;background:#12161b}.row{display:flex;justify-content:space-between;align-items:center;gap:16px}.status{color:#9aa3ad}.on{color:#9fe3b1}a,button{display:inline-block;margin-top:18px;padding:11px 14px;border-radius:9px;border:1px solid #3b424c;background:#fff;color:#111;text-decoration:none;font-weight:650}.secondary{background:transparent;color:#fff}</style></head><body><main><h1>Marketing Engine</h1><div class="sub">Products, connections and execution.</div><div class="grid">${states.map(([p,on])=>`<section class="card"><div class="row"><div><h2>${p}</h2><div class="status">X <span class="${on?"on":""}">● ${on?"Connected":"Not connected"}</span></div></div><div>Adapter ● Ready</div></div><a href="/oauth/x/start?product=${encodeURIComponent(p)}">${on?"Reconnect X":"Connect X"}</a> <a class="secondary" href="/product?name=${encodeURIComponent(p)}">Open product</a></section>`).join("")}</div><a class="secondary" href="/onboarding">+ Add product</a></main></body></html>`);}
   if(req.method==="GET"&&u.pathname==="/onboarding") return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><h1>Add product</h1><p>The first onboarding contract captures identity, source of truth, channels, rules and goal. Atlasoquence is already registered through its adapter.</p><p><a href="/">Back to products</a></p></body></html>`);
   if(req.method==="GET"&&u.pathname==="/product"){const p=u.searchParams.get("name");if(!PRODUCTS.includes(p))return json(res,404,{ok:false,error:"unknown_product"});const auth=await currentAuth(p).catch(()=>null);return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><a href="/">← Products</a><h1>${p}</h1><p>Adapter: Ready</p><p>X: ${auth?.access_token?"Connected":"Not connected"}</p><p>Additional spend: owner approval required</p><p>Execution endpoint: POST /RUN_MARKETING</p></body></html>`);}
@@ -174,7 +183,10 @@ const server=http.createServer(async(req,res)=>{
   }
   return json(res,404,{ok:false,error:"not_found"});
 });
-server.listen(PORT,()=>console.log("EMRADAR X executor listening"));
+server.listen(PORT,()=>{
+  console.log("EMRADAR X executor listening");
+  runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+});
 
 // No per-request polling loop. Every bounded tick loads the trusted current source
 // package, so new product revisions can enter without a human triggering each run.

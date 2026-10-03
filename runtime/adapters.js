@@ -18,10 +18,10 @@ export function localAdapter(directory) {
   };
 }
 // Uses the existing authenticated X upload/publication functions. Never invents billing.
-export function xAdapter({publish,fetchMetrics,authorized}) {
+export function xAdapter({publish,fetchMetrics,authorized,discovery}) {
   return {
     cost:'UNKNOWN', formats:['text','image'], authorized, publishCalls:asset=>asset.format==='image'?4:1,
-    publish,
+    publish, ...(discovery?{discovery}:{}),
     async collect(r) {
       const data=await fetchMetrics(r.external_id,r.product);
       const metrics={};

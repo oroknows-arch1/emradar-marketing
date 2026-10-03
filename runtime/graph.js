@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
 import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
+import {organicWorkers,discoveryTestId} from './organic-discovery.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -18,6 +19,18 @@ function approved(p,s) {
 
 export class GraphEngine {
   constructor({store,products,adapters,harness=null,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;this.spend=new SpendEnvelope(store);}
+  async previewDiscovery(input) {
+    if(input.product!=='EMRADAR'||input.test_id!==discoveryTestId)fail('X_DISCOVERY_SOURCE_OR_TEST_NOT_AUTHORIZED');
+    return this.store.locked('x_discovery',async()=>{
+      const saved=await this.store.get('x_discovery:preview:'+discoveryTestId);
+      if(saved)return saved;
+      const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING',read_only:true};
+      await this.traverse(c,'emradar_finding');
+      const result={test_id:discoveryTestId,status:c.status,blocker:c.blocker||null,api_error:c.api_error||null,source:c.source||null,nodes:c.trace,reads:c.reads||[],cost:c.discoveryLedger||null,candidates:c.candidates||[],no_engagement:c.no_engagement===true,learning_unchanged:JSON.stringify(c.state)===JSON.stringify(await this.store.get('learning')||initial())};
+      await this.store.put('x_discovery:preview:'+discoveryTestId,result);
+      return result;
+    });
+  }
   async approvePublication({proposal_id,review_hash}) {
     const proposal=await this.store.locked('engine',async()=>{
       const p=await this.store.get('publication_review:'+proposal_id);
@@ -88,7 +101,7 @@ export class GraphEngine {
   async traverse(c,start) {
     let id=start;let count=0;
       while(id) {
-        if(++count>this.maxSteps){c.status='FAILED';c.blocker='STEP_BOUND';await workers.receipt(c,this);break;}
+        if(++count>this.maxSteps){c.status='FAILED';c.blocker='STEP_BOUND';if(!c.read_only)await workers.receipt(c,this);break;}
         const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
         const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:c.input.product,campaign:c.input.campaign_id,learning:c.state.version})};
         try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}
@@ -109,6 +122,7 @@ export class GraphEngine {
 }
 
 const workers={
+  ...organicWorkers,
   async ingest(c,e) {
     c.product=structuredClone(e.products[c.input.product]);c.signal=c.product?.signals?.find(s=>!c.input.signal_id||s.id===c.input.signal_id);
     c.truth_hash=digest(c.product||null);approved(c.product,c.signal);

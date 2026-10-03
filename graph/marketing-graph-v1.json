@@ -264,11 +264,23 @@
       "id": "publication_review",
       "worker": "owner_publication_review",
       "hard": true,
-      "inputs": ["gated_asset", "destination", "product_truth_hash", "source_revision", "current_permission", "owner_decision"],
-      "outputs": ["review_proposal_or_exact_approval"],
+      "inputs": [
+        "gated_asset",
+        "destination",
+        "product_truth_hash",
+        "source_revision",
+        "current_permission",
+        "owner_decision"
+      ],
+      "outputs": [
+        "review_proposal_or_exact_approval"
+      ],
       "authority": "owner_approval_only_for_external_publication",
       "failure_state": "AWAITING_REVIEW_OR_BLOCKED",
-      "handoff": ["execute", "receipt"],
+      "handoff": [
+        "execute",
+        "receipt"
+      ],
       "max_attempts": 1,
       "execution_lane": "human_required_for_external_publication"
     },
@@ -607,6 +619,175 @@
       "handoff": [
         "product_context_intake"
       ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "emradar_finding",
+      "label": "EMRADAR_FINDING",
+      "worker": "emradar_finding",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "x_discovery"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "x_discovery",
+      "label": "X_DISCOVERY",
+      "worker": "x_discovery",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "conversation_baseline"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "conversation_baseline",
+      "label": "CONVERSATION_BASELINE",
+      "worker": "conversation_baseline",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "discovery_relevance_gate"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "discovery_relevance_gate",
+      "label": "RELEVANCE_GATE",
+      "worker": "discovery_relevance_gate",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "information_delta_gate"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "information_delta_gate",
+      "label": "INFORMATION_DELTA_GATE",
+      "worker": "information_delta_gate",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "reply_draft"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "reply_draft",
+      "label": "REPLY_DRAFT",
+      "worker": "reply_draft",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "discovery_evidence_gate"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "discovery_evidence_gate",
+      "label": "EVIDENCE_GATE",
+      "worker": "discovery_evidence_gate",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "human_preview"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "human_preview",
+      "label": "HUMAN_PREVIEW",
+      "worker": "human_preview",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "discovery_stop"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "discovery_stop",
+      "label": "STOP",
+      "worker": "discovery_stop",
+      "inputs": [
+        "verified_source",
+        "discovery_context"
+      ],
+      "outputs": [
+        "bounded_discovery_context"
+      ],
+      "authority": "Read-only discovery and dry reply preview only; no engagement, campaign, publication or learning mutation",
+      "failure_state": "BLOCKED",
+      "handoff": [],
       "max_attempts": 1,
       "execution_lane": "deterministic"
     }
@@ -1027,6 +1208,86 @@
       "from": "product_context_intake",
       "to": "ingest",
       "event": "next_authorized_cycle"
+    },
+    {
+      "from": "emradar_finding",
+      "event": "success",
+      "to": "x_discovery"
+    },
+    {
+      "from": "emradar_finding",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "x_discovery",
+      "event": "success",
+      "to": "conversation_baseline"
+    },
+    {
+      "from": "x_discovery",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "conversation_baseline",
+      "event": "success",
+      "to": "discovery_relevance_gate"
+    },
+    {
+      "from": "conversation_baseline",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "discovery_relevance_gate",
+      "event": "success",
+      "to": "information_delta_gate"
+    },
+    {
+      "from": "discovery_relevance_gate",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "information_delta_gate",
+      "event": "success",
+      "to": "reply_draft"
+    },
+    {
+      "from": "information_delta_gate",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "reply_draft",
+      "event": "success",
+      "to": "discovery_evidence_gate"
+    },
+    {
+      "from": "reply_draft",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "discovery_evidence_gate",
+      "event": "success",
+      "to": "human_preview"
+    },
+    {
+      "from": "discovery_evidence_gate",
+      "event": "blocked",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "human_preview",
+      "event": "success",
+      "to": "discovery_stop"
+    },
+    {
+      "from": "human_preview",
+      "event": "blocked",
+      "to": "discovery_stop"
     }
   ],
   "runtime": {

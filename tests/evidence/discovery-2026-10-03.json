@@ -1,0 +1,645 @@
+{
+  "version": 7,
+  "snapshot_date": "2026-10-03",
+  "previous_scan_date": "2026-09-30",
+  "contract": "causal-chain-evolution-v1",
+  "publication_state": "READY_FOR_PUBLICATION",
+  "run_mode": "DELAYED_RECOVERY",
+  "started_at": "2026-10-03T10:54:51+10:00",
+  "completed_at": "2026-10-03T10:57:38+10:00",
+  "timezone": "Australia/Sydney",
+  "rule": "Blank global candidate set first. Prior holdings, watchlists, themes and findings do not constrain discovery.",
+  "scope_note": "Delayed recovery of the completed 3 October world-change-first scan after its earlier GitHub publication write failed. Evidence links and schema were revalidated during this recovery; research was not rerun and evidence dates were not backdated.",
+  "scan_statistics": {
+    "surviving_findings": 5,
+    "discarded_count": null,
+    "total_candidates_reviewed": null,
+    "by_status": {
+      "UNKNOWN": 1,
+      "INVESTIGATE": 2,
+      "FORMING": 1,
+      "CONFIRMED": 1
+    },
+    "note": "The earlier completed scan did not preserve a reliable total-candidate or discard count, so those values remain unknown rather than being invented."
+  },
+  "scan_report": {
+    "headline": "Infrastructure diversification is moving from plans into physical systems, while three unusual operating changes still need proof.",
+    "summary": "The strongest current formation is the financed integration of the Trans-Caspian Middle Corridor. Thailand's power-semiconductor ecosystem is taking physical shape around Infineon's new backend hub. Seasonal Arctic shipping, desalination-led agriculture near Dakhla and a possible Indian auto-supplier capacity cycle remain earlier-stage and explicitly uncertain.",
+    "narrative": [
+      "The Trans-Caspian Middle Corridor is CONFIRMED because a system-wide development case is now supported by separate financed projects in Kazakhstan and Georgia.",
+      "Thailand's semiconductor push is FORMING: Infineon's Bangkok backend hub connects a working factory to national power-semiconductor policy and skills development, but utilisation and supplier depth remain unresolved.",
+      "Arctic seasonal shipping and Dakhla desalination-led agriculture remain INVESTIGATE because the mechanisms are visible but economics, durability and external risks are not settled.",
+      "Suzuki's supplier-maintenance directive is UNKNOWN: it may create machinery and automation demand, but no supplier-level investment response is yet proven."
+    ],
+    "unresolved_questions": [
+      "Will corridor investment reduce real border times and freight costs?",
+      "Will Thailand gain local supplier depth beyond one anchor factory?",
+      "Will Arctic usage persist when other routes stabilise?",
+      "Can desalinated agriculture operate economically and responsibly?",
+      "Which Indian suppliers, if any, add capacity because of the maintenance directive?"
+    ]
+  },
+  "records": [
+    {
+      "id": "trans-caspian-middle-corridor-integration",
+      "theme": "The Trans-Caspian Middle Corridor is becoming a financed, multi-country logistics system",
+      "status": "CONFIRMED",
+      "new_to_radar": true,
+      "location": "Kazakhstan / Caspian Sea / Azerbaijan / Georgia / Türkiye / Europe",
+      "why_surfaced": "A new World Bank assessment connects coordinated corridor upgrades to more than triple trade, half the travel time, 3.3% higher GDP and about 2 million additional jobs by 2040. This is backed by already-approved rail, road and logistics financing in Kazakhstan and Georgia, so the mechanism has moved beyond geopolitical ambition into funded infrastructure.",
+      "causal_chain": {
+        "world_change": [
+          "Governments and development banks are building a more integrated land-and-sea trade route between East Asia and Europe."
+        ],
+        "pressure": [
+          "Shippers need more resilient alternatives to concentrated maritime chokepoints and slow, fragmented border logistics."
+        ],
+        "bottleneck_or_scarcity": [
+          "Rail segments, port capacity, Caspian maritime links, border coordination and logistics interoperability."
+        ],
+        "formation": [
+          "At least US$25 billion of targeted investment is identified through 2040, while major Kazakhstan and Georgia projects are already financed."
+        ],
+        "industries": [
+          "Rail infrastructure",
+          "Ports and maritime logistics",
+          "Road freight",
+          "Trade finance",
+          "Warehousing and border technology"
+        ],
+        "connected_companies_and_tickers": [],
+        "consequences": [
+          "More routing choice between Asia and Europe",
+          "Potential industrial and logistics growth along the corridor",
+          "Execution depends on cross-border coordination and physical bottleneck removal"
+        ],
+        "evidence": [
+          "World Bank 2026 corridor integration report",
+          "World Bank Kazakhstan rail financing",
+          "World Bank Georgia TC-GATE financing"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "CONFIRMED",
+        "what_changed": "Newly discovered in the blank 3 October candidate set; no matching stable formation ID existed in the 30 September scan.",
+        "why_state_changed": "Multiple independent World Bank reports and approved financing establish both the structural mechanism and real implementation.",
+        "strengthening_evidence": [
+          "The September 2026 corridor assessment quantifies trade, travel-time, GDP and employment effects.",
+          "Kazakhstan and Georgia have separate approved financing packages for corridor infrastructure."
+        ],
+        "weakening_evidence": [],
+        "break_conditions": [
+          "Cross-border coordination fails to improve",
+          "Financed projects are cancelled or materially delayed",
+          "Port, rail or Caspian capacity remains binding despite investment"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Project delivery milestones",
+          "Private freight adoption",
+          "Border-time reductions",
+          "Actual trade-volume growth"
+        ],
+        "new_links": [
+          "System-wide corridor integration is now linked to country-level financed rail and road projects."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [],
+      "participants": [
+        {
+          "name": "Kazakhstan Temir Zholy",
+          "role": "Kazakhstan state railway and corridor infrastructure operator"
+        },
+        {
+          "name": "World Bank Group",
+          "role": "Research, guarantees and project finance"
+        },
+        {
+          "name": "Government of Georgia",
+          "role": "Road and rail accessibility upgrades"
+        }
+      ],
+      "evidence": [
+        {
+          "fact": "The World Bank says targeted investment could more than triple corridor trade, halve travel times, raise GDP by 3.3% and create about 2 million jobs by 2040.",
+          "source": "World Bank",
+          "url": "https://www.worldbank.org/en/news/press-release/2026/09/28/trans-caspian-transport-corridor-investments-spur-growth-and-create-millions-jobs",
+          "date": "2026-09-28",
+          "language": "English"
+        },
+        {
+          "fact": "The World Bank approved an US$846 million guarantee intended to mobilize US$1.41 billion for Kazakhstan rail connectivity along the corridor.",
+          "source": "World Bank",
+          "url": "https://www.worldbank.org/en/news/press-release/2026/02/19/world-bank-support-to-enhance-rail-connectivity-and-logistics-in-kazakhstan",
+          "date": "2026-02-19",
+          "language": "English"
+        },
+        {
+          "fact": "The World Bank approved US$372 million for Georgia's corridor accessibility and transport project within a project costing more than US$750 million.",
+          "source": "World Bank",
+          "url": "https://www.worldbank.org/en/news/press-release/2026/06/02/georgia-boosts-role-in-trans-caspian-transport-corridor-with-world-bank-group-support",
+          "date": "2026-06-02",
+          "language": "English"
+        }
+      ],
+      "contradictions": [
+        "The benefits are modelled outcomes rather than realised trade and employment.",
+        "The route still depends on several governments, rail gauges, ports and Caspian shipping links working as one system."
+      ],
+      "missing_evidence": [
+        "Comparable freight cost and reliability against Suez and northern routes",
+        "Construction and border-processing milestones",
+        "Private-sector freight commitments"
+      ],
+      "what_to_check_next": [
+        "Project disbursement and construction",
+        "Border dwell times",
+        "Caspian fleet and port capacity",
+        "Freight volumes and customer commitments"
+      ]
+    },
+    {
+      "id": "thailand-power-semiconductor-backend-ecosystem",
+      "theme": "Thailand is building a power-semiconductor backend ecosystem around Infineon's new Bangkok hub",
+      "status": "FORMING",
+      "new_to_radar": true,
+      "location": "Samut Prakan / Bangkok, Thailand",
+      "why_surfaced": "Infineon opened a scalable backend manufacturing hub on 1 October while Thailand is directing national semiconductor policy toward power chips, sensors and photonics. The factory, public policy and skills agenda now connect, but supplier depth, utilisation and follow-on investment still need proof.",
+      "causal_chain": {
+        "world_change": [
+          "Thailand is moving beyond electronics assembly toward higher-value semiconductor backend manufacturing and power modules."
+        ],
+        "pressure": [
+          "Electric vehicles, grids, storage, data centres and industrial automation need power semiconductors and resilient assembly-and-test capacity."
+        ],
+        "bottleneck_or_scarcity": [
+          "Advanced packaging, testing, cleanroom capability, specialised talent and local supplier depth."
+        ],
+        "formation": [
+          "Infineon's new scalable Bangkok hub is being paired with Thailand's national semiconductor strategy, training and investment support."
+        ],
+        "industries": [
+          "Power semiconductors",
+          "Automotive electronics",
+          "Advanced packaging and test",
+          "Energy systems",
+          "Industrial automation"
+        ],
+        "connected_companies_and_tickers": [
+          "Infineon Technologies AG (Xetra:IFX; OTCQX:IFNNY)"
+        ],
+        "consequences": [
+          "Up to 1,000 skilled jobs in the initial scale-up",
+          "Potential supplier and training ecosystem",
+          "Commercial utilisation and local value capture remain unproven"
+        ],
+        "evidence": [
+          "Infineon hub inauguration",
+          "Thailand BOI semiconductor strategy and investment data",
+          "Infineon site capability description"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "FORMING",
+        "what_changed": "Newly discovered in the blank 3 October candidate set; no matching stable formation ID existed in the 30 September scan.",
+        "why_state_changed": "A physical facility, policy direction and workforce ecosystem are independently visible, but sustained utilisation and local supplier formation are not yet established.",
+        "strengthening_evidence": [
+          "Infineon officially inaugurated the site on 1 October.",
+          "Thailand BOI identifies power semiconductors as a priority platform and reports a large pipeline of semiconductor and advanced-electronics applications."
+        ],
+        "weakening_evidence": [],
+        "break_conditions": [
+          "Expansion modules do not proceed",
+          "Customer demand or utilisation disappoints",
+          "Specialist labour or supplier gaps prevent local ecosystem growth"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Production ramp and product mix",
+          "Local supplier contracts",
+          "Training output",
+          "Utilisation and returns"
+        ],
+        "new_links": [
+          "Factory opening now links Thailand's strategy to operating manufacturing capacity."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [
+        {
+          "name": "Infineon Technologies AG",
+          "ticker": "IFX",
+          "exchange": "Xetra",
+          "role": "Owner and operator of the new backend manufacturing hub"
+        }
+      ],
+      "valuation": null,
+      "evidence": [
+        {
+          "fact": "Infineon officially inaugurated its new backend manufacturing site in Bangkok, Samut Prakan, and says the scalable site can create up to 1,000 highly skilled jobs.",
+          "source": "Infineon Technologies",
+          "url": "https://www.infineon.com/press-release/2026/infpr202610-144",
+          "date": "2026-10-01",
+          "language": "English"
+        },
+        {
+          "fact": "Thailand BOI identifies power semiconductors for EVs, storage and grids as a national priority and reports 879 semiconductor and advanced-electronics applications worth about US$27.2 billion from 2023 through the first half of 2026.",
+          "source": "Thailand Board of Investment",
+          "url": "https://www.boi.go.th/index.php?_module=news&from_page=press_releases2&language=en&page=press_releases_detail&topic_id=139424",
+          "date": "2026-09-30",
+          "language": "English"
+        },
+        {
+          "fact": "Infineon describes advanced assembly, testing, cleanroom processes and automation at the new hub.",
+          "source": "Infineon Technologies",
+          "url": "https://www.infineon.com/regional/bangkok/Next-generation-backend-hub",
+          "date": "2026-10-01",
+          "language": "English"
+        }
+      ],
+      "contradictions": [
+        "Backend capacity alone does not prove a broad domestic semiconductor supply chain.",
+        "Infineon sold its older Nonthaburi backend site earlier in 2026, so net local capability and employment should be measured rather than assumed."
+      ],
+      "missing_evidence": [
+        "Customer commitments and utilisation",
+        "Local supplier contracts",
+        "Unit economics and return on invested capital",
+        "Independent workforce and training outcomes"
+      ],
+      "what_to_check_next": [
+        "Production ramp",
+        "Additional modules",
+        "Thai supplier awards",
+        "Power-module product mix",
+        "Infineon segment utilisation and margins"
+      ]
+    },
+    {
+      "id": "arctic-seasonal-shipping-expansion",
+      "theme": "The Northern Sea Route is emerging as a larger seasonal logistics option under climate and geopolitical pressure",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Russian Arctic / East Asia–Europe",
+      "why_surfaced": "Voyages on the Northern Sea Route reached 133 in September, up 46% from August and more than four times the 2022 count. Lower seasonal ice and disruption around traditional routes are working together, but sanctions, insurance, environmental danger, Russian control and a short navigation window keep this below FORMING.",
+      "causal_chain": {
+        "world_change": [
+          "Seasonal Arctic voyages increased sharply as sea ice declined and traditional routes faced disruption."
+        ],
+        "pressure": [
+          "Shippers seek shorter or more reliable Asia–Europe and Russian energy routes."
+        ],
+        "bottleneck_or_scarcity": [
+          "Ice-class vessels, insurance, navigation services, emergency response, sanctions-compliant finance and a short seasonal window."
+        ],
+        "formation": [
+          "A larger seasonal route may support specialised shipping, ports and Arctic logistics services."
+        ],
+        "industries": [
+          "Shipping",
+          "Marine insurance",
+          "Ice-class vessels",
+          "Ports and navigation services",
+          "Energy logistics"
+        ],
+        "connected_companies_and_tickers": [],
+        "consequences": [
+          "Potentially shorter seasonal Asia–Europe voyages",
+          "Higher environmental and accident exposure",
+          "Dependence on Russian administration and sanctions conditions"
+        ],
+        "evidence": [
+          "September voyage count reported from Lloyd's List Intelligence",
+          "Recent trial container voyages",
+          "Independent reporting on seasonality and operating risks"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "INVESTIGATE",
+        "what_changed": "Newly discovered in the blank 3 October candidate set; no matching stable formation ID existed in the 30 September scan.",
+        "why_state_changed": "The traffic increase is credible and unusual, but durability, economics and lawful access are unresolved.",
+        "strengthening_evidence": [
+          "September voyage count rose materially versus August and 2022.",
+          "A Chinese container voyage demonstrated a materially shorter transit time."
+        ],
+        "weakening_evidence": [
+          "The route remains seasonal and large carriers continue to cite safety and environmental concerns."
+        ],
+        "break_conditions": [
+          "Traffic falls back when other chokepoints normalise",
+          "Insurance or sanctions make commercial service uneconomic",
+          "Ice or safety conditions prevent reliable schedules"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Cargo composition and repeat customers",
+          "Insurance pricing",
+          "Accident and spill response",
+          "Year-on-year season length"
+        ],
+        "new_links": [
+          "Climate accessibility and geopolitical disruption are jointly increasing seasonal use."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [],
+      "participants": [
+        {
+          "name": "Rosatom",
+          "role": "Russian state-controlled administrator of the Northern Sea Route"
+        }
+      ],
+      "evidence": [
+        {
+          "fact": "Lloyd's List Intelligence data reported by the Financial Times counted 133 Northern Sea Route voyages in September, up 46% from August and more than four times the 2022 level.",
+          "source": "Financial Times",
+          "url": "https://www.ft.com/content/2e0eb698-d4d3-4bcc-927a-2997df7709be",
+          "date": "2026-10-02",
+          "language": "English"
+        },
+        {
+          "fact": "Le Monde reported trial Asia–Europe services while documenting the short operating season, ice-navigation, insurance, emergency-response and environmental constraints.",
+          "source": "Le Monde",
+          "url": "https://www.lemonde.fr/en/economy/article/2026/09/01/accelerated-melting-of-arctic-ice-opens-up-new-commercial-shipping-route_6757059_19.html",
+          "date": "2026-09-01",
+          "language": "English"
+        }
+      ],
+      "contradictions": [
+        "The route currently operates for only a limited seasonal window.",
+        "Major carriers have declined the route on safety and environmental grounds.",
+        "Sanctions and Russian administrative control complicate access and financing."
+      ],
+      "missing_evidence": [
+        "Repeat contracted container services",
+        "Route-level insurance and total-cost economics",
+        "Verified cargo mix",
+        "Independent environmental and emergency-response capacity"
+      ],
+      "what_to_check_next": [
+        "October traffic and season close",
+        "Repeat voyages in 2027",
+        "Insurance premiums",
+        "Sanctions compliance",
+        "Port and ice-class fleet investment"
+      ]
+    },
+    {
+      "id": "dakhla-desalination-agriculture-expansion",
+      "theme": "Desalinated seawater is being used to open new agricultural land near Dakhla",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Dakhla-Oued Ed-Dahab / Western Sahara",
+      "why_surfaced": "Morocco's agricultural development agency offered 35 projects covering about 1,090 hectares in a zone intended to use desalinated seawater, while a wind-powered desalination system is designed for a much larger irrigated perimeter. This is an unusual water-to-new-land mechanism, but delivery, crop economics, water cost and the territory's disputed status remain unresolved.",
+      "causal_chain": {
+        "world_change": [
+          "Wind-powered seawater desalination is being tied directly to new irrigated agricultural projects in an arid coastal region."
+        ],
+        "pressure": [
+          "Water scarcity limits high-value agriculture and regional development."
+        ],
+        "bottleneck_or_scarcity": [
+          "Desalination delivery, energy cost, irrigation networks, investor uptake, logistics and political/legal risk."
+        ],
+        "formation": [
+          "A tender allocates 35 projects across about 1,090 hectares within a planned desalinated-water irrigation system."
+        ],
+        "industries": [
+          "Desalination",
+          "Renewable energy",
+          "Irrigation",
+          "High-value agriculture",
+          "Cold-chain logistics"
+        ],
+        "connected_companies_and_tickers": [
+          "ENGIE SA (Euronext Paris:ENGI)"
+        ],
+        "consequences": [
+          "Potential creation of new irrigated agricultural capacity",
+          "New demand for water, energy and logistics infrastructure",
+          "Material environmental, economic and geopolitical risk"
+        ],
+        "evidence": [
+          "Moroccan Agricultural Development Agency tender",
+          "Moroccan energy ministry Dakhla wind project",
+          "Independent scrutiny of land and territorial context"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "INVESTIGATE",
+        "what_changed": "Newly discovered in the blank 3 October candidate set; no matching stable formation ID existed in the 30 September scan.",
+        "why_state_changed": "The tender and infrastructure mechanism are documented, but operational water delivery and commercial farm economics are not.",
+        "strengthening_evidence": [
+          "The official tender specifies 35 projects over 1,090.1922 hectares.",
+          "The energy ministry describes wind generation intended partly to power desalination for agricultural irrigation."
+        ],
+        "weakening_evidence": [
+          "The territory is disputed and independent reporting raises land-rights and political-risk concerns."
+        ],
+        "break_conditions": [
+          "Desalination or irrigation infrastructure is not delivered",
+          "Investor uptake fails",
+          "Water and logistics costs make crops uneconomic",
+          "Legal or political constraints halt development"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Awarded bidders",
+          "Water tariffs",
+          "Crop choices and offtakes",
+          "Commissioning and irrigated hectares",
+          "Environmental and rights assessment"
+        ],
+        "new_links": [
+          "Desalination infrastructure is now linked to a concrete land-allocation tender."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [
+        {
+          "name": "ENGIE SA",
+          "ticker": "ENGI",
+          "exchange": "Euronext Paris",
+          "role": "International Power, an ENGIE subsidiary, is a joint promoter in Dakhla Water and Energy Company"
+        }
+      ],
+      "valuation": null,
+      "evidence": [
+        {
+          "fact": "Morocco's Agricultural Development Agency tender covers 35 projects across 1,090.1922 hectares in Oued Ed-Dahab province.",
+          "source": "Agence pour le Développement Agricole",
+          "url": "https://www.ada.gov.ma/en/node/89343",
+          "date": "2026-06-01",
+          "language": "French",
+          "english_summary": "The official tender offers 35 agricultural projects covering 1,090.1922 hectares."
+        },
+        {
+          "fact": "Morocco's energy ministry says a 40 MW wind project by Dakhla Water and Energy Company is intended partly to power a seawater-desalination plant supporting roughly 5,000 hectares of high-value agriculture.",
+          "source": "Ministry of Energy Transition and Sustainable Development, Morocco",
+          "url": "https://www.mem.gov.ma/Pages/secteura7bc.html?e=2&sprj=132",
+          "date": "2026-01-01",
+          "language": "French",
+          "english_summary": "The ministry describes the wind-power and desalination link, the project promoters and intended agricultural irrigation scale."
+        },
+        {
+          "fact": "Independent monitoring says the tender is the third allocation round and flags the disputed-territory and land context.",
+          "source": "Western Sahara Resource Watch",
+          "url": "https://wsrw.org/en/news/engie-paves-way-for-new-farmland-in-occupied-western-sahara",
+          "date": "2026-07-01",
+          "language": "English"
+        }
+      ],
+      "contradictions": [
+        "The tender does not prove farms are operating or water is reaching each plot.",
+        "The territory is disputed, creating legal, human-rights and reputational risk.",
+        "Desalinated-water crop economics and environmental effects are not yet established."
+      ],
+      "missing_evidence": [
+        "Tender awards and investor commitments",
+        "Commissioning status and delivered water volumes",
+        "Water tariff and crop margins",
+        "Cold-chain and export offtakes",
+        "Independent environmental and rights assessment"
+      ],
+      "what_to_check_next": [
+        "Award notices",
+        "Desalination commissioning",
+        "Water price",
+        "Crop and offtake mix",
+        "ENGIE disclosures",
+        "Territorial and rights developments"
+      ]
+    },
+    {
+      "id": "india-auto-supplier-maintenance-capacity",
+      "theme": "Suzuki's shorter supplier week may force a different kind of automotive capacity investment in India",
+      "status": "UNKNOWN",
+      "new_to_radar": true,
+      "location": "India",
+      "why_surfaced": "Suzuki has asked Indian suppliers to preserve daily and weekly maintenance downtime while Maruti Suzuki expands toward about 4 million vehicles a year. The counterintuitive possibility is that fewer operating hours per line require added machinery, automation or redundancy, but the evidence does not yet show which suppliers will invest or whether productivity gains can absorb the change.",
+      "causal_chain": {
+        "world_change": [
+          "Suzuki is asking suppliers to move toward 20-hour days and six-day production weeks while planning a large output expansion."
+        ],
+        "pressure": [
+          "Suppliers must support higher vehicle output without continuous seven-day machine operation."
+        ],
+        "bottleneck_or_scarcity": [
+          "Supplier machine hours, maintenance windows, quality control, skilled labour and capital for extra capacity."
+        ],
+        "formation": [
+          "Potential demand for additional lines, machinery, automation and maintenance capability across India's auto-component base."
+        ],
+        "industries": [
+          "Automotive components",
+          "Factory automation",
+          "Machine tools",
+          "Predictive maintenance",
+          "Quality systems"
+        ],
+        "connected_companies_and_tickers": [
+          "Maruti Suzuki India Ltd (NSE:MARUTI)",
+          "Suzuki Motor Corp (Tokyo:7269)"
+        ],
+        "consequences": [
+          "Possible supplier capital expenditure",
+          "Potentially better uptime, safety and quality",
+          "Higher costs if productivity cannot offset fewer operating hours"
+        ],
+        "evidence": [
+          "Reuters supplier directive report",
+          "Suzuki Technology Strategy 2026",
+          "Suzuki India capacity expansion"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "UNKNOWN",
+        "what_changed": "Newly discovered in the blank 3 October candidate set; no matching stable formation ID existed in the 30 September scan.",
+        "why_state_changed": "The operating directive and output target are credible, but the investment consequence remains a hypothesis rather than an observed market.",
+        "strengthening_evidence": [
+          "Reuters reports a first-time maintenance directive to Indian suppliers.",
+          "Suzuki confirms a roughly 4 million-unit India capacity target."
+        ],
+        "weakening_evidence": [],
+        "break_conditions": [
+          "Suppliers meet targets through productivity without additional capex",
+          "Directive is delayed, narrowed or withdrawn",
+          "Vehicle-demand growth underperforms"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Named supplier declarations",
+          "Machinery and automation orders",
+          "Supplier capex guidance",
+          "Productivity and defect-rate changes"
+        ],
+        "new_links": [
+          "Maintenance policy may connect vehicle growth to machinery, automation and redundancy demand."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [
+        {
+          "name": "Maruti Suzuki India Ltd",
+          "ticker": "MARUTI",
+          "exchange": "NSE",
+          "role": "Indian vehicle producer expanding output and directing supplier operating practices"
+        },
+        {
+          "name": "Suzuki Motor Corp",
+          "ticker": "7269",
+          "exchange": "Tokyo",
+          "role": "Parent company setting India manufacturing strategy"
+        }
+      ],
+      "valuation": null,
+      "evidence": [
+        {
+          "fact": "Reuters reports Suzuki asked Indian suppliers to plan around a six-day week with nightly and weekly maintenance downtime, and notes suppliers may need extra capacity to preserve output.",
+          "source": "Reuters",
+          "url": "https://www.reuters.com/world/asia-pacific/suzuki-asks-india-suppliers-shorten-production-week-push-quality-sources-say-2026-10-02/",
+          "date": "2026-10-02",
+          "language": "English"
+        },
+        {
+          "fact": "Suzuki's Technology Strategy 2026 says India will be strengthened as a manufacturing and export hub with annual production capacity of about 4 million units from fiscal 2030 onward.",
+          "source": "Suzuki Motor Corporation",
+          "url": "https://www.globalsuzuki.com/globalnews/2026/0925.html",
+          "date": "2026-09-25",
+          "language": "English"
+        },
+        {
+          "fact": "Suzuki says its Kharkhoda inauguration lifted annual India capacity to about 2.65 million units and that further expansion is planned.",
+          "source": "Suzuki Motor Corporation",
+          "url": "https://www.globalsuzuki.com/globalnews/2026/0702a.html",
+          "date": "2026-07-02",
+          "language": "English"
+        }
+      ],
+      "contradictions": [
+        "The directive may improve uptime enough to avoid additional machinery.",
+        "No named supplier has yet disclosed capex caused specifically by the shorter production week.",
+        "Vehicle demand, model mix and competition could change the 4 million-unit path."
+      ],
+      "missing_evidence": [
+        "Supplier declarations and named beneficiaries",
+        "Machine-tool and automation orders",
+        "Supplier capex guidance",
+        "Measured uptime, quality and productivity effects"
+      ],
+      "what_to_check_next": [
+        "Supplier annual reports",
+        "Capital-goods orders",
+        "Maruti vendor guidance",
+        "Implementation by September 2027",
+        "India vehicle-demand trajectory"
+      ]
+    }
+  ]
+}
