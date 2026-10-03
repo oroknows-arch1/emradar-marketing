@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "product": "EMRADAR",
+  "snapshot_date": "2026-10-03",
+  "source_path": "data/checkpoints/discovery-2026-10-03.json",
+  "source_blob_sha": "d5a62aa6a70992f59e5242447fcc99d50a45a226",
+  "source_sha256": "eb187e1ba46f40d7a5d1e6c9b7ceabbdf52a0d066b2370c6dbd62d4d381bdb17",
+  "publication_state": "PUBLISHED",
+  "downstream_release_allowed": true,
+  "native_gates": {
+    "evidence": "PASS",
+    "editorial": "PASS",
+    "brand": "PASS",
+    "risk": "PASS",
+    "publication": "PASS"
+  },
+  "attested_by": "OWNER",
+  "attested_at": "2026-10-03T21:13:47Z",
+  "scope": "Authoritative EMRADAR 3 October 2026 scan only",
+  "campaign_authority": {
+    "campaign_id": "EMRADAR_2026_10_03_LAUNCH",
+    "resume_allowed": true,
+    "external_publication_allowed": false,
+    "required_stop": "PUBLICATION_REVIEW"
+  },
+  "owner_attestation": "The authoritative EMRADAR 3 October 2026 scan passes the evidence, editorial, brand, risk, and publication gates. Record these five native PASS attestations, send signed PRODUCT_INPUT sequence 2, and resume campaign EMRADAR_2026_10_03_LAUNCH. Stop at PUBLICATION_REVIEW; do not publish without exact approval."
+}
