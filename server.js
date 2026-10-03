@@ -94,7 +94,9 @@ async function publishX(asset,key,product){
 }
 async function productIntake(){
   const policies=applyAuthority(await loadPolicies(process.env.MARKETING_PRODUCTS_FILE,process.env.MARKETING_PRODUCTS_JSON));
-  return new ProductIntake({store:new RedisStore(await store()),policies,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});
+  const sourceKeys=JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}');
+  if(process.env.MARKETING_EMRADAR_SOURCE_KEY)sourceKeys.EMRADAR=process.env.MARKETING_EMRADAR_SOURCE_KEY;
+  return new ProductIntake({store:new RedisStore(await store()),policies,sourceKeys});
 }
 async function marketingEngine(){
   const products=await (await productIntake()).products();
@@ -194,7 +196,12 @@ async function runPendingCampaign(){
   const input=JSON.parse(process.env.MARKETING_PENDING_CAMPAIGN_JSON);
   if(input?.product!=='EMRADAR'||!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(input?.campaign_id||''))throw new Error('PENDING_CAMPAIGN_INPUT_INVALID');
   const s=new RedisStore(await store()),key='campaign_launch:'+input.campaign_id;
-  const prior=await s.get(key);if(prior)return console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'ALREADY_PROCESSED',campaign_id:input.campaign_id,result:prior}));
+  const prior=await s.get(key),sourceRecord=await s.get('source:'+input.product);
+  const priorSequence=prior?.result?.receipt?.source_receipt?.sequence||0;
+  const currentSequence=sourceRecord?.sequence||0;
+  const resumable=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&currentSequence>priorSequence;
+  if(prior&&!resumable)return console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'ALREADY_PROCESSED',campaign_id:input.campaign_id,result:prior}));
+  if(resumable){const history=await s.get(key+':history')||[];history.push(prior);await s.put(key+':history',history.slice(-20));}
   await s.put(key,{status:'IN_FLIGHT',input,started_at:new Date().toISOString()});
   try{
     const result=await (await marketingEngine()).run(input);
