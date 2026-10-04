@@ -231,7 +231,8 @@ async function runPendingCampaign(connectedClient=null){
   const correctedSignal=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&!!input.signal_id&&prior.input?.signal_id!==input.signal_id;
   const harnessRemovedRetry=prior?.status==='COMPLETE'&&prior?.result?.blocker==='HARNESS_DISPATCH_NOT_CONNECTED';
   const registeredRouteRetry=prior?.status==='COMPLETE'&&prior?.result?.blocker==='NO_VERIFIED_EXECUTABLE_DESTINATION';
-  const resumable=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&(currentSequence>priorSequence||correctedSignal||harnessRemovedRetry||registeredRouteRetry);
+  const deterministicCopyRetry=prior?.status==='COMPLETE'&&prior?.result?.blocker==='COPY_TEMPLATE_APPROVAL_REQUIRED';
+  const resumable=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&(currentSequence>priorSequence||correctedSignal||harnessRemovedRetry||registeredRouteRetry||deterministicCopyRetry);
   if(prior&&!resumable)return console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'ALREADY_PROCESSED',campaign_id:input.campaign_id,result:prior}));
   if(resumable){const history=await s.get(key+':history')||[];history.push(prior);await s.put(key+':history',history.slice(-20));}
   await s.put(key,{status:'IN_FLIGHT',input,started_at:new Date().toISOString()});
