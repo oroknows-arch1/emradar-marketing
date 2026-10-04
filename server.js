@@ -229,7 +229,8 @@ async function runPendingCampaign(connectedClient=null){
   const priorSequence=prior?.result?.receipt?.source_receipt?.sequence||0;
   const currentSequence=sourceRecord?.sequence||0;
   const correctedSignal=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&!!input.signal_id&&prior.input?.signal_id!==input.signal_id;
-  const resumable=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&(currentSequence>priorSequence||correctedSignal);
+  const harnessRemovedRetry=prior?.status==='COMPLETE'&&prior?.result?.blocker==='HARNESS_DISPATCH_NOT_CONNECTED';
+  const resumable=prior?.status==='COMPLETE'&&prior?.result?.status==='BLOCKED'&&(currentSequence>priorSequence||correctedSignal||harnessRemovedRetry);
   if(prior&&!resumable)return console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'ALREADY_PROCESSED',campaign_id:input.campaign_id,result:prior}));
   if(resumable){const history=await s.get(key+':history')||[];history.push(prior);await s.put(key+':history',history.slice(-20));}
   await s.put(key,{status:'IN_FLIGHT',input,started_at:new Date().toISOString()});

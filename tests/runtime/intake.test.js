@@ -39,8 +39,11 @@ test('Harness bridge respects bounded attempts and verifier input binding',async
 test('Harness-required human gate prevents dispatch',async()=>{
  let called=false;const bridge=new HarnessBridge({routeWorkUnit:u=>({contractVersion:'elastic-routing-v0.1',workUnitId:u.workUnitId,lane:'human-gate',humanApprovalRequired:true}),registry:async()=>[],execute:async()=>{called=true;},verify:async()=>({})});await assert.rejects(bridge.work({workUnitId:'u1'},{}),/HARNESS_REQUIRED_APPROVAL_OR_CAPABILITY/);assert.equal(called,false);
 });
-test('missing deployed Harness is an explicit blocker without model spend',async()=>{
- const f=await fixture();f.p.destinations=[];const r=await f.engine.run(f.input);assert.equal(r.blocker,'HARNESS_DISPATCH_NOT_CONNECTED');assert.equal(r.receipt.api_cost_usd,0);
+test('EMRADAR uses the existing executable destination path without Harness',async()=>{
+ const f=await fixture();f.p.product_identity='EMRADAR';f.p.destinations[0].signal_ids=['older-formation'];f.p.destinations=f.p.destinations.slice(0,1);const engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{LOCAL:f.adapter}});const r=await engine.run({product:'EMRADAR',campaign_id:'SAFE_EMRADAR_NO_HARNESS',signal_id:'test-signal'});assert.equal(r.status,'PASS');assert.equal(r.receipt.destination,'local-a');assert.equal(r.receipt.api_cost_usd,0);
+});
+test('EMRADAR fails closed when no registered executable destination exists',async()=>{
+ const f=await fixture();f.p.product_identity='EMRADAR';f.p.destinations=[];const engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{LOCAL:f.adapter}});const r=await engine.run({product:'EMRADAR',campaign_id:'SAFE_EMRADAR_NO_DESTINATION',signal_id:'test-signal'});assert.equal(r.blocker,'NO_VERIFIED_EXECUTABLE_DESTINATION');assert.equal(r.receipt.api_cost_usd,0);
 });
 
 test('UNKNOWN source review is blocked and retains the original blocker',async()=>{

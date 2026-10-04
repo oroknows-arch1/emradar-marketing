@@ -143,6 +143,14 @@ const workers={
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
     if(!c.candidates.length){
+      if(c.input.product==='EMRADAR'){
+        // EMRADAR uses only already-registered, executable destinations. Dynamic
+        // formation IDs do not require an external discovery runtime, but the
+        // existing baseline, delta and permission gates still decide eligibility.
+        c.candidates=(c.product.destinations||[]).map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
+        if(!c.candidates.length)fail('NO_VERIFIED_EXECUTABLE_DESTINATION');
+        return;
+      }
       const cached=await e.store.get('discovery:'+c.input.product+':'+c.signal.revision);
       if(cached)c.candidates=cached.destinations.map(d=>({...d,permission:c.product.destination_permissions?.[d.id]||{approved:false}}));
       else{
@@ -178,6 +186,7 @@ const workers={
       c.fact_bindings=facts.map(f=>f.id);c.copy_method='extractive_template';
     }
     if(!c.allowed_copy.length){
+      if(c.input.product==='EMRADAR')fail('DETERMINISTIC_COPY_PATH_REQUIRED');
       const context={source:c.signal,brand_system:c.product.brand_system,destination:c.route.id};
       const work=await e.modelWork(c,'editorial_intelligence',context,'creation_approved');
       if(!work.proof.evidence_refs.every(id=>c.signal.evidence.includes(id)))fail('HARNESS_COPY_EVIDENCE_OUT_OF_SCOPE');
