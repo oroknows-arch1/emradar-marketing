@@ -25,11 +25,11 @@ const LINKEDIN_CLIENT_SECRET=process.env.LINKEDIN_CLIENT_SECRET||"";
 const PUBLIC_BASE_URL=(process.env.PUBLIC_BASE_URL||"").replace(/\/$/,"");
 const KEY_VALUE_URL=process.env.KEY_VALUE_URL||"";
 const sessions=new Map();
-let kv=null;
+let kv=null,kvConnecting=null;
 async function store(){
   if(!KEY_VALUE_URL) throw new Error("KEY_VALUE_URL_NOT_CONFIGURED");
-  if(!kv){kv=createClient({url:KEY_VALUE_URL});kv.on("error",e=>console.error("Key Value error",e.message));await kv.connect();}
-  else if(!kv.isOpen) await kv.connect();
+  if(!kv){kv=createClient({url:KEY_VALUE_URL});kv.on("error",e=>console.error("Key Value error",e.message));}
+  if(!kv.isOpen){if(!kvConnecting)kvConnecting=kv.connect().finally(()=>{kvConnecting=null;});await kvConnecting;}
   return kv;
 }
 const PRODUCTS=["EMRADAR","Atlasoquence"];
