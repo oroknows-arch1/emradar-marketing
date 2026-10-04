@@ -6,11 +6,22 @@ import {organicWorkers,discoveryTestId} from './organic-discovery.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
+const distributionMap=JSON.parse(await fs.readFile(new URL('../state/distribution-map.json',import.meta.url),'utf8'));
+const integrationRegister=JSON.parse(await fs.readFile(new URL('../state/integration-register.json',import.meta.url),'utf8'));
 const now=()=>new Date().toISOString();
 const fail=(reason)=>{throw new Error(reason);};
 const initial=()=>({version:0,routes:{},platforms:{},processed:{},history:[]});
 const keyOf=(p,s,d,f)=>[p,s,d,f].map(encodeURIComponent).join(':');
 const score=(state,key)=>{const r=state.routes[key];return r?Math.max(-1,Math.min(1,(r.successes-r.failures)/(r.successes+r.failures+2)+(r.measurement_adjustment||0))):0;};
+function registeredEmradarDestinations(signal){
+  const reviewed=integrationRegister.reviewed_at;
+  const validUntil=new Date(Date.parse(reviewed+'T00:00:00Z')+365*24*3600000).toISOString();
+  return (distributionMap.routes||[]).filter(r=>r.product==='EMRADAR'&&r.status==='LIVE_EXECUTION_VERIFIED').flatMap(r=>{
+    const platform=(integrationRegister.platforms||[]).find(p=>p.id===r.platform&&p.status==='TESTED'&&p.distribution_mode==='AUTOMATIC_AFTER_GATES_AND_EXACT_PUBLICATION_REVIEW');
+    if(!platform||!r.receipt||!r.id)return [];
+    return [{id:r.id,platform:r.platform,signal_ids:[signal.id],formats:['text'],relevance:1,baseline:{id:r.receipt,valid_until:validUntil},delta:{signal_revision:signal.revision,meaningful:r.formation!==signal.id,evidence_ids:[...signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:signal.revision,scope:'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true}];
+  });
+}
 function approved(p,s) {
   if(!p || !s || !p.product_identity || p.release_approved!==true || p.review?.evidence!==true || p.review?.brand!==true || p.review?.editorial!==true || p.review?.risk!==true)fail('SOURCE_REVIEW_OR_RELEASE_REQUIRED');
   if(!p.uncertainty_state_model.includes(s.state)||!s.id||!s.revision||!s.evidence?.length||!(s.approved_copy?.length||s.source_facts?.length||s.source_material))fail('SOURCE_CONTRACT_INCOMPLETE');
@@ -147,7 +158,8 @@ const workers={
         // EMRADAR uses only already-registered, executable destinations. Dynamic
         // formation IDs do not require an external discovery runtime, but the
         // existing baseline, delta and permission gates still decide eligibility.
-        c.candidates=(c.product.destinations||[]).map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
+        const registered=(c.product.destinations||[]).length?c.product.destinations:registeredEmradarDestinations(c.signal);
+        c.candidates=registered.map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
         if(!c.candidates.length)fail('NO_VERIFIED_EXECUTABLE_DESTINATION');
         return;
       }
@@ -182,7 +194,10 @@ const workers={
       const facts=c.signal.source_facts.filter(f=>typeof f.text==='string'&&f.text&&c.signal.evidence.includes(f.id));
       if(!facts.length)fail('SOURCE_FACT_BINDING_REQUIRED');
       const state=c.signal.state;
-      c.allowed_copy=[`${c.input.product} — ${state}\n\n${facts[0].text}\n\nUnresolved evidence: ${(c.signal.source_uncertainty||[]).join('; ')||'UNKNOWN'}`];
+      const uncertainty=(c.signal.source_uncertainty||[])[0]||'UNKNOWN';
+      const copy=c.input.product==='EMRADAR'&&c.route.destination.platform==='X'?`${c.input.product} — ${state}\n\n${facts[0].text}\n\nUnresolved: ${uncertainty}`:`${c.input.product} — ${state}\n\n${facts[0].text}\n\nUnresolved evidence: ${(c.signal.source_uncertainty||[]).join('; ')||'UNKNOWN'}`;
+      if(c.input.product==='EMRADAR'&&c.route.destination.platform==='X'&&copy.length>280)fail('DESTINATION_NATIVE_COPY_REQUIRED');
+      c.allowed_copy=[copy];
       c.fact_bindings=facts.map(f=>f.id);c.copy_method='extractive_template';
     }
     if(!c.allowed_copy.length){
@@ -224,7 +239,7 @@ const workers={
     if(d.permission?.approved!==true||Date.parse(d.permission.valid_until)<=Date.now()||!d.permission.valid_until||d.permission.signal_revision!==c.signal.revision)fail('DESTINATION_PERMISSION_REQUIRED');
     if(c.adapter.authorized&&!await c.adapter.authorized(c.input.product))fail('ACCOUNT_AUTHORIZATION_REQUIRED');
     // UNKNOWN-cost APIs are blocked until a bounded owner budget exists.
-    if(c.adapter.cost!=='ZERO'){
+    if(c.adapter.cost!=='ZERO'&&!c.route.destination.review_only){
       if(!c.adapter.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
       const budget=c.product.budget;
       if(budget?.approved!==true||!Number.isFinite(budget.max_action_usd)||budget.max_action_usd<=0||!Number.isFinite(budget.max_cycle_usd)||budget.max_cycle_usd<budget.max_action_usd||!Number.isFinite(d.max_api_calls)||d.max_api_calls<1)fail('API_COST_APPROVAL_REQUIRED');
@@ -241,7 +256,7 @@ const workers={
     if(approval?.review_hash===review_hash&&approval.approved_by==='OWNER'&&Date.parse(approval.expires_at)>Date.now()){
       c.review={proposal_id,review_hash,decision:'APPROVED',approved_at:approval.approved_at};return;
     }
-    const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
+    const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
     await e.store.put('publication_review:'+proposal_id,proposal);
     c.review={proposal_id,review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs};
     c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
@@ -256,6 +271,7 @@ const workers={
     let dailyLedger;
     let dailyLedgerKey;
     if(c.adapter.cost!=='ZERO'){
+      if(!c.adapter.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
       dailyLedgerKey='cost:'+c.input.product+':'+now().slice(0,10);dailyLedger=await e.store.get(dailyLedgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
       if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||dailyLedger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||dailyLedger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
     }
