@@ -208,11 +208,14 @@ async function runPendingSourceRelease(){
 }
 
 async function runPendingCampaign(){
+  console.log('MARKETING_CAMPAIGN_DIAGNOSTIC '+JSON.stringify({stage:'ENTER'}));
   if(!process.env.MARKETING_PENDING_CAMPAIGN_JSON)return;
   const input=JSON.parse(process.env.MARKETING_PENDING_CAMPAIGN_JSON);
   if(input?.product!=='EMRADAR'||!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(input?.campaign_id||''))throw new Error('PENDING_CAMPAIGN_INPUT_INVALID');
   const s=new RedisStore(await store()),key='campaign_launch:'+input.campaign_id;
+  console.log('MARKETING_CAMPAIGN_DIAGNOSTIC '+JSON.stringify({stage:'READ_STATE',campaign_id:input.campaign_id}));
   let prior=await s.get(key);const sourceRecord=await s.get('source:'+input.product);
+  console.log('MARKETING_CAMPAIGN_DIAGNOSTIC '+JSON.stringify({stage:'STATE_READY',campaign_id:input.campaign_id,prior_status:prior?.status||null,source_sequence:sourceRecord?.sequence||null}));
   if(prior?.status==='IN_FLIGHT'&&Date.now()-Date.parse(prior.started_at)>60000){
     console.log('MARKETING_CAMPAIGN_RECOVERY '+JSON.stringify({campaign_id:input.campaign_id,status:'CHECKING_RECEIPTS'}));
     const receipts=await s.get('receipt_index')||[];
