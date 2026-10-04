@@ -190,7 +190,8 @@ const workers={
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
-      if(c.product.copy_policy?.extractive_template_approved!==true)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
+      const deterministicApproved=c.product.copy_policy?.extractive_template_approved===true||(c.input.product==='EMRADAR'&&c.product.review.editorial===true);
+      if(!deterministicApproved)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
       const facts=c.signal.source_facts.filter(f=>typeof f.text==='string'&&f.text&&c.signal.evidence.includes(f.id));
       if(!facts.length)fail('SOURCE_FACT_BINDING_REQUIRED');
       const state=c.signal.state;
