@@ -186,7 +186,7 @@ const server=http.createServer(async(req,res)=>{
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
   runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
-  runPendingSourceRelease().then(()=>runPendingCampaign()).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+  runPendingSourceRelease().then(()=>runPendingCampaign(kv)).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
 });
 
 async function runPendingSourceRelease(){
@@ -207,12 +207,12 @@ async function runPendingSourceRelease(){
   console.log('MARKETING_SOURCE_RELEASE '+JSON.stringify(result));
 }
 
-async function runPendingCampaign(){
+async function runPendingCampaign(connectedClient=null){
   console.log('MARKETING_CAMPAIGN_DIAGNOSTIC '+JSON.stringify({stage:'ENTER'}));
   if(!process.env.MARKETING_PENDING_CAMPAIGN_JSON)return;
   const input=JSON.parse(process.env.MARKETING_PENDING_CAMPAIGN_JSON);
   if(input?.product!=='EMRADAR'||!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(input?.campaign_id||''))throw new Error('PENDING_CAMPAIGN_INPUT_INVALID');
-  const s=new RedisStore(await store()),key='campaign_launch:'+input.campaign_id;
+  const s=new RedisStore(connectedClient||await store()),key='campaign_launch:'+input.campaign_id;
   console.log('MARKETING_CAMPAIGN_DIAGNOSTIC '+JSON.stringify({stage:'READ_STATE',campaign_id:input.campaign_id}));
   let prior=await s.get(key);const sourceRecord=await s.get('source:'+input.product);
   console.log('MARKETING_CAMPAIGN_DIAGNOSTIC '+JSON.stringify({stage:'STATE_READY',campaign_id:input.campaign_id,prior_status:prior?.status||null,source_sequence:sourceRecord?.sequence||null}));
