@@ -137,6 +137,73 @@
       "evidence_source_url": "https://www.globalminingreview.com/contact/",
       "verified_at": "2026-10-05",
       "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "REUTERS-BREAKINGVIEWS-GUEST",
+      "destination_name": "Reuters Breakingviews Guest View",
+      "destination_class": "financial_publication",
+      "organisation": "Reuters Breakingviews",
+      "relevant_beat_topic": [
+        "global financial markets",
+        "capital allocation",
+        "commodities",
+        "corporate finance"
+      ],
+      "geography": [
+        "global",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mine construction",
+        "Grid and electrification materials"
+      ],
+      "access_method": "public guest-view pitch email",
+      "public_contact_point": "breakingviews.guest@thomsonreuters.com",
+      "public_submission_url": "https://www.breakingviews.com/about-us/press-contacts/",
+      "submission_requirements": "Pitch a compelling fresh argument in 100 words or less; Guest Views must be commissioned; no pre-written submission.",
+      "accepted_formats": [
+        "financial_guest_view_pitch"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://www.breakingviews.com/about-us/press-contacts/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "INVESTING-COM-AU-CONTRIBUTOR",
+      "destination_name": "Investing.com Australia contributor",
+      "destination_class": "financial_publication",
+      "organisation": "Investing.com Australia",
+      "relevant_beat_topic": [
+        "financial markets",
+        "commodities",
+        "copper",
+        "ASX equities"
+      ],
+      "geography": [
+        "global",
+        "Australia",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Molybdenum",
+        "Grid and electrification materials"
+      ],
+      "access_method": "public contributor workflow",
+      "public_contact_point": "Contributor portal",
+      "public_submission_url": "https://au.investing.com/about-us/start-contributing",
+      "submission_requirements": "Account login required to submit; market-focused original analysis; Australian usage; minimum 250 words; non-promotional.",
+      "accepted_formats": [
+        "markets_analysis_article"
+      ],
+      "account_required": true,
+      "cost": "ZERO",
+      "evidence_source_url": "https://au.investing.com/about-us/editorial-guidelines",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
     }
   ]
 }
