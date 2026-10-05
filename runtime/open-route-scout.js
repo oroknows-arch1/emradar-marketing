@@ -1,11 +1,12 @@
 const clamp=n=>Math.max(0,Math.min(1,n));
 const norm=v=>String(v||'').toLowerCase();
 const overlap=(xs=[],ys=[])=>xs.some(x=>ys.some(y=>norm(x).includes(norm(y))||norm(y).includes(norm(x))));
+export const formationFromSignal=s=>({id:s.id,theme:s.source_title||s.id,status:s.state,location:s.location||'UNKNOWN',why_surfaced:s.why_surfaced||s.causal_chain?.formation?.[0]||'UNKNOWN',causal_chain:s.causal_chain||{},evidence:(s.source_facts||[]).map(f=>({fact:f.text,url:f.url,source:f.source})),contradictions:s.source_uncertainty||[],missing_evidence:s.chain_evolution?.unresolved_evidence||[]});
 export function openRouteScout({formation,directory,learning={}}){
  if(!formation?.id||!Array.isArray(formation.evidence)||!formation.evidence.length) throw new Error('OPEN_ROUTE_SOURCE_EVIDENCE_REQUIRED');
  const industries=formation.causal_chain?.industries||[];
  const geography=[formation.location||''];
- const candidates=(directory.destinations||[]).filter(d=>d.verification_state==='VERIFIED'&&d.evidence_source_url&&d.account_required!==true||d.destination_id==='EMRADAR-X-OROKNOWS').map(d=>{
+ const candidates=(directory.destinations||[]).filter(d=>d.verification_state==='VERIFIED'&&d.evidence_source_url&&(d.account_required!==true||d.destination_id==='EMRADAR-X-OROKNOWS')).map(d=>{
    const industry=d.industries?.includes('all')||overlap(industries,d.industries)?1:0;
    const geo=d.geography?.includes('global')||overlap(geography,d.geography)?1:0;
    const formationRelevance=industry?1:0;
