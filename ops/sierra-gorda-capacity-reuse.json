@@ -1,0 +1,16 @@
+{
+  "decision_date": "2026-10-06",
+  "existing_paid_service": "orok-studios-api",
+  "service_id": "srv-d79k9os50q8c73fkeqig",
+  "plan": "Starter",
+  "currency": "USD",
+  "existing_recurring_service_cost_per_month": 7,
+  "additional_recurring_service_cost_per_month": 0,
+  "reuse": "Authenticated Gmail SMTP transport for EMRADAR; original application preserved",
+  "central_graph_service": "emradar-x-executor",
+  "central_graph_plan": "Free",
+  "state": "Existing EMRADAR Redis remains authoritative for review, approvals, attempts, receipts and idempotency",
+  "rollback": "Remove EMRADAR_EMAIL_RELAY_URL and token from executor; remove relay route and relay token from paid service. Original SMTP Free-plan blocker will return. No plan or database changes are part of this decision.",
+  "billing_scope": "No service plan changes or additional services. Existing provider usage allowances and overage rules remain applicable.",
+  "distribution": "Requires successful Google authentication and exact artifact approval; recording this decision does not authorize any additional recipients or content."
+}

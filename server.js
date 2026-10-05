@@ -16,7 +16,7 @@ import {createXAuthorization} from './runtime/x-authorization.js';
 import {xDiscoveryConnector} from './runtime/x-discovery.js';
 import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
-import {editorialSenderStatus,probeEditorialNetwork} from './runtime/editorial-outreach-gmail.js';
+import {editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication} from './runtime/editorial-outreach-gmail.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -170,6 +170,26 @@ const server=http.createServer(async(req,res)=>{
       const receipt=await s.get('receipt:'+proposal.publication_key),approval=await s.get('publication_approval:'+proposal.proposal_id);
       const pending=await s.get('pending:'+proposal.product+':'+proposal.signal_id+':'+proposal.signal_revision);
       return json(res,200,{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,reviewed_sender:proposal.asset?.email?.from||null,sender:editorialSenderStatus(),approval:approval||null,receipt:receipt||null,idempotency:{key:proposal.publication_key,pending:pending||null},...(u.searchParams.get('smtp_probe')==='true'?{network:await probeEditorialNetwork()}: {})});
+    }catch(e){return json(res,409,{reason:e.message});}
+  }
+  if(req.method==='GET'&&u.pathname==='/PUBLICATION_REVIEW/sender-check'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{return json(res,200,await verifyEditorialAuthentication());}catch(e){return json(res,409,{status:'BLOCKED',reason:e.message,code:e.code||null,command:e.command||null,sender:editorialSenderStatus()});}
+  }
+  if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/recover-connection-timeout'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{
+      const input=JSON.parse(await readBody(req)),s=new RedisStore(await store());
+      const result=await s.locked('engine',async()=>{
+        const p=await s.get('publication_review:'+input.proposal_id),r=p&&await s.get('receipt:'+p.publication_key);
+        if(!p||p.review_hash!==input.review_hash||!r||r.execution_status!=='AMBIGUOUS'||r.error!=='Connection timeout'||r.external_id||r.provider_receipt||r.delivery_hash!==crypto.createHash('sha256').update(JSON.stringify(p.asset)).digest('hex'))throw new Error('DELIVERY_AMBIGUITY_NOT_RESOLVED');
+        const evidence={classification:'CONFIRMED_NOT_SENT',reason:'Nodemailer connection timeout occurs before SMTP session and message submission',classified_at:new Date().toISOString(),prior_receipt:r};
+        await s.put('delivery_recovery:'+p.publication_key,evidence);
+        await s.put('receipt:'+p.publication_key,{...r,execution_status:'FAILED',recovery:{classification:evidence.classification,reason:evidence.reason,classified_at:evidence.classified_at}});
+        const key='pending:'+p.product+':'+p.signal_id+':'+p.signal_revision,pending=await s.get(key);
+        if(pending?.receipt_id===p.publication_key)await s.put(key,null);
+        return {classification:evidence.classification,proposal_id:p.proposal_id,external_actions:0};
+      });return json(res,200,result);
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/revise'){

@@ -12,6 +12,17 @@ export const probeEditorialNetwork=()=>new Promise(resolve=>{
 
 const sender=()=>process.env.EDITORIAL_GMAIL_USER;
 const password=()=>process.env.EDITORIAL_GMAIL_APP_PASSWORD;
+const relay=()=>process.env.EMRADAR_EMAIL_RELAY_URL;
+async function relayRequest(operation,payload={}){
+  if(relay()!=='https://orok-studios-api.onrender.com'||!process.env.EMRADAR_EMAIL_RELAY_TOKEN)throw new Error('APPROVED_PAID_EMAIL_RELAY_REQUIRED');
+  const response=await fetch(relay()+'/emradar/email/'+operation,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+process.env.EMRADAR_EMAIL_RELAY_TOKEN},body:JSON.stringify({user:sender(),password:password(),...payload}),signal:AbortSignal.timeout(45000)});
+  const result=await response.json();if(!response.ok){const e=new Error(result.reason||'EMAIL_RELAY_FAILED');e.code=result.code;e.command=result.command;throw e;}return result;
+}
+export async function verifyEditorialAuthentication(){
+  if(editorialSenderStatus().gate!=='PASS')throw new Error('EDITORIAL_AUTHENTICATED_SENDER_MISMATCH');
+  if(relay())return relayRequest('verify');
+  await transport().verify();return {status:'PASS',authenticated_user:sender(),transport:'DIRECT_GMAIL_SMTP'};
+}
 const transport=()=>nodemailer.createTransport({
   service:'gmail',
   auth:{user:sender(),pass:password()}
@@ -35,7 +46,7 @@ export async function sendEditorialEmail({idempotency_key,product,asset,route}){
   const to=String(route.public_contact_point||'').trim();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to))throw new Error('EDITORIAL_EMAIL_CONTACT_INVALID');
   const mail=reviewedMail(asset,route);
-  const info=await transport().sendMail({
+  const info=relay()?await relayRequest('submit',{mail,idempotency_key}):await transport().sendMail({
     ...mail,
     headers:{'X-EMRADAR-Idempotency-Key':idempotency_key}
   });
