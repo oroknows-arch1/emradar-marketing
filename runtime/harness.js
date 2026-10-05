@@ -12,14 +12,16 @@ export class HarnessBridge {
     const decision=this.router(unit,await this.registry());
     if(decision.contractVersion!=='elastic-routing-v0.1'||decision.workUnitId!==unit.workUnitId||decision.humanApprovalRequired||decision.lane==='human-gate')throw new Error('HARNESS_REQUIRED_APPROVAL_OR_CAPABILITY');
     const ceiling=Math.min(2,Math.max(1,decision.attemptCeiling));
-    let last;
+    let last;const billings=[];
+    const aggregate=()=>billings.every(b=>b?.actual===true&&b.currency==='AUD'&&Number.isFinite(b.amount)&&b.amount>=0&&b.receipt_id)?{actual:true,currency:'AUD',amount:billings.reduce((n,b)=>n+b.amount,0),receipt_id:hash(billings),provider:billings[0]?.provider,service:'verified_marketing_work',calls:billings}:{actual:false,currency:'AUD',calls:billings};
     for(let attempt=1;attempt<=ceiling;attempt++){
       try{
         const result=await this.execute({unit,decision,context,attempt});
         const proof=await this.verify({unit,decision,context,result});
+        billings.push(proof?.billing);
         if(proof?.status!=='VERIFIED'||proof.input_hash!==context.input_hash||proof.output_hash!==hash(result)||!proof.evidence_refs?.length)throw new Error('HARNESS_OUTPUT_NOT_VERIFIED');
-        return {result,proof,decision,attempts:attempt};
-      }catch(e){last=e;if(!e.safe_retry||!e.billing?.actual)throw e;}
+        return {result,proof:{...proof,billing:aggregate()},decision,attempts:attempt};
+      }catch(e){const retry=e.safe_retry&&e.billing?.actual;if(billings.length<attempt)billings.push(e.billing||null);e.billing=aggregate();last=e;if(!retry)throw e;}
     }
     throw last;
   }

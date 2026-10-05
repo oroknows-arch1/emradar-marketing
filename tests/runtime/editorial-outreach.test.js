@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {GraphEngine} from '../../runtime/graph.js';
 import {editorialOutreachAdapter} from '../../runtime/adapters.js';
-import {fixture} from './fixture.js';
+import {fixture,editorialHarness} from './fixture.js';
 
 const spanish='La construcción de la cuarta línea de molienda de Sierra Gorda ha comenzado. La producción prevista todavía no se ha materializado.';
 
@@ -17,10 +17,7 @@ async function editorialFixture(){
     sendEmail:async request=>{sends++;return {id:'mail-1',status:'DELIVERED',receipt:{idempotency_key:request.idempotency_key}};},
     collectOutcome:async()=>({source:'mailbox_followup',metrics:{response_received:1,publication_confirmed:0}})
   });
-  const harness={
-    quote:async()=>({currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:0,receipt_id:'localization-quote'}),
-    work:async(_unit,context)=>({result:{language:'es-CL',copy:spanish,signal_state:'FORMING'},proof:{billing:{currency:'AUD',actual:true,amount:0,receipt_id:'localization-billing'},evidence_refs:['E1']},decision:{lane:'model'},attempts:1})
-  };
+  const harness=editorialHarness();
   const engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{OPEN_ROUTE:outreach,X:{formats:['text'],cost:'UNKNOWN',authorized:async()=>false}},harness});
   return {...f,engine,outreach,sends:()=>sends,input:{product:'EMRADAR',campaign_id:'EDITORIAL_ROUTE_TEST',signal_id:f.p.signals[0].id}};
 }
@@ -30,7 +27,7 @@ test('approved REDIMIN route localizes, submits once, records outcome and learns
   const candidate=await f.engine.run(f.input);
   assert.equal(candidate.status,'AWAITING_REVIEW');
   assert.equal(candidate.review.destination,'REDIMIN-EDITORIAL');
-  assert.equal(candidate.review.copy,spanish);
+  assert.match(candidate.review.copy,/Propuesta editorial/);
   assert(candidate.nodes.some(n=>n.node==='localization'&&n.status==='PASS'));
   assert.equal(f.sends(),0);
 
@@ -57,15 +54,13 @@ test('missing open-route executor is internal, not an owner-authority escalation
   assert.deepEqual(blocked.blocker_disposition,{scope:'INTERNAL_EXECUTION',surface_to_owner:false});
 });
 
-test('explicit REDIMIN review uses source-bound es-CL copy without a harness',async()=>{
+test('open route cannot bypass editorial work when no harness is configured',async()=>{
   const f=await editorialFixture();
   f.engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{OPEN_ROUTE:f.outreach,X:{formats:['text'],cost:'UNKNOWN',authorized:async()=>false}}});
   const candidate=await f.engine.run({...f.input,campaign_id:'REDIMIN_EXACT_REVIEW',destination_id:'REDIMIN-EDITORIAL'});
-  assert.equal(candidate.status,'AWAITING_REVIEW');
-  assert.equal(candidate.review.destination,'REDIMIN-EDITORIAL');
-  assert.match(candidate.review.copy,/Región de Antofagasta/);
-  assert.doesNotMatch(candidate.review.copy,/FORMING|No resuelto|Acción para el lector/);
-  const proposal=await f.store.get('publication_review:'+candidate.review.proposal_id);
-  assert.equal(proposal.input.destination_id,'REDIMIN-EDITORIAL');
+  assert.equal(candidate.status,'BLOCKED');
+  assert.equal(candidate.blocker,'HARNESS_DISPATCH_NOT_CONNECTED');
+  assert.equal(candidate.review,null);
+  assert.equal(candidate.cost_receipt.total,0);
   assert.equal(f.sends(),0);
 });

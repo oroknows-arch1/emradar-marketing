@@ -169,6 +169,8 @@ const server=http.createServer(async(req,res)=>{
       }
       const decision=JSON.parse(await readBody(req));
       if(!/^[a-f0-9]{64}$/.test(decision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(decision?.review_hash||''))return json(res,400,{ok:false,reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});
+      if(decision.decision==='REJECTED')return json(res,200,await (await marketingEngine()).rejectPublication(decision));
+      if(decision.decision&&decision.decision!=='APPROVED')return json(res,400,{ok:false,reason:'INVALID_PUBLICATION_DECISION'});
       return json(res,200,await (await marketingEngine()).approvePublication(decision));
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
@@ -177,6 +179,16 @@ const server=http.createServer(async(req,res)=>{
     let input;try{input=JSON.parse(await readBody(req));}catch{return json(res,400,{ok:false,error:"invalid JSON"});}
     try{const engine=await marketingEngine();const result=u.pathname==='/CYCLE'?await engine.tick():u.pathname==="/RUN_MARKETING"?await engine.run(input):await engine.feedback(input.receipt_id);return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:"BLOCKED",reason:e.message});}
+  }
+  if(req.method==='GET'&&u.pathname==='/cost-receipts'){
+    if(!authorizedRequest(req))return json(res,403,{ok:false,reason:'ENGINE_AUTHORIZATION_REQUIRED'});
+    const s=new RedisStore(await store()),id=u.searchParams.get('run_id'),campaign=u.searchParams.get('campaign_id');
+    if(id)return json(res,200,await s.get('campaign_cost:'+id)||{status:'NOT_FOUND'});
+    if(!campaign)return json(res,400,{reason:'RUN_OR_CAMPAIGN_ID_REQUIRED'});
+    const ids=await s.get('campaign_cost_index:'+campaign)||[];
+    const receipts=await Promise.all(ids.map(id=>s.get('campaign_cost:'+id)));
+    const unknown=receipts.some(r=>r?.cost_state==='UNKNOWN'),known=receipts.reduce((sum,r)=>sum+(r?.known_subtotal_aud||0),0);
+    return json(res,200,{campaign_id:campaign,currency:'AUD',receipts,total:!receipts.length||unknown?'UNKNOWN':known,known_subtotal_aud:known,cost_state:!receipts.length||unknown?'UNKNOWN':known===0?'ZERO':receipts.some(r=>r.cost_state==='CALCULATED')?'CALCULATED':'ACTUAL'});
   }
   if(req.method==="GET"&&u.pathname==="/receipts/latest"){
     if(!authorizedRequest(req))return json(res,403,{ok:false,reason:"ENGINE_AUTHORIZATION_REQUIRED"});

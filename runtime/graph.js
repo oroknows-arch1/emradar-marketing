@@ -5,6 +5,8 @@ import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
 import {organicWorkers,discoveryTestId} from './organic-discovery.js';
 import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
 import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFromSignal} from './open-route-scout.js';
+import {editorialContext,validateEditorial,externalSchemaLeak,editorialVersion} from './editorial-copy.js';
+import {beginCosts,finishCosts,costCall,costKey} from './campaign-costs.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -15,7 +17,6 @@ const fail=(reason)=>{throw new Error(reason);};
 const initial=()=>({version:0,routes:{},platforms:{},processed:{},history:[]});
 const keyOf=(p,s,d,f)=>[p,s,d,f].map(encodeURIComponent).join(':');
 const score=(state,key)=>{const r=state.routes[key];return r?Math.max(-1,Math.min(1,(r.successes-r.failures)/(r.successes+r.failures+2)+(r.measurement_adjustment||0))):0;};
-const externalSchemaLeak=copy=>/\b(FORMING|INVESTIGATE|WATCH\/NO SIGNAL|reader action|break conditions|processing constraint|EMRADAR contribution|unresolved evidence)\b/i.test(copy);
 const ownerBlockers=new Set(['PUBLICATION_REVIEW_REQUIRED','DESTINATION_PERMISSION_REQUIRED','ACCOUNT_AUTHORIZATION_REQUIRED','API_COST_APPROVAL_REQUIRED','WORKER_COST_APPROVAL_REQUIRED']);
 const blockerDisposition=reason=>ownerBlockers.has(reason)?{scope:'OWNER_AUTHORITY',surface_to_owner:true}:{scope:'INTERNAL_EXECUTION',surface_to_owner:false};
 function registeredEmradarDestinations(signal){
@@ -50,13 +51,27 @@ export class GraphEngine {
   async approvePublication({proposal_id,review_hash}) {
     const proposal=await this.store.locked('engine',async()=>{
       const p=await this.store.get('publication_review:'+proposal_id);
-      if(!p||p.review_hash!==review_hash||Date.parse(p.expires_at)<=Date.now())fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
+      if(!p||p.status==='REJECTED'||p.review_hash!==review_hash||Date.parse(p.expires_at)<=Date.now())fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
       const existing=await this.store.get('receipt:'+p.publication_key);
       if(['PUBLISHED','SUBMITTED'].includes(existing?.execution_status))fail('PUBLICATION_ALREADY_EXECUTED');
       await this.store.put('publication_approval:'+proposal_id,{review_hash,approved_by:'OWNER',approved_at:now(),expires_at:p.expires_at});
       return p;
     });
-    return this.run(proposal.input);
+    const {stop_at,...input}=proposal.input;return this.run(input);
+  }
+  async rejectPublication({proposal_id,review_hash,reason}) {
+    return this.store.locked('engine',async()=>{
+      const p=await this.store.get('publication_review:'+proposal_id);
+      if(!p||p.review_hash!==review_hash||!reason)fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
+      const executed=await this.store.get('receipt:'+p.publication_key);
+      if(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS'].includes(executed?.execution_status))fail('PUBLICATION_ALREADY_EXECUTED_OR_AMBIGUOUS');
+      p.status='REJECTED';p.rejection={reason,at:now(),by:'OWNER'};
+      if(p.editorial?.cache_key)await this.store.put(p.editorial.cache_key,null);
+      await this.store.put('publication_review:'+proposal_id,p);
+      await this.store.put('publication_approval:'+proposal_id,null);
+      for(const id of await this.store.get('campaign_cost_index:'+p.input.campaign_id)||[]){const r=await this.store.get(costKey(id));if(r?.proposal_id===proposal_id)await finishCosts(this.store,id,{outcome:'REJECTED',blocker:reason,proposal_id});}
+      return {proposal_id,status:'REJECTED',reason,external_actions:0};
+    });
   }
   async modelWork(c,node,context,approvalKey) {
     if(!this.harness)fail('HARNESS_DISPATCH_NOT_CONNECTED');
@@ -66,7 +81,7 @@ export class GraphEngine {
     const ledgerKey='worker_cost:'+c.input.product+':'+now().slice(0,10);const ledger=await this.store.get(ledgerKey)||{calls:0,reserved_usd:0};
     if(ledger.calls+2>b.max_worker_calls||ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd)fail('WORKER_DAILY_BOUND');
     const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
-    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node});
+    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node,run_id:c.run_id,category:node==='scout'?'research_search_api':'generation'});
     ledger.calls+=2;ledger.reserved_usd+=b.max_worker_usd*2;await this.store.put(ledgerKey,ledger);c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;
     const input={...context,learning_routes:Object.fromEntries(Object.entries(c.state.routes).filter(([key])=>key.startsWith(encodeURIComponent(c.input.product)+':')))};input.input_hash=digest(input);
     let work;try{work=await this.harness.work(marketingWorkUnit(node,c.input.product),{...input,cost_reservation:costReservation});}catch(error){await this.spend.settle(costReservation,error.billing);throw error;}
@@ -108,9 +123,12 @@ export class GraphEngine {
     if(!input.product||!input.campaign_id)fail('PRODUCT_AND_CAMPAIGN_REQUIRED');
     return this.store.locked('engine',async()=>{
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
-      c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
+      c.learning_before=structuredClone(c.state);
+      await beginCosts(this.store,{run_id:c.run_id,input,source:this.products[input.product]?.signals?.find(s=>!input.signal_id||s.id===input.signal_id)});
+      try{await this.traverse(c,'ingest');}catch(error){c.status='FAILED';c.blocker=error.message;}
       if(c.status==='RUNNING')c.status=['PUBLISHED','SUBMITTED'].includes(c.receipt?.execution_status)?'PASS':c.receipt?.execution_status||'BLOCKED';
-      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,blocker_disposition:c.blocker?blockerDisposition(c.blocker):null,nodes:c.trace,selection:c.selection,route_plan:c.route_plan||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
+      const cost_receipt=await finishCosts(this.store,c.run_id,{outcome:c.status,blocker:c.blocker,proposal_id:c.review?.proposal_id,source:c.signal});
+      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,cost_receipt,blocker:c.blocker||null,blocker_disposition:c.blocker?blockerDisposition(c.blocker):null,nodes:c.trace,selection:c.selection,route_plan:c.route_plan||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
@@ -133,7 +151,8 @@ export class GraphEngine {
     return this.store.locked('engine',async()=>{
       const r=await this.store.get('receipt:'+receiptId);if(!r)fail('RECEIPT_NOT_FOUND');
       const c={input:{product:r.product,campaign_id:r.campaign_id},receipt:r,state:await this.store.get('learning')||initial(),trace:[],status:'RUNNING',run_id:crypto.randomUUID()};
-      await this.traverse(c,'observe');
+      await beginCosts(this.store,{run_id:c.run_id,input:c.input,source:{id:r.signal_id,revision:r.signal_revision},kind:'FEEDBACK'});
+      try{await this.traverse(c,'observe');}finally{await finishCosts(this.store,c.run_id,{outcome:c.status==='RUNNING'?'FEEDBACK_COMPLETE':c.status,blocker:c.blocker});}
       await this.store.put('feedback:'+r.id,{trace:c.trace,outcome:c.outcome||null,learning:c.state});return {trace:c.trace,outcome:c.outcome,learning:c.state};
     });
   }
@@ -219,7 +238,14 @@ const workers={
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
-    if(c.route?.destination?.platform==='OPEN_ROUTE'){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||prepared.source_state!==c.signal.state||prepared.editorial_system!=='EDITORIAL_COPY_SYSTEM_V1'||!prepared.evidence_refs?.every(Boolean))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='editorial_copy_system_v1';}
+    if(c.route?.destination?.platform==='OPEN_ROUTE'){
+      approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash)fail('EVIDENCE_TRUTH_CHANGED');
+      const context=editorialContext(c),key='editorial_copy:'+digest(context);
+      let editorial=await e.store.get(key);
+      if(!editorial){const work=await e.modelWork(c,'editorial_intelligence',context,'creation_approved');validateEditorial(work.result,work.proof,context);editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id};await e.store.put(key,editorial);}
+      c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];c.copy_method='editorial_copy_system_v1';c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};
+      c.copy=c.allowed_copy[0];return;
+    }
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
       const deterministicApproved=c.product.copy_policy?.extractive_template_approved===true||(c.input.product==='EMRADAR'&&c.product.review.editorial===true);
       if(!deterministicApproved)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
@@ -243,14 +269,11 @@ const workers={
     c.copy=c.allowed_copy[0];if(!c.copy)fail('COPY_PRODUCTION_FAILED');
   },
   async localization(c,e) {
+    if(c.editorial){c.localization={language:c.editorial.result.language,source_hash:digest(c.signal),copy_hash:digest(c.copy),evidence_refs:c.editorial.result.evidence_refs,status:'VERIFIED'};return;}
     if(c.route?.id!=='REDIMIN-EDITORIAL')return;
     const source_copy=c.copy;
     const cacheKey='localization:'+digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,source_copy,'es-CL']);
     let localized=await e.store.get(cacheKey);
-    if(!localized&&!e.harness&&c.signal.id==='sierra-gorda-fourth-grinding-line'&&c.signal.state==='FORMING'){
-      localized={language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],copy:c.copy};
-      await e.store.put(cacheKey,localized);
-    }
     if(!localized){
       const work=await e.modelWork(c,'localization',{source_copy,source_language:'en',target_language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id},'creation_approved');
       localized={...work.result,evidence_refs:[...work.proof.evidence_refs]};
@@ -263,7 +286,7 @@ const workers={
   },
   async editorial_quality_gate(c) {
     if(!c.allowed_copy.includes(c.copy)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
-    if(c.route?.destination?.platform==='OPEN_ROUTE'&&externalSchemaLeak(c.copy))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');
+    if(c.route?.destination?.platform==='OPEN_ROUTE'){if(!c.editorial||c.copy_method!=='editorial_copy_system_v1')fail('EDITORIAL_TRANSFORMATION_REQUIRED');if(externalSchemaLeak(c.copy))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');validateEditorial(c.editorial.result,c.editorial.proof,editorialContext(c));}
     if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('UNSUPPORTED_FINANCIAL_CLAIM');
   },
   async variant_factory(c) {
@@ -306,11 +329,13 @@ const workers={
     const destination_binding={id:c.route.destination.id,platform:c.route.destination.platform,format:c.route.format,permission:c.route.destination.permission,route_record:c.route.destination.route_record||null};
     const review_hash=digest({product_truth:c.truth_hash,signal_revision:c.signal.revision,asset:c.asset,destination:destination_binding,source_receipt:c.product.source_receipt||null});
     const proposal_id=digest([publication_key,review_hash]);
+    const existing=await e.store.get('publication_review:'+proposal_id);if(existing?.status==='REJECTED')fail('EDITORIAL_REJECTED_COPY_REQUIRES_REGENERATION');
     const approval=await e.store.get('publication_approval:'+proposal_id);
-    if(approval?.review_hash===review_hash&&approval.approved_by==='OWNER'&&Date.parse(approval.expires_at)>Date.now()){
+    if(c.input.stop_at!=='PUBLICATION_REVIEW'&&approval?.review_hash===review_hash&&approval.approved_by==='OWNER'&&Date.parse(approval.expires_at)>Date.now()){
       c.review={proposal_id,review_hash,decision:'APPROVED',approved_at:approval.approved_at};return;
     }
     const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id,destination_id:c.route.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
+    proposal.run_id=c.run_id;proposal.cost_receipt_id=c.run_id;proposal.editorial=c.editorial?{contract_revision:c.editorial.contract_revision,cache_key:c.editorial.cache_key,origin_run_id:c.editorial.origin_run_id}:null;
     await e.store.put('publication_review:'+proposal_id,proposal);
     c.review={proposal_id,review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs};
     c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
@@ -331,7 +356,7 @@ const workers={
       if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||dailyLedger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||dailyLedger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
     }
     const costQuote=c.adapter.cost==='ZERO'?zeroQuote(c.publication_key):await c.adapter.quote({operation:'publish',asset:c.asset,product:c.input.product});
-    c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish'});
+    c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish',run_id:c.run_id,category:'distribution'});
     if(dailyLedger){dailyLedger.reserved_usd+=c.route.destination.max_action_usd;dailyLedger.calls+=c.route.destination.max_api_calls;await e.store.put(dailyLedgerKey,dailyLedger);c.reserved_cost_usd=c.route.destination.max_action_usd;}
     c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,publication_review:c.review||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     await e.store.put('receipt:'+c.publication_key,c.receipt);
@@ -343,6 +368,7 @@ const workers={
       Object.assign(c.receipt,{execution_status:result.status,external_id:String(result.id),url:result.url||null,timestamp:now(),api_cost_usd:result.cost_usd??'UNKNOWN',delivery_status:result.delivery_status||null,provider_receipt:result.provider_receipt||null});
       c.provider_billing=result.billing;
     }catch(error){
+      c.provider_billing=error.billing;
       const status=error.status;
       // A timeout/5xx after POST might already have published. Never repeat it blindly.
       Object.assign(c.receipt,{execution_status:status===429?'RATE_LIMITED':status&&status>=400&&status<500?'FAILED':'AMBIGUOUS',error:String(error.message).slice(0,200),retry_at:status===429?new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString():null});
@@ -361,12 +387,12 @@ const workers={
     c.performance={status:'UNKNOWN',metrics:{},source:'UNAVAILABLE',observed_at:now(),cost_usd:'UNKNOWN'};
     const r=c.receipt;const a=e.adapters[r.platform];
     if(Date.parse(c.state.platforms?.[r.product+':'+r.platform]?.retry_at||0)>Date.now()){c.performance.reason='PLATFORM_RATE_LIMIT_COOLDOWN';await e.store.put('performance:'+r.id,c.performance);return;}
-    if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect&&a.cost==='ZERO') {try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
+    if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect&&a.cost==='ZERO') {await costCall(e.store,c.run_id,{action_id:c.run_id+':collect',category:'observation',provider:r.platform,service:'collect',amount_aud:0,state:'ZERO',reason:'VERIFIED_ZERO_COST_ADAPTER'});try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
     else if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect){
       const p=e.products[r.product];if(!a.quote){c.performance.reason='ACTUAL_COST_BOUND_UNKNOWN';await e.store.put('performance:'+r.id,c.performance);return;}if(p?.budget?.metrics_approved&&Number.isFinite(p.budget.max_metrics_calls)&&p.budget.max_metrics_calls>0){
         const ledgerKey='metrics_cost:'+r.product+':'+now().slice(0,10);const ledger=await e.store.get(ledgerKey)||{calls:0,reserved_usd:0};const b=p.budget;
         if(!Number.isFinite(b.max_metrics_action_usd)||b.max_metrics_action_usd<=0||!Number.isFinite(b.max_metrics_daily_usd)||ledger.calls>=b.max_metrics_calls||ledger.reserved_usd+b.max_metrics_action_usd>b.max_metrics_daily_usd)c.performance.reason='METRICS_COST_OR_CALL_BOUND';
-        else{const quote=await a.quote({operation:'collect',receipt:r});const reservation=await e.spend.reserve({campaign_id:r.campaign_id,quote});ledger.calls++;ledger.reserved_usd+=b.max_metrics_action_usd;await e.store.put(ledgerKey,ledger);try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}c.performance.provider_cost=await e.spend.settle(reservation,c.performance.billing);}
+        else{const quote=await a.quote({operation:'collect',receipt:r});const reservation=await e.spend.reserve({campaign_id:r.campaign_id,quote,action_id:c.run_id+':collect',run_id:c.run_id,category:'observation'});ledger.calls++;ledger.reserved_usd+=b.max_metrics_action_usd;await e.store.put(ledgerKey,ledger);try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;c.performance.billing=error.billing;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}c.performance.provider_cost=await e.spend.settle(reservation,c.performance.billing);}
       }else c.performance.reason='METRICS_API_COST_APPROVAL_REQUIRED';
     }
     await e.store.put('performance:'+r.id,c.performance);
