@@ -77,3 +77,10 @@ Must not:
 - flatten every product into one generic marketing voice.
 
 When a product has no copy profile, use the shared Editorial Copy System as the neutral fallback and mark product voice as UNDEFINED rather than inventing one.
+
+## Human correspondence and capability truth
+Email routes add a complete, destination-specific correspondence layer after verified editorial work/localization and before owner review. The `human_ready_email` and `capability_claim_gate` graph nodes bind the sender, recipient, subject and body into one exact artifact. They offer only the source-linked note that exists in that artifact. Native-gated source facts, source qualifications and prior verified localization can be reused when correcting an existing unsent proposition; caller-supplied source/copy/recipient data cannot enter this correction path.
+
+Every model-generated service claim must be inventoried by a separate verifier. A planned service is not a production capability. The current approved capability is the included source-linked note, not ongoing monitoring, investigation, updates or continuous coverage. Unknown or unimplemented promises block before review. An unknown Spanish source qualification blocks reuse rather than receiving an invented translation.
+
+Approval binds the complete email and source/route context. Gmail sends its stored subject and body unchanged. Approved replay validates the artifact without rewriting, relocalizing or inserting greetings/signatures. An authenticated revision operation accepts only an existing unapproved, unsent proposal/hash, traverses the same bounded graph with a mandatory review stop and retains a supersession link. The previous artifact cannot authorize delivery. No visual is required for these text-only routes.

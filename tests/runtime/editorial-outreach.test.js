@@ -13,6 +13,7 @@ async function editorialFixture(){
   f.p.signals[0]={id:'sierra-gorda-fourth-grinding-line',revision:'r1',state:'FORMING',evidence:['E1'],source_title:'Sierra Gorda copper expansion',location:'Antofagasta Region, Chile',new_to_radar:true,source_facts:[{id:'E1',text:'Construction of a fourth grinding line has started.',url:'https://example.test/evidence'}],source_uncertainty:['Forecast output is not realised output.'],causal_chain:{industries:['Copper mining','Grinding equipment','Mine construction']}};
   let sends=0;
   const outreach=editorialOutreachAdapter({
+    senderIdentity:()=>({name:'EMRADAR',address:'sender@example.test',approved:true}),
     routeSupported:route=>route.destination_id==='REDIMIN-EDITORIAL',
     sendEmail:async request=>{sends++;return {id:'mail-1',status:'DELIVERED',receipt:{idempotency_key:request.idempotency_key}};},
     collectOutcome:async()=>({source:'mailbox_followup',metrics:{response_received:1,publication_confirmed:0}})
@@ -32,7 +33,7 @@ test('approved REDIMIN route localizes, submits once, records outcome and learns
   assert.equal(f.sends(),0);
 
   const submitted=await f.engine.approvePublication(candidate.review);
-  assert.equal(submitted.status,'PASS');
+  assert.equal(submitted.status,'PASS',submitted.blocker);
   assert.equal(submitted.receipt.execution_status,'SUBMITTED');
   assert.equal(submitted.receipt.delivery_status,'DELIVERED');
   assert.equal(submitted.outcome.measurements.response_received.value,1);
@@ -45,12 +46,13 @@ test('approved REDIMIN route localizes, submits once, records outcome and learns
   assert.equal(f.sends(),1);
 });
 
-test('missing open-route executor is internal, not an owner-authority escalation',async()=>{
+test('missing email sender/executor blocks before review and is internal, not an owner-authority escalation',async()=>{
   const f=await editorialFixture();
   f.engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{X:{formats:['text'],cost:'UNKNOWN',authorized:async()=>false}},harness:f.engine.harness});
   const candidate=await f.engine.run({...f.input,campaign_id:'NO_EXECUTOR'});
-  const blocked=await f.engine.approvePublication(candidate.review);
-  assert.equal(blocked.blocker,'OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
+  assert.equal(candidate.review,null);
+  const blocked=candidate;
+  assert.equal(blocked.blocker,'APPROVED_EMAIL_SENDER_REQUIRED');
   assert.deepEqual(blocked.blocker_disposition,{scope:'INTERNAL_EXECUTION',surface_to_owner:false});
 });
 

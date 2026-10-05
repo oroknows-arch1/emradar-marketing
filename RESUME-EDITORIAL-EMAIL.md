@@ -1,3 +1,41 @@
+# Paused again: tested email fix, not deployed
+
+Owner said “Stop and continue” at 2026-10-06 05:00 Australia/Sydney. Wait for the next resume instruction.
+
+Current status:
+- Finished draft code is local and saved on fix/editorial-human-email.
+- 21 relevant regressions PASS (editorial-email, editorial-costs, editorial-outreach, editorial-outreach-gmail, publication-review).
+- Syntax and whitespace checks PASS.
+- Same-source preview of the four existing production records compiles successfully: Reuters 97 words; International Mining 159; Australian Mining Review 161; REDIMIN 194.
+- Actual four production records were freshly retrieved HTTP 200, still original AWAITING_REVIEW, FORMING, ZERO, no visuals.
+- NO main update, deployment, production revision, approval or distribution occurred.
+- Main still d693c9ba5b65c6a7c8d927fbd8131ff4d2e9061b, verified immediately before pause.
+
+Resume at DEPLOYMENT, not source discovery or broad testing. First read final code/tests and check for any new changes to main. The relevant tests already passed; rerun only if new edits/failures justify it.
+
+Tested changes since first pause:
+- Stable destination/permission bindings and full review context now stored in proposals, recomputed before approval to reject changed subject/body/recipient/assets.
+- Approved replay restores exact stored email and localization, without redoing correspondence generation.
+- Revisions cannot run without an explicit PUBLICATION_REVIEW stop; old proposals become SUPERSEDED and cannot be approved.
+- Model-generated service claims require independently verified complete capability inventory; only a narrowly defined current source-linked note is supported. Ongoing services remain UNVERIFIED/excluded.
+- Revised English email reuses native-gated facts and every uncertainty; no model calls in correction. Spanish inherits verified legacy wording/hash and uses bounded uncertainty translations, blocking unknown terms.
+- Exact Gmail subject/body/sender envelope is covered by tests; transport no longer changes reviewed subjects.
+- New tests cover correction idempotency, source immutability, no sending during correction, old-approval invalidation, changed-source/hash/asset rejection, declared unsupported claims, localization and exact local simulated delivery. All 21 pass.
+- Editorial contract extended with correspondence and capability-truth requirements. No unrelated tests run.
+
+Next authorized actions:
+1. Save the final code to main using existing GitHub atomic tree/commit/ref update with current main as parent; do not include the old WIP checkpoint in main unless deliberately documenting pause. Direct git push lacks credentials; GitHub connector writes succeeded.
+2. Let existing Render auto-deploy trigger. Verify live commit and runtime /health. Render service/workspace IDs below.
+3. Use existing review credentials from authorized session context (not source files/checkpoint); do not ask owner to copy secrets or sign in.
+4. Retrieve original exact proposals and review hashes (scratch /tmp/<proposal_id>.json contains freshly fetched copies; refetch only if potentially changed).
+5. For each, POST /PUBLICATION_REVIEW/revise with ONLY proposal_id and review_hash. This operation cannot approve/send and traverses the reusable graph with a forced review stop. Keep operations sequential because graph lock is shared.
+6. Fetch returned new proposal IDs through authenticated GET /PUBLICATION_REVIEW. Check same evidence/revision/source receipt/destination/cost, status AWAITING_REVIEW, capability gate PASS, visual NONE, no external execution.
+7. DISPLAY all four corrected production emails exactly, including destination, recipient/route, new proposal ID, subject, complete body, visual NONE, evidence state, capability result, cost and status. STOP immediately after display.
+
+If production revision fails, diagnose that exact bounded path; do not rerun scan/campaign, broaden destinations, approve or send. Current source reuse does not require Harness provider execution, but future fresh campaigns still require their pre-existing verified editorial worker; do not claim its production availability was demonstrated by tests.
+
+Production and repo details retained below. Earlier draft caveats describe the first pause and are superseded by the tested changes above.
+
 # Paused: human-ready email and capability claim gate
 
 Owner said “Stop and resume” at 2026-10-06 04:47 Australia/Sydney. Stop execution until owner resumes.
