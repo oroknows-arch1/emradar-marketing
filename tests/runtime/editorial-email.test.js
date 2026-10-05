@@ -8,7 +8,7 @@ import {humanReadyEmail,reuseProposition,validateHumanEmail,validateCapabilityIn
 import {reviewedMail} from '../../runtime/editorial-outreach-gmail.js';
 import directory from '../../state/open-route-directory.json' with {type:'json'};
 
-const identity={name:'EMRADAR',address:'sender@example.test',approved:true};
+const identity={name:'EMRADAR',address:'oroknows@gmail.com',approved:true};
 const route=id=>directory.destinations.find(d=>d.destination_id===id);
 const signal={id:'copper-project',revision:'r1',state:'FORMING',evidence:['E1'],source_title:'Copper project expansion',source_facts:[{id:'E1',text:'The operator announced a copper processing expansion.',url:'https://example.test/source'}],source_uncertainty:['Forecast output is not realised output.','Final cost','Commissioning and ramp'],causal_chain:{industries:['Copper mining','Grinding equipment','Mine construction']}};
 async function legacy(id='INTERNATIONAL-MINING-EDITORIAL'){
@@ -65,10 +65,10 @@ test('future generation requires independently verified complete capability inve
 
 test('Gmail envelopes use exact reviewed subject/body/sender, and reject hidden subject or recipient changes',async()=>{
  const f=await legacy();const r=await f.engine.revisePublication(f.p);const p=await f.store.get('publication_review:'+r.proposal_id);
- const old=process.env.EDITORIAL_GMAIL_USER;process.env.EDITORIAL_GMAIL_USER=identity.address;
+ const old=process.env.EDITORIAL_GMAIL_USER,oldPassword=process.env.EDITORIAL_GMAIL_APP_PASSWORD;process.env.EDITORIAL_GMAIL_USER=identity.address;process.env.EDITORIAL_GMAIL_APP_PASSWORD='fixture-only';
  try{const mail=reviewedMail(p.asset,p.asset.delivery);assert.equal(mail.subject,p.asset.email.subject);assert.equal(mail.text,p.asset.email.body);assert.deepEqual(mail.from,p.asset.email.from);assert.equal(mail.to,p.asset.email.to);assert.doesNotMatch(mail.text,/^Subject:/m);
   const changed=structuredClone(p.asset);changed.email.to='another@example.test';assert.throws(()=>reviewedMail(changed,p.asset.delivery),/EXACT_REVIEWED_EMAIL/);
- }finally{if(old===undefined)delete process.env.EDITORIAL_GMAIL_USER;else process.env.EDITORIAL_GMAIL_USER=old;}
+ }finally{if(old===undefined)delete process.env.EDITORIAL_GMAIL_USER;else process.env.EDITORIAL_GMAIL_USER=old;if(oldPassword===undefined)delete process.env.EDITORIAL_GMAIL_APP_PASSWORD;else process.env.EDITORIAL_GMAIL_APP_PASSWORD=oldPassword;}
 });
 
 test('verified Spanish proposition remains Spanish, unverified promise is removed and every source uncertainty survives',()=>{

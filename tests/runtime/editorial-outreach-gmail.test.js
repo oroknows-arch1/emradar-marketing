@@ -11,6 +11,8 @@ test('Gmail transport authorizes only with both deployment secrets',async()=>{
     assert.equal(await editorialRouteAuthorized(),false);
     process.env.EDITORIAL_GMAIL_APP_PASSWORD='not-a-real-secret';
     assert.equal(await editorialRouteAuthorized(),true);
+    process.env.EDITORIAL_GMAIL_USER='robdanrutene34@gmail.com';
+    assert.equal(await editorialRouteAuthorized(),false);
   }finally{
     if(beforeUser===undefined)delete process.env.EDITORIAL_GMAIL_USER;else process.env.EDITORIAL_GMAIL_USER=beforeUser;
     if(beforePassword===undefined)delete process.env.EDITORIAL_GMAIL_APP_PASSWORD;else process.env.EDITORIAL_GMAIL_APP_PASSWORD=beforePassword;

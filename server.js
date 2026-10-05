@@ -16,6 +16,7 @@ import {createXAuthorization} from './runtime/x-authorization.js';
 import {xDiscoveryConnector} from './runtime/x-discovery.js';
 import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
+import {editorialSenderStatus,probeEditorialNetwork} from './runtime/editorial-outreach-gmail.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -158,6 +159,18 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
     try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));if(process.env.MARKETING_AUTONOMOUS!=='true')return json(res,200,{status:'SCHEDULER_DISABLED',result:null,feedback:null});const result=await (await marketingEngine()).tick();return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(req.method==='GET'&&u.pathname==='/PUBLICATION_REVIEW/delivery-status'){
+    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    const id=u.searchParams.get('proposal_id');if(!/^[a-f0-9]{64}$/.test(id||''))return json(res,400,{reason:'PROPOSAL_ID_REQUIRED'});
+    try{
+      const s=new RedisStore(await store());let proposal=await s.get('publication_review:'+id);
+      if(!proposal)return json(res,404,{reason:'PUBLICATION_REVIEW_NOT_FOUND'});
+      if(proposal.replacement_proposal_id)proposal=await s.get('publication_review:'+proposal.replacement_proposal_id)||proposal;
+      const receipt=await s.get('receipt:'+proposal.publication_key),approval=await s.get('publication_approval:'+proposal.proposal_id);
+      const pending=await s.get('pending:'+proposal.product+':'+proposal.signal_id+':'+proposal.signal_revision);
+      return json(res,200,{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,reviewed_sender:proposal.asset?.email?.from||null,sender:editorialSenderStatus(),approval:approval||null,receipt:receipt||null,idempotency:{key:proposal.publication_key,pending:pending||null},...(u.searchParams.get('smtp_probe')==='true'?{network:await probeEditorialNetwork()}: {})});
+    }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/revise'){
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
