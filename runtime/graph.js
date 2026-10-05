@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
 import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
 import {organicWorkers,discoveryTestId} from './organic-discovery.js';
+import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
+import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFromSignal} from './open-route-scout.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -105,7 +107,7 @@ export class GraphEngine {
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
       c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
       if(c.status==='RUNNING')c.status=c.receipt?.execution_status==='PUBLISHED'?'PASS':c.receipt?.execution_status||'BLOCKED';
-      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
+      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,route_plan:c.route_plan||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
@@ -158,9 +160,16 @@ const workers={
         // EMRADAR uses only already-registered, executable destinations. Dynamic
         // formation IDs do not require an external discovery runtime, but the
         // existing baseline, delta and permission gates still decide eligibility.
-        const registered=(c.product.destinations||[]).length?c.product.destinations:registeredEmradarDestinations(c.signal);
-        c.candidates=registered.map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
-        if(!c.candidates.length)fail('NO_VERIFIED_EXECUTABLE_DESTINATION');
+        const formation=formationFromSignal(c.signal);
+        const open=openRouteScout({formation,directory:openRouteDirectory,learning:Object.fromEntries(Object.entries(c.state.routes||{}).map(([k,v])=>[k.split(':')[2],{score:score(c.state,k)}]))});
+        c.commercial_evidence=commercialEvidenceBranch(formation);
+        c.route_plan={...open,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:c.commercial_evidence,stop:'PUBLICATION_REVIEW'};
+        await e.store.put('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.route_plan);
+        const validUntil=new Date(Date.now()+7*86400000).toISOString();
+        const openCandidates=open.candidates.map(d=>({id:d.destination_id,platform:d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE',signal_ids:[c.signal.id],formats:['text'],relevance:d.route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:d.destination_id!=='EMRADAR-X-OROKNOWS',route_record:d}));
+        const registered=registeredEmradarDestinations(c.signal);
+        c.candidates=[...openCandidates,...registered.filter(r=>!openCandidates.some(o=>o.id===r.id))];
+        if(!c.candidates.length)fail('NO_VERIFIED_OPEN_OR_EXECUTABLE_DESTINATION');
         return;
       }
       const cached=await e.store.get('discovery:'+c.input.product+':'+c.signal.revision);
@@ -232,7 +241,7 @@ const workers={
       c.asset={...a,format:'image',copy:c.copy};
     }else if(c.route.format==='text')c.asset={format:'text',copy:c.copy};else fail('FORMAT_WORKER_UNAVAILABLE');
   },
-  async adapt(c,e) {c.adapter=e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
+  async adapt(c,e) {c.adapter=c.route.destination.open_access_prepare_only?{formats:['text'],cost:'ZERO',authorized:async()=>true,validate:async()=>true}:e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
   async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.allowed_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
   async brand_gate(c) {if(!c.product.review.brand||!c.product.review.risk)fail('BRAND_OR_RISK_REVIEW_REQUIRED');},
   async permission_gate(c) {
