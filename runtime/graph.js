@@ -155,23 +155,32 @@ const workers={
     // Persistent product-scoped map first. No broad discovery or invented destination.
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
-    if(!c.candidates.length){
-      if(c.input.product==='EMRADAR'){
-        // EMRADAR uses only already-registered, executable destinations. Dynamic
-        // formation IDs do not require an external discovery runtime, but the
-        // existing baseline, delta and permission gates still decide eligibility.
-        const formation=formationFromSignal(c.signal);
-        const open=openRouteScout({formation,directory:openRouteDirectory,learning:Object.fromEntries(Object.entries(c.state.routes||{}).map(([k,v])=>[k.split(':')[2],{score:score(c.state,k)}]))});
+    if(c.input.product==='EMRADAR'){
+      const formation=formationFromSignal(c.signal);
+      const configured=(c.product.destinations||[]).map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
+      if(formation.evidence.length){
+        const authorizedAccounts=[];
+        if(e.adapters.X?.authorized&&await e.adapters.X.authorized('EMRADAR'))authorizedAccounts.push('EMRADAR-X-OROKNOWS');
+        const learning={};
+        for(const [k] of Object.entries(c.state.routes||{})){
+          const [product,signal,destination]=k.split(':').map(decodeURIComponent);
+          if(product===c.input.product&&signal===c.signal.id)learning[destination]={score:score(c.state,k)};
+        }
+        const open=openRouteScout({formation,directory:openRouteDirectory,learning,authorizedAccounts});
         c.commercial_evidence=commercialEvidenceBranch(formation);
-        c.route_plan={...open,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:c.commercial_evidence,stop:'PUBLICATION_REVIEW'};
+        const priorPlan=await e.store.get('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);
+        const validUntil=priorPlan?.valid_until||new Date(Date.now()+7*86400000).toISOString();
+        c.route_plan={...open,valid_until:validUntil,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:c.commercial_evidence,stop:'PUBLICATION_REVIEW'};
         await e.store.put('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.route_plan);
-        const validUntil=new Date(Date.now()+7*86400000).toISOString();
         const openCandidates=open.candidates.map(d=>({id:d.destination_id,platform:d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE',signal_ids:[c.signal.id],formats:['text'],relevance:d.route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:d.destination_id!=='EMRADAR-X-OROKNOWS',route_record:d}));
-        const registered=registeredEmradarDestinations(c.signal);
-        c.candidates=[...openCandidates,...registered.filter(r=>!openCandidates.some(o=>o.id===r.id))];
-        if(!c.candidates.length)fail('NO_VERIFIED_OPEN_OR_EXECUTABLE_DESTINATION');
-        return;
+        const existing=c.candidates.length?c.candidates:configured;
+        c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))];
       }
+      if(!c.candidates.length)c.candidates=configured.length?configured:registeredEmradarDestinations(c.signal);
+      if(!c.candidates.length)fail('NO_VERIFIED_OPEN_OR_EXECUTABLE_DESTINATION');
+      return;
+    }
+    if(!c.candidates.length){
       const cached=await e.store.get('discovery:'+c.input.product+':'+c.signal.revision);
       if(cached)c.candidates=cached.destinations.map(d=>({...d,permission:c.product.destination_permissions?.[d.id]||{approved:false}}));
       else{
@@ -244,7 +253,7 @@ const workers={
       c.asset={...a,format:'image',copy:c.copy};
     }else if(c.route.format==='text')c.asset={format:'text',copy:c.copy};else fail('FORMAT_WORKER_UNAVAILABLE');
   },
-  async adapt(c,e) {c.adapter=c.route.destination.open_access_prepare_only?{formats:c.route.destination.route_record.accepted_formats,cost:'ZERO',authorized:async()=>true,validate:async()=>true}:e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
+  async adapt(c,e) {c.adapter=c.route.destination.open_access_prepare_only?{formats:c.route.destination.route_record.accepted_formats,cost:c.route.destination.route_record.cost,authorized:async()=>true,validate:async()=>true}:e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
   async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.allowed_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
   async brand_gate(c) {if(!c.product.review.brand||!c.product.review.risk)fail('BRAND_OR_RISK_REVIEW_REQUIRED');},
   async permission_gate(c) {
@@ -275,6 +284,7 @@ const workers={
     c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
   },
   async execute(c,e) {
+    if(c.route.destination.open_access_prepare_only)fail('OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
     c.publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const prior=await e.store.get('receipt:'+c.publication_key);
     if(prior?.execution_status==='PUBLISHED'){c.receipt=prior;c.duplicate=true;return;}

@@ -92,14 +92,14 @@
       "access_method": "public editorial email",
       "public_contact_point": "paul@im-mining.com",
       "public_submission_url": "https://im-mining.com/contact/",
-      "submission_requirements": "Editorial idea/contact route; acceptance and exact contribution requirements remain UNKNOWN until response.",
+      "submission_requirements": "Official 2025 editorial calendar identifies Paul Moore and editorial email. Contact rechecked 5 October 2026; exact unsolicited-contribution requirements and acceptance remain UNKNOWN. Exclude paid advertorial options.",
       "accepted_formats": [
         "editor_pitch",
         "contributed_article_proposal"
       ],
       "account_required": false,
       "cost": "ZERO",
-      "evidence_source_url": "https://im-mining.com/contact/",
+      "evidence_source_url": "https://im-mining.com/site/wp-content/uploads/2025/08/2025-IM-Mediapack.pdf",
       "verified_at": "2026-10-05",
       "verification_state": "VERIFIED"
     },
@@ -280,9 +280,9 @@
     },
     {
       "destination_id": "LATINOMINERIA-EDITOR",
-      "destination_name": "Latinominería editorial",
+      "destination_name": "Latinominer\u00eda editorial",
       "destination_class": "latam_trade_publication",
-      "organisation": "Latinominería / Editec",
+      "organisation": "Latinominer\u00eda / Editec",
       "relevant_beat_topic": [
         "Latin American mining",
         "Chile mining",
@@ -299,9 +299,9 @@
         "Molybdenum"
       ],
       "access_method": "public named-editor email",
-      "public_contact_point": "Rodrigo Fuentes — public editor contact",
+      "public_contact_point": "UNKNOWN",
       "public_submission_url": "https://www.latinomineria.com/contacto/type_editorial_pid_115230/",
-      "submission_requirements": "Public editorial contact verified; exact unsolicited contribution requirements UNKNOWN until response.",
+      "submission_requirements": "Retrieved contact page is dated 2017 and contains unrelated casino links. Current editorial contact and site integrity require confirmation; discovery only. Do not infer mailbox from editor name.",
       "accepted_formats": [
         "latam_editor_pitch",
         "newsroom_tip"
@@ -310,7 +310,7 @@
       "cost": "ZERO",
       "evidence_source_url": "https://www.latinomineria.com/contacto/type_editorial_pid_115230/",
       "verified_at": "2026-10-05",
-      "verification_state": "VERIFIED"
+      "verification_state": "VERIFIED_DISCOVERY_ONLY"
     },
     {
       "destination_id": "AUSTRALIAN-MINING-REVIEW-EDITORIAL",
@@ -335,8 +335,8 @@
         "Grid and electrification materials"
       ],
       "access_method": "public editorial email",
-      "public_contact_point": "editorial@australianminingreview.com.au",
-      "public_submission_url": "https://australianminingreview.com.au/services/",
+      "public_contact_point": "chloe@australianminingreview.com.au",
+      "public_submission_url": "https://australianminingreview.com.au/contact-us/",
       "submission_requirements": "Public editorial route; exact unsolicited-contribution requirements UNKNOWN.",
       "accepted_formats": [
         "supplier_chain_pitch",
@@ -344,7 +344,7 @@
       ],
       "account_required": false,
       "cost": "ZERO",
-      "evidence_source_url": "https://australianminingreview.com.au/services/",
+      "evidence_source_url": "https://australianminingreview.com.au/contact-us/",
       "verified_at": "2026-10-05",
       "verification_state": "VERIFIED"
     },
