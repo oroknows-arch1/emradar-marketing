@@ -6,3 +6,5 @@ test('commercial hypotheses remain hypotheses and preserve formation state',()=>
 
 test('route scoring includes novelty and contribution value',()=>{const r=openRouteScout({formation,directory});assert.ok(r.candidates.every(x=>typeof x.score_factors.novelty==='number'));assert.ok(r.candidates.every(x=>typeof x.score_factors.contribution_value==='number'));});
 test('commercial branch is formation-generic and keeps payment evidence unknown',()=>{const c=commercialEvidenceBranch({...formation,causal_chain:{industries:['Semiconductors']}});assert.ok(c.hypotheses.every(h=>h.unknowns.includes('willingness_to_pay')));assert.ok(c.hypotheses.every(h=>!h.buyer_class.startsWith('Mining ')));});
+
+test('route assets carry audience-specific intent, angle and intelligence visual brief',()=>{const r=openRouteScout({formation,directory});const a=prepareRouteAssets({formation,candidates:r.candidates});assert.ok(a.every(x=>x.intended_action&&x.angle&&x.visual_brief?.type==='causal_formation_card'));assert.ok(new Set(a.map(x=>x.lane)).size>=3);});
