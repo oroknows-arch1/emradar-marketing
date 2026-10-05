@@ -56,3 +56,16 @@ test('missing open-route executor is internal, not an owner-authority escalation
   assert.equal(blocked.blocker,'OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
   assert.deepEqual(blocked.blocker_disposition,{scope:'INTERNAL_EXECUTION',surface_to_owner:false});
 });
+
+test('explicit REDIMIN review uses source-bound es-CL copy without a harness',async()=>{
+  const f=await editorialFixture();
+  f.engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{OPEN_ROUTE:f.outreach,X:{formats:['text'],cost:'UNKNOWN',authorized:async()=>false}}});
+  const candidate=await f.engine.run({...f.input,campaign_id:'REDIMIN_EXACT_REVIEW',destination_id:'REDIMIN-EDITORIAL'});
+  assert.equal(candidate.status,'AWAITING_REVIEW');
+  assert.equal(candidate.review.destination,'REDIMIN-EDITORIAL');
+  assert.match(candidate.review.copy,/Región de Antofagasta/);
+  assert.match(candidate.review.copy,/FORMING/);
+  const proposal=await f.store.get('publication_review:'+candidate.review.proposal_id);
+  assert.equal(proposal.input.destination_id,'REDIMIN-EDITORIAL');
+  assert.equal(f.sends(),0);
+});

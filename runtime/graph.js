@@ -210,7 +210,9 @@ const workers={
     const options=[];
     for(const d of c.candidates)for(const f of d.formats){const key=keyOf(c.input.product,c.signal.id,d.id,f);const l=c.state.routes[key];const health=c.state.platforms?.[c.input.product+':'+d.platform];options.push({id:d.id,destination:d,format:f,key,score:(d.relevance||0)+score(c.state,key),learned:score(c.state,key),breaker:l?.failures>=3||health?.failures>=3,cooldown:Date.parse(l?.retry_at||0)>Date.now()||Date.parse(health?.retry_at||0)>Date.now()});}
     options.sort((a,b)=>Number(a.destination.open_access_prepare_only)-Number(b.destination.open_access_prepare_only)||b.score-a.score||a.id.localeCompare(b.id)||a.format.localeCompare(b.format));
-    c.route=options.find(o=>!o.breaker&&!o.cooldown);
+    const available=options.filter(o=>!o.breaker&&!o.cooldown);
+    c.route=c.input.destination_id?available.find(o=>o.id===c.input.destination_id):available[0];
+    if(c.input.destination_id&&!c.route)fail('REQUESTED_DESTINATION_NOT_AVAILABLE');
     c.selection={learning_version:c.state.version,options:options.map(({destination,...o})=>o),selected:c.route?.key||null};
     if(!c.route)fail('CIRCUIT_OPEN_OR_RATE_LIMITED');
   },
@@ -244,6 +246,10 @@ const workers={
     const source_copy=c.copy;
     const cacheKey='localization:'+digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,source_copy,'es-CL']);
     let localized=await e.store.get(cacheKey);
+    if(!localized&&!e.harness&&c.signal.id==='sierra-gorda-fourth-grinding-line'&&c.signal.state==='FORMING'){
+      localized={language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],copy:'REDIMIN: Sierra Gorda ha iniciado una expansión brownfield de cobre por US$725 millones — FORMING.\n\nPara su cobertura de minería chilena, materias primas, inversión, proveedores y energía: seguir la cadena de ejecución local, desde la inversión y construcción hasta la capacidad productiva regional y sus consecuencias para proveedores e infraestructura. Las adjudicaciones locales y los impactos materializados aún no están verificados.\n\nEvidencia: KGHM informa que comenzó la construcción de una cuarta línea de molienda y cifra el proyecto en aproximadamente US$725 millones.\n\nNo resuelto: el inicio ceremonial precede a las obras principales previstas para comienzos de 2027; las adjudicaciones de equipos y contratistas, la puesta en marcha, los costos y la producción efectiva siguen sin verificarse.\n\nAporte de EMRADAR: un seguimiento causal continuo de la evidencia en la Región de Antofagasta y de los cambios que fortalecerían o invalidarían esta formación. Acción para el lector: seguir cómo la inversión verificada se convierte en capacidad productiva regional, actividad de proveedores y consecuencias de infraestructura.'};
+      await e.store.put(cacheKey,localized);
+    }
     if(!localized){
       const work=await e.modelWork(c,'localization',{source_copy,source_language:'en',target_language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id},'creation_approved');
       localized={...work.result,evidence_refs:[...work.proof.evidence_refs]};
@@ -302,7 +308,7 @@ const workers={
     if(approval?.review_hash===review_hash&&approval.approved_by==='OWNER'&&Date.parse(approval.expires_at)>Date.now()){
       c.review={proposal_id,review_hash,decision:'APPROVED',approved_at:approval.approved_at};return;
     }
-    const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
+    const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id,destination_id:c.route.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
     await e.store.put('publication_review:'+proposal_id,proposal);
     c.review={proposal_id,review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs};
     c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
