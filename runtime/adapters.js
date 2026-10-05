@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 
-const editorialFormats=['editorial_pitch','finished_manuscript','newsroom_tip','latam_editor_pitch','visual_asset','contact_form'];
+const editorialFormats=['editorial_pitch','editor_pitch','financial_guest_view_pitch','supplier_chain_pitch','markets_editor_pitch','contributed_article_proposal','finished_manuscript','newsroom_tip','latam_editor_pitch','visual_asset','contact_form'];
 
 // The transport performs only the final reviewed delivery. Permission, evidence,
 // editorial and identity decisions remain owned by the existing graph.
