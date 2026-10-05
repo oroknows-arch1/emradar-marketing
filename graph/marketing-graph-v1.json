@@ -65,6 +65,27 @@
       "execution_lane": "deterministic_approved_reuse"
     },
     {
+      "id": "commercial_evidence",
+      "worker": "commercial_evidence",
+      "output": "commercial_hypotheses",
+      "inputs": [
+        "formation",
+        "verified_route_candidates",
+        "source_evidence"
+      ],
+      "outputs": [
+        "commercial_hypotheses"
+      ],
+      "authority": "hypothesis_only_no_truth_mutation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "baseline",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
       "id": "baseline",
       "worker": "destination_baseline",
       "rule": "retrieve only directly relevant material needed to establish what destination already knows",
@@ -807,7 +828,8 @@
     "marketing_may_prepare_in_parallel": true,
     "distribution_requires_final_scan_gate": true,
     "external_publication_requires_exact_owner_review": true,
-    "t_plus_tracking_never_blocks_marketing": true
+    "t_plus_tracking_never_blocks_marketing": true,
+    "commercial_hypotheses_never_modify_source_truth": true
   },
   "execution_routing": {
     "owner": "VC Harness",
@@ -968,7 +990,7 @@
     },
     {
       "from": "scout",
-      "to": "baseline",
+      "to": "commercial_evidence",
       "event": "success"
     },
     {
@@ -1288,6 +1310,16 @@
       "from": "human_preview",
       "event": "blocked",
       "to": "discovery_stop"
+    },
+    {
+      "from": "commercial_evidence",
+      "to": "baseline",
+      "event": "success"
+    },
+    {
+      "from": "commercial_evidence",
+      "to": "receipt",
+      "event": "blocked"
     }
   ],
   "runtime": {

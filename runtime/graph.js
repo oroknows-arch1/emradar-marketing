@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
 import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
 import {organicWorkers,discoveryTestId} from './organic-discovery.js';
+import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
+import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFromSignal} from './open-route-scout.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -105,7 +107,7 @@ export class GraphEngine {
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
       c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
       if(c.status==='RUNNING')c.status=c.receipt?.execution_status==='PUBLISHED'?'PASS':c.receipt?.execution_status||'BLOCKED';
-      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
+      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,route_plan:c.route_plan||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
@@ -153,16 +155,32 @@ const workers={
     // Persistent product-scoped map first. No broad discovery or invented destination.
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
-    if(!c.candidates.length){
-      if(c.input.product==='EMRADAR'){
-        // EMRADAR uses only already-registered, executable destinations. Dynamic
-        // formation IDs do not require an external discovery runtime, but the
-        // existing baseline, delta and permission gates still decide eligibility.
-        const registered=(c.product.destinations||[]).length?c.product.destinations:registeredEmradarDestinations(c.signal);
-        c.candidates=registered.map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
-        if(!c.candidates.length)fail('NO_VERIFIED_EXECUTABLE_DESTINATION');
-        return;
+    if(c.input.product==='EMRADAR'){
+      const formation=formationFromSignal(c.signal);
+      const configured=(c.product.destinations||[]).map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
+      if(formation.evidence.length){
+        const authorizedAccounts=[];
+        if(e.adapters.X?.authorized&&await e.adapters.X.authorized('EMRADAR'))authorizedAccounts.push('EMRADAR-X-OROKNOWS');
+        const learning={};
+        for(const [k] of Object.entries(c.state.routes||{})){
+          const [product,signal,destination]=k.split(':').map(decodeURIComponent);
+          if(product===c.input.product&&signal===c.signal.id)learning[destination]={score:score(c.state,k)};
+        }
+        const open=openRouteScout({formation,directory:openRouteDirectory,learning,authorizedAccounts});
+        c.commercial_evidence=commercialEvidenceBranch(formation);
+        const priorPlan=await e.store.get('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);
+        const validUntil=priorPlan?.valid_until||new Date(Date.now()+7*86400000).toISOString();
+        c.route_plan={...open,valid_until:validUntil,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:c.commercial_evidence,stop:'PUBLICATION_REVIEW'};
+        await e.store.put('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.route_plan);
+        const openCandidates=open.candidates.map(d=>({id:d.destination_id,platform:d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE',signal_ids:[c.signal.id],formats:['text'],relevance:d.route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:d.destination_id!=='EMRADAR-X-OROKNOWS',route_record:d}));
+        const existing=c.candidates.length?c.candidates:configured;
+        c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))];
       }
+      if(!c.candidates.length)c.candidates=configured.length?configured:registeredEmradarDestinations(c.signal);
+      if(!c.candidates.length)fail('NO_VERIFIED_OPEN_OR_EXECUTABLE_DESTINATION');
+      return;
+    }
+    if(!c.candidates.length){
       const cached=await e.store.get('discovery:'+c.input.product+':'+c.signal.revision);
       if(cached)c.candidates=cached.destinations.map(d=>({...d,permission:c.product.destination_permissions?.[d.id]||{approved:false}}));
       else{
@@ -176,6 +194,7 @@ const workers={
       }
     }
   },
+  async commercial_evidence(c,e) {if(c.input.product!=='EMRADAR')return;c.commercial_evidence ||= commercialEvidenceBranch(formationFromSignal(c.signal));await e.store.put('commercial_evidence:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.commercial_evidence);},
   async baseline(c) {c.candidates=c.candidates.filter(d=>d.baseline?.id&&d.baseline?.valid_until&&Date.parse(d.baseline.valid_until)>Date.now());if(!c.candidates.length)fail('DESTINATION_BASELINE_REQUIRED');},
   async delta(c) {c.candidates=c.candidates.filter(d=>d.delta?.signal_revision===c.signal.revision&&d.delta?.meaningful===true&&d.delta?.evidence_ids?.every(id=>c.signal.evidence.includes(id))&&d.delta.evidence_ids.length);},
   async novelty_gate(c) {if(!c.candidates.length)fail('NO_MEANINGFUL_DELTA');},
@@ -189,6 +208,7 @@ const workers={
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
+    if(c.route?.destination?.open_access_prepare_only){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||!prepared.copy.includes(c.signal.state))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='verified_open_route_template';}
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
       const deterministicApproved=c.product.copy_policy?.extractive_template_approved===true||(c.input.product==='EMRADAR'&&c.product.review.editorial===true);
       if(!deterministicApproved)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
@@ -222,7 +242,8 @@ const workers={
     c.variant_key=digest([c.input.product,c.signal.id,c.route.id,c.route.format,c.copy]);
     c.variant={id:digest([c.signal.id,c.signal.revision,c.copy]).slice(0,16),copy:c.copy,source_state:c.signal.state,evidence:[...c.signal.evidence],voice:c.product.brand_system||'UNDEFINED'};},
   async format(c) {
-    if(c.route.format==='svg'){
+    if(c.route.destination.open_access_prepare_only){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy};}
+    else if(c.route.format==='svg'){
       const escape=s=>s.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
       const rows=c.copy.match(/.{1,65}(?:\s|$)|.{1,65}/g)||[];
       c.asset={format:'svg',copy:c.copy,svg:`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="${Math.max(240,rows.length*32+110)}"><rect width="100%" height="100%" fill="#101820"/><text fill="white" font-size="24" font-family="sans-serif">${rows.map((s,i)=>`<tspan x="35" y="${65+i*32}">${escape(s)}</tspan>`).join('')}</text></svg>`};
@@ -232,7 +253,7 @@ const workers={
       c.asset={...a,format:'image',copy:c.copy};
     }else if(c.route.format==='text')c.asset={format:'text',copy:c.copy};else fail('FORMAT_WORKER_UNAVAILABLE');
   },
-  async adapt(c,e) {c.adapter=e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
+  async adapt(c,e) {c.adapter=c.route.destination.open_access_prepare_only?{formats:c.route.destination.route_record.accepted_formats,cost:c.route.destination.route_record.cost,authorized:async()=>true,validate:async()=>true}:e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
   async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.allowed_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
   async brand_gate(c) {if(!c.product.review.brand||!c.product.review.risk)fail('BRAND_OR_RISK_REVIEW_REQUIRED');},
   async permission_gate(c) {
@@ -263,6 +284,7 @@ const workers={
     c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
   },
   async execute(c,e) {
+    if(c.route.destination.open_access_prepare_only)fail('OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
     c.publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const prior=await e.store.get('receipt:'+c.publication_key);
     if(prior?.execution_status==='PUBLISHED'){c.receipt=prior;c.duplicate=true;return;}
