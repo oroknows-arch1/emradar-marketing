@@ -192,16 +192,23 @@ server.listen(PORT,()=>{
 async function runPendingSourceRelease(){
   if(!process.env.MARKETING_PENDING_SOURCE_RELEASE_JSON)return;
   const pending=JSON.parse(process.env.MARKETING_PENDING_SOURCE_RELEASE_JSON);
-  const sourceUrl=/^https:\/\/emerging-markets-radar\.onrender\.com\/(data\/checkpoints\/discovery-2026-10-03\.json|verification\/downstream-release-attestation-2026-10-03\.json)$/;
-  if(pending?.product!=='EMRADAR'||pending?.sequence!==2||!sourceUrl.test(pending.scan_url)||!sourceUrl.test(pending.attestation_url))throw new Error('PENDING_SOURCE_RELEASE_INVALID');
+  const date='\\d{4}-\\d{2}-\\d{2}';
+  const scanUrl=new RegExp('^https://emerging-markets-radar\\.onrender\\.com/data/checkpoints/discovery-('+date+')\\.json$');
+  const attestationUrl=new RegExp('^https://emerging-markets-radar\\.onrender\\.com/verification/downstream-release-attestation-('+date+')\\.json$');
+  const scanMatch=typeof pending?.scan_url==='string'&&pending.scan_url.match(scanUrl);
+  const attestationMatch=typeof pending?.attestation_url==='string'&&pending.attestation_url.match(attestationUrl);
+  if(pending?.product!=='EMRADAR'||!Number.isInteger(pending?.sequence)||pending.sequence<1||!scanMatch||!attestationMatch||scanMatch[1]!==attestationMatch[1])throw new Error('PENDING_SOURCE_RELEASE_INVALID');
   const [scanResponse,attestationResponse]=await Promise.all([fetch(pending.scan_url),fetch(pending.attestation_url)]);
   if(!scanResponse.ok||!attestationResponse.ok)throw new Error('AUTHORITATIVE_SOURCE_FETCH_FAILED');
   const scanBytes=Buffer.from(await scanResponse.arrayBuffer()),attestation=await attestationResponse.json();
-  if(crypto.createHash('sha256').update(scanBytes).digest('hex')!==pending.scan_sha256||attestation.source_sha256!==pending.scan_sha256||attestation.product!=='EMRADAR'||attestation.snapshot_date!=='2026-10-03'||attestation.publication_state!=='PUBLISHED'||attestation.downstream_release_allowed!==true||attestation.campaign_authority?.campaign_id!=='EMRADAR_2026_10_03_LAUNCH'||attestation.campaign_authority?.external_publication_allowed!==false)throw new Error('AUTHORITATIVE_SOURCE_ATTESTATION_MISMATCH');
+  const snapshotDate=scanMatch[1],expectedCampaign='EMRADAR_'+snapshotDate.replaceAll('-','_')+'_LAUNCH';
+  if(crypto.createHash('sha256').update(scanBytes).digest('hex')!==pending.scan_sha256||attestation.source_sha256!==pending.scan_sha256||attestation.product!=='EMRADAR'||attestation.snapshot_date!==snapshotDate||attestation.publication_state!=='PUBLISHED'||attestation.downstream_release_allowed!==true||attestation.campaign_authority?.campaign_id!==expectedCampaign||attestation.campaign_authority?.external_publication_allowed!==false||attestation.campaign_authority?.required_stop!=='PUBLICATION_REVIEW')throw new Error('AUTHORITATIVE_SOURCE_ATTESTATION_MISMATCH');
   const required=['evidence','editorial','brand','risk','publication'];
   if(!required.every(g=>attestation.native_gates?.[g]==='PASS'))throw new Error('AUTHORITATIVE_SOURCE_GATES_INCOMPLETE');
-  const scan=JSON.parse(scanBytes),source=emradarSource(scan,{release_approved:true,evidence:true,editorial:true});source.native_gates=attestation.native_gates;
-  const envelope={product:'EMRADAR',sequence:2,source},key=JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}').EMRADAR;
+  const scan=JSON.parse(scanBytes);
+  if(scan.snapshot_date!==snapshotDate||scan.publication_state!=='PUBLISHED')throw new Error('AUTHORITATIVE_SCAN_STATE_MISMATCH');
+  const source=emradarSource(scan,{release_approved:true,evidence:true,editorial:true});source.native_gates=attestation.native_gates;
+  const envelope={product:'EMRADAR',sequence:pending.sequence,source},key=JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}').EMRADAR;
   if(!key)throw new Error('SOURCE_NOT_REGISTERED');
   const result=await (await productIntake()).receive(envelope,signSource(envelope,key));
   console.log('MARKETING_SOURCE_RELEASE '+JSON.stringify(result));
