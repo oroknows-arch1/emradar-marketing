@@ -199,6 +199,7 @@ const workers={
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
+    if(c.route?.destination?.open_access_prepare_only){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||!prepared.copy.includes(c.signal.state))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='verified_open_route_template';}
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
       const deterministicApproved=c.product.copy_policy?.extractive_template_approved===true||(c.input.product==='EMRADAR'&&c.product.review.editorial===true);
       if(!deterministicApproved)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
@@ -232,7 +233,8 @@ const workers={
     c.variant_key=digest([c.input.product,c.signal.id,c.route.id,c.route.format,c.copy]);
     c.variant={id:digest([c.signal.id,c.signal.revision,c.copy]).slice(0,16),copy:c.copy,source_state:c.signal.state,evidence:[...c.signal.evidence],voice:c.product.brand_system||'UNDEFINED'};},
   async format(c) {
-    if(c.route.format==='svg'){
+    if(c.route.destination.open_access_prepare_only){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy};}
+    else if(c.route.format==='svg'){
       const escape=s=>s.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
       const rows=c.copy.match(/.{1,65}(?:\s|$)|.{1,65}/g)||[];
       c.asset={format:'svg',copy:c.copy,svg:`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="${Math.max(240,rows.length*32+110)}"><rect width="100%" height="100%" fill="#101820"/><text fill="white" font-size="24" font-family="sans-serif">${rows.map((s,i)=>`<tspan x="35" y="${65+i*32}">${escape(s)}</tspan>`).join('')}</text></svg>`};
@@ -242,7 +244,7 @@ const workers={
       c.asset={...a,format:'image',copy:c.copy};
     }else if(c.route.format==='text')c.asset={format:'text',copy:c.copy};else fail('FORMAT_WORKER_UNAVAILABLE');
   },
-  async adapt(c,e) {c.adapter=c.route.destination.open_access_prepare_only?{formats:['text'],cost:'ZERO',authorized:async()=>true,validate:async()=>true}:e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
+  async adapt(c,e) {c.adapter=c.route.destination.open_access_prepare_only?{formats:c.route.destination.route_record.accepted_formats,cost:'ZERO',authorized:async()=>true,validate:async()=>true}:e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
   async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.allowed_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
   async brand_gate(c) {if(!c.product.review.brand||!c.product.review.risk)fail('BRAND_OR_RISK_REVIEW_REQUIRED');},
   async permission_gate(c) {
