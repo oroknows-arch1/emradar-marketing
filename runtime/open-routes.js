@@ -10,7 +10,7 @@ export function openRouteCandidates(signal){
    const industry_hits=d.industries.filter(i=>industries.some(x=>overlap(i,x)>0)).length;
    const topic_hits=d.relevant_beat_topic.filter(t=>overlap(t,text)>0).length;
    const geo_hits=d.geography.filter(g=>overlap(g,text)>0).length;
-   const evidence_backed=d.verification_state.startsWith('VERIFIED_')&&!!d.evidence_source_url&&!!d.public_submission_url;
+   const evidence_backed=d.verification_state==='VERIFIED_PUBLIC_ROUTE'&&!!d.evidence_source_url&&!!d.public_submission_url;
    const factors={formation_relevance:Math.min(1,(industry_hits+topic_hits)/3),industry_relevance:Math.min(1,industry_hits/2),geographic_relevance:Math.min(1,geo_hits),audience_relevance:Math.min(1,(industry_hits+topic_hits)/3),editorial_fit:Math.min(1,topic_hits/2),novelty:signal.chain_evolution?.new_links?.length?1:0.5,contribution_value:(signal.evidence||[]).length>=2?1:0.5,access_feasibility:d.account_required===false&&evidence_backed?1:0,historical_route_performance:0};
    const score=Object.values(factors).reduce((a,b)=>a+b,0)/Object.keys(factors).length;
    return {...d,score:Number(score.toFixed(3)),factors,selected:evidence_backed&&score>=0.45,rejection_reason:evidence_backed?(score>=0.45?null:'WEAK_RELEVANCE'):'UNVERIFIED_ROUTE'};
