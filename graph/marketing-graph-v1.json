@@ -45,6 +45,62 @@
       "execution_lane": "deterministic_approved_reuse"
     },
     {
+      "id": "open_route_scout",
+      "worker": "verified_open_route_scout",
+      "inputs": [
+        "formation",
+        "causal_chain",
+        "industries",
+        "geography",
+        "participants",
+        "evidence_state",
+        "evidence"
+      ],
+      "outputs": [
+        "verified_open_route_candidates"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "route_relevance",
+      "worker": "evidence_backed_route_scoring",
+      "inputs": [
+        "verified_open_route_candidates",
+        "formation",
+        "learning.routes"
+      ],
+      "outputs": [
+        "route_reasoning"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "commercial_evidence",
+      "worker": "commercial_evidence_hypothesis",
+      "inputs": [
+        "formation",
+        "route_reasoning",
+        "evidence"
+      ],
+      "outputs": [
+        "commercial_hypotheses",
+        "route_portfolio"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [],
+      "max_attempts": 1,
+      "execution_lane": "deterministic_approved_reuse"
+    },
+    {
       "id": "scout",
       "worker": "scout",
       "output": "candidate_destinations",
@@ -983,12 +1039,12 @@
     },
     {
       "from": "novelty_gate",
-      "to": "route",
+      "to": "route_relevance",
       "event": "success"
     },
     {
       "from": "route",
-      "to": "editorial_intelligence",
+      "to": "commercial_evidence",
       "event": "success"
     },
     {
@@ -1191,7 +1247,7 @@
     },
     {
       "from": "relevance",
-      "to": "scout",
+      "to": "open_route_scout",
       "event": "success"
     },
     {
@@ -1288,6 +1344,36 @@
       "from": "human_preview",
       "event": "blocked",
       "to": "discovery_stop"
+    },
+    {
+      "from": "open_route_scout",
+      "to": "scout",
+      "event": "success"
+    },
+    {
+      "from": "open_route_scout",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "route_relevance",
+      "to": "route",
+      "event": "success"
+    },
+    {
+      "from": "route_relevance",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "commercial_evidence",
+      "to": "editorial_intelligence",
+      "event": "success"
+    },
+    {
+      "from": "commercial_evidence",
+      "to": "receipt",
+      "event": "blocked"
     }
   ],
   "runtime": {

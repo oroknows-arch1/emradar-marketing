@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
 import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
 import {organicWorkers,discoveryTestId} from './organic-discovery.js';
+import {openRouteCandidates,routePackages,commercialEvidence} from './open-routes.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -105,7 +106,7 @@ export class GraphEngine {
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
       c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
       if(c.status==='RUNNING')c.status=c.receipt?.execution_status==='PUBLISHED'?'PASS':c.receipt?.execution_status||'BLOCKED';
-      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
+      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,route_portfolio:c.route_portfolio||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
@@ -149,18 +150,20 @@ const workers={
   },
   async campaign(c) {c.campaign={id:c.input.campaign_id,signal:c.signal.id,revision:c.signal.revision};},
   async relevance(c) {c.relevant=c.product.destinations.filter(d=>d.signal_ids.includes(c.signal.id));c.relevant.sort((a,b)=>Math.max(...b.formats.map(f=>score(c.state,keyOf(c.input.product,c.signal.id,b.id,f))))-Math.max(...a.formats.map(f=>score(c.state,keyOf(c.input.product,c.signal.id,a.id,f)))));},
+  async open_route_scout(c) {
+    c.open_routes=c.input.product==='EMRADAR'?openRouteCandidates(c.signal):[];
+  },
   async scout(c,e) {
     // Persistent product-scoped map first. No broad discovery or invented destination.
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
     if(!c.candidates.length){
       if(c.input.product==='EMRADAR'){
-        // EMRADAR uses only already-registered, executable destinations. Dynamic
-        // formation IDs do not require an external discovery runtime, but the
-        // existing baseline, delta and permission gates still decide eligibility.
         const registered=(c.product.destinations||[]).length?c.product.destinations:registeredEmradarDestinations(c.signal);
-        c.candidates=registered.map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}}));
-        if(!c.candidates.length)fail('NO_VERIFIED_EXECUTABLE_DESTINATION');
+        const validUntil=new Date(Date.now()+30*24*3600000).toISOString();
+        const open=(c.open_routes||[]).filter(d=>d.selected).map(d=>({id:d.destination_id,platform:'OPEN_ROUTE',signal_ids:[c.signal.id],formats:['text'],relevance:d.score,route_record:d,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true}));
+        c.candidates=[...registered.map(d=>({...d,permission:d.permission||c.product.destination_permissions?.[d.id]||{approved:false}})),...open];
+        if(!c.candidates.length)fail('NO_VERIFIED_RELEVANT_DESTINATION');
         return;
       }
       const cached=await e.store.get('discovery:'+c.input.product+':'+c.signal.revision);
@@ -179,6 +182,9 @@ const workers={
   async baseline(c) {c.candidates=c.candidates.filter(d=>d.baseline?.id&&d.baseline?.valid_until&&Date.parse(d.baseline.valid_until)>Date.now());if(!c.candidates.length)fail('DESTINATION_BASELINE_REQUIRED');},
   async delta(c) {c.candidates=c.candidates.filter(d=>d.delta?.signal_revision===c.signal.revision&&d.delta?.meaningful===true&&d.delta?.evidence_ids?.every(id=>c.signal.evidence.includes(id))&&d.delta.evidence_ids.length);},
   async novelty_gate(c) {if(!c.candidates.length)fail('NO_MEANINGFUL_DELTA');},
+  async route_relevance(c) {
+    c.route_reasoning=(c.open_routes||[]).map(d=>({destination_id:d.destination_id,score:d.score,factors:d.factors,selected:d.selected,rejection_reason:d.rejection_reason,contact_point:d.public_contact_point,submission_url:d.public_submission_url,verification_state:d.verification_state}));
+  },
   async route(c) {
     const options=[];
     for(const d of c.candidates)for(const f of d.formats){const key=keyOf(c.input.product,c.signal.id,d.id,f);const l=c.state.routes[key];const health=c.state.platforms?.[c.input.product+':'+d.platform];options.push({id:d.id,destination:d,format:f,key,score:(d.relevance||0)+score(c.state,key),learned:score(c.state,key),breaker:l?.failures>=3||health?.failures>=3,cooldown:Date.parse(l?.retry_at||0)>Date.now()||Date.parse(health?.retry_at||0)>Date.now()});}
@@ -186,6 +192,12 @@ const workers={
     c.route=options.find(o=>!o.breaker&&!o.cooldown);
     c.selection={learning_version:c.state.version,options:options.map(({destination,...o})=>o),selected:c.route?.key||null};
     if(!c.route)fail('CIRCUIT_OPEN_OR_RATE_LIMITED');
+  },
+  async commercial_evidence(c,e) {
+    const packages=routePackages(c.signal,c.open_routes||[]);
+    c.route_portfolio={signal:c.signal.id,why_it_matters:c.signal.source_title,who_cares:[...new Set(packages.map(()=> 'specialist mining audiences'))],where_they_are:(c.route_reasoning||[]).filter(x=>x.selected),how_to_reach_them:(c.route_reasoning||[]).filter(x=>x.selected).map(x=>({destination_id:x.destination_id,contact_point:x.contact_point,submission_url:x.submission_url})),what_to_send:packages};
+    c.commercial_evidence=commercialEvidence(c.signal);
+    await e.store.put('commercial_evidence:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,{signal_id:c.signal.id,signal_revision:c.signal.revision,hypotheses:c.commercial_evidence,route_portfolio:c.route_portfolio,updated_at:now()});
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
@@ -232,7 +244,7 @@ const workers={
       c.asset={...a,format:'image',copy:c.copy};
     }else if(c.route.format==='text')c.asset={format:'text',copy:c.copy};else fail('FORMAT_WORKER_UNAVAILABLE');
   },
-  async adapt(c,e) {c.adapter=e.adapters[c.route.destination.platform];if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
+  async adapt(c,e) {c.adapter=e.adapters[c.route.destination.platform]||(c.route.destination.review_only?{formats:['text'],cost:'ZERO',validate:async()=>{}}:null);if(!c.adapter?.formats.includes(c.asset.format))fail('DESTINATION_ADAPTER_UNAVAILABLE');if(c.route.destination.platform==='X'&&c.copy.length>280)fail('X_COPY_LENGTH_REQUIRES_APPROVED_VARIANT');await c.adapter.validate?.(c.asset);},
   async evidence_gate(c) {approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash||c.variant.source_state!==c.signal.state||!c.allowed_copy.includes(c.asset.copy))fail('EVIDENCE_TRUTH_CHANGED');},
   async brand_gate(c) {if(!c.product.review.brand||!c.product.review.risk)fail('BRAND_OR_RISK_REVIEW_REQUIRED');},
   async permission_gate(c) {

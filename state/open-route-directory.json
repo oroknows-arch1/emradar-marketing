@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "verified_at": "2026-10-05",
+  "rule": "Publicly verifiable open routes only. Absence is UNKNOWN; never infer contact details.",
+  "destinations": [
+    {
+      "destination_id": "REDIMIN-EDITORIAL",
+      "destination_name": "Revista Digital Minera REDIMIN",
+      "destination_class": "trade_publication",
+      "organisation": "REDIMIN",
+      "relevant_beat_topic": [
+        "mining",
+        "energy",
+        "industry",
+        "commodities",
+        "investment"
+      ],
+      "geography": [
+        "Chile",
+        "Latin America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mining services",
+        "Mine construction",
+        "Grinding equipment"
+      ],
+      "access_method": "public editorial channel",
+      "public_contact_point": "Editorial channel published on contact page",
+      "public_submission_url": "https://www.redimin.cl/contacto-editorial",
+      "submission_requirements": [
+        "name",
+        "role",
+        "contact",
+        "release or summary",
+        "official links",
+        "graphics if applicable"
+      ],
+      "accepted_formats": [
+        "contributed_article_proposal",
+        "newsroom_tip",
+        "editor_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.redimin.cl/contacto-editorial",
+      "verification_state": "VERIFIED_PUBLIC_ROUTE"
+    },
+    {
+      "destination_id": "TERRITORIO-MINERO-PRESS",
+      "destination_name": "Territorio Minero",
+      "destination_class": "trade_publication",
+      "organisation": "TerritorioMinero.cl",
+      "relevant_beat_topic": [
+        "mining",
+        "energy",
+        "sustainability",
+        "supply chain",
+        "territorial development"
+      ],
+      "geography": [
+        "Chile",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mining services",
+        "Mine construction"
+      ],
+      "access_method": "public press/editorial contact",
+      "public_contact_point": "prensa@territoriominero.cl; editorial proposals also accepted through public contact page",
+      "public_submission_url": "https://territoriominero.cl/contacto/",
+      "submission_requirements": [
+        "editorial proposal relevant to mining/energy"
+      ],
+      "accepted_formats": [
+        "newsroom_tip",
+        "editor_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://territoriominero.cl/contacto/",
+      "verification_state": "VERIFIED_PUBLIC_ROUTE"
+    },
+    {
+      "destination_id": "GLOBAL-MINING-REVIEW",
+      "destination_name": "Global Mining Review",
+      "destination_class": "trade_publication",
+      "organisation": "Palladian Publications",
+      "relevant_beat_topic": [
+        "international mining",
+        "mineral processing",
+        "technical articles",
+        "case studies",
+        "market trends"
+      ],
+      "geography": [
+        "Global",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mineral processing",
+        "Grinding equipment",
+        "Mine construction"
+      ],
+      "access_method": "public publication contact",
+      "public_contact_point": "enquiries@globalminingreview.com",
+      "public_submission_url": "https://www.globalminingreview.com/contact/",
+      "submission_requirements": [
+        "UNKNOWN"
+      ],
+      "accepted_formats": [
+        "editor_pitch",
+        "contributed_article_proposal"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.globalminingreview.com/contact/",
+      "verification_state": "VERIFIED_PUBLIC_CONTACT_SUBMISSION_REQUIREMENTS_UNKNOWN"
+    },
+    {
+      "destination_id": "INTERNATIONAL-MINING",
+      "destination_name": "International Mining",
+      "destination_class": "trade_publication",
+      "organisation": "TEAM Publishing Ltd",
+      "relevant_beat_topic": [
+        "mining",
+        "mineral processing",
+        "mine technology",
+        "projects"
+      ],
+      "geography": [
+        "Global",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mineral processing",
+        "Grinding equipment",
+        "Mine construction"
+      ],
+      "access_method": "public publication contact",
+      "public_contact_point": "kate@im-mining.com; emma@im-mining.com",
+      "public_submission_url": "https://im-mining.com/contact/",
+      "submission_requirements": [
+        "UNKNOWN"
+      ],
+      "accepted_formats": [
+        "editor_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://im-mining.com/contact/",
+      "verification_state": "VERIFIED_PUBLIC_CONTACT_SUBMISSION_REQUIREMENTS_UNKNOWN"
+    }
+  ]
+}
