@@ -3,7 +3,7 @@ const directory=JSON.parse(await fs.readFile(new URL('../state/open-route-direct
 const norm=v=>String(v||'').toLowerCase();
 const terms=s=>new Set(norm(s).split(/[^a-z0-9]+/).filter(x=>x.length>2));
 const overlap=(a,b)=>{const A=terms(a),B=terms(b);let n=0;for(const x of A)if(B.has(x))n++;return n;};
-const signalText=s=>JSON.stringify({title:s.source_title,chain:s.causal_chain||{},facts:s.source_facts||[]});
+const signalText=s=>JSON.stringify({title:s.source_title,location:s.source_location||'UNKNOWN',chain:s.causal_chain||{},facts:s.source_facts||[]});
 export function openRouteCandidates(signal){
  const text=signalText(signal); const industries=signal.causal_chain?.industries||[];
  return directory.destinations.map(d=>{
