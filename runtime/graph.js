@@ -185,6 +185,7 @@ const workers={
       }
     }
   },
+  async commercial_evidence(c,e) {if(c.input.product!=='EMRADAR')return;c.commercial_evidence ||= commercialEvidenceBranch(formationFromSignal(c.signal));await e.store.put('commercial_evidence:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.commercial_evidence);},
   async baseline(c) {c.candidates=c.candidates.filter(d=>d.baseline?.id&&d.baseline?.valid_until&&Date.parse(d.baseline.valid_until)>Date.now());if(!c.candidates.length)fail('DESTINATION_BASELINE_REQUIRED');},
   async delta(c) {c.candidates=c.candidates.filter(d=>d.delta?.signal_revision===c.signal.revision&&d.delta?.meaningful===true&&d.delta?.evidence_ids?.every(id=>c.signal.evidence.includes(id))&&d.delta.evidence_ids.length);},
   async novelty_gate(c) {if(!c.candidates.length)fail('NO_MEANINGFUL_DELTA');},
