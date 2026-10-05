@@ -37,9 +37,9 @@
         "graphics if applicable"
       ],
       "accepted_formats": [
-        "editor_pitch",
+        "contributed_article_proposal",
         "newsroom_tip",
-        "contributed_article_proposal"
+        "editor_pitch"
       ],
       "account_required": false,
       "cost": "UNKNOWN",
@@ -74,9 +74,8 @@
         "editorial proposal relevant to mining/energy"
       ],
       "accepted_formats": [
-        "editor_pitch",
         "newsroom_tip",
-        "contributed_article_proposal"
+        "editor_pitch"
       ],
       "account_required": false,
       "cost": "UNKNOWN",
