@@ -10,8 +10,9 @@
     "test:native-source": "node scripts/prove-native-source.js"
   },
   "dependencies": {
-    "redis": "^5.8.3",
-    "jose": "^6.1.0"
+    "jose": "^6.1.0",
+    "nodemailer": "^10.0.14",
+    "redis": "^5.8.3"
   },
   "engines": {
     "node": ">=22.18"

@@ -120,3 +120,9 @@ REDIMIN copy passes through a bounded `es-CL` localization worker before the exi
 editorial quality gate. The verified translation is source/evidence bound and cached by
 source revision, destination, locale, and source copy, so an exact recorded publication
 approval resumes without paying for or requesting routine re-localization.
+
+The included Gmail transport is enabled with
+`MARKETING_EDITORIAL_OUTREACH_MODULE=runtime/editorial-outreach-gmail.js`,
+`EDITORIAL_GMAIL_USER`, and an owner-entered `EDITORIAL_GMAIL_APP_PASSWORD` secret.
+It supports verified public editorial email routes only; public forms remain fail-closed
+until a destination-specific form schema is implemented and verified.
