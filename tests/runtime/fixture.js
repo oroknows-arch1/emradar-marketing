@@ -14,6 +14,6 @@ export const editorialHarness=()=>({
     const facts=context.source.source_facts,uncertainty=context.source.source_uncertainty||[];
     const subject=context.target_language==='es-CL'?'Propuesta editorial':'Editorial proposal';
     const body=[context.destination.destination_class,...facts.map(f=>f.text),...uncertainty].join('. ');
-    return {result:{subject,body,language:context.target_language,signal_state:context.source.state,evidence_refs:context.source.evidence,claims:facts.map(f=>({text:f.text,evidence_refs:[f.id]})),qualifications:uncertainty.map((text,source_index)=>({text,source_index}))},proof:{billing:{currency:'AUD',actual:true,amount:0,receipt_id:'test-editorial-billing',provider:'TEST'},evidence_refs:context.source.evidence,editorial_checks:{factual_entailment:'PASS',uncertainty_preserved:'PASS',destination_fit:'PASS',originality:'PASS'}},decision:{lane:'model'},attempts:1};
+    return {result:{subject,body,language:context.target_language,signal_state:context.source.state,evidence_refs:context.source.evidence,claims:facts.map(f=>({text:f.text,evidence_refs:[f.id]})),qualifications:uncertainty.map((text,source_index)=>({text,source_index})),capability_claims:[]},proof:{billing:{currency:'AUD',actual:true,amount:0,receipt_id:'test-editorial-billing',provider:'TEST'},evidence_refs:context.source.evidence,editorial_checks:{factual_entailment:'PASS',uncertainty_preserved:'PASS',destination_fit:'PASS',originality:'PASS',capability_inventory:'PASS'}},decision:{lane:'model'},attempts:1};
   }
 });

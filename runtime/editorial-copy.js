@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
+import {validateCapabilityInventory} from './editorial-email.js';
 
 export const editorialContract=await fs.readFile(new URL('../contracts/editorial-copy-system-v1.md',import.meta.url),'utf8');
 export const editorialVersion=crypto.createHash('sha256').update(editorialContract).digest('hex');
@@ -17,13 +18,15 @@ export function editorialContext(c){
     brand_system:c.product.brand_system||'UNDEFINED',
     destination:c.route.destination.route_record,
     brief:c.route_plan.proposed_assets.find(a=>a.destination_id===c.route.id),
+    capabilities:{source_linked_note:{state:'VERIFIED',authorized:true,scope:'Only the current source-bound note included in the email'},ongoing_monitoring_or_continuous_coverage:{state:'UNVERIFIED',authorized:false}},
     target_language:c.route.destination.route_record.destination_class==='latam_trade_publication'?'es-CL':'en',
-    instructions:'Transform the evidence-qualified source into an original destination-specific editorial pitch. Apply the full editorial contract and product voice. Do not imitate any named publication or journalist. Do not output schema labels, canned causal chains, forecasts as realised outcomes, investment recommendations, or claims of supplier awards without evidence. Include every material source uncertainty naturally. Facts, quantities and claims must be grounded in source evidence. Follow destination submission length and format requirements. Return subject, body, language, signal_state, evidence_refs, claims (each with exact body text and evidence_refs), and qualifications (each with source_index into source_uncertainty and exact body text). A separate verifier must validate factual entailment, uncertainty preservation, originality and destination fit.'
+    instructions:'Transform the evidence-qualified source into an original destination-specific editorial pitch. Apply the full editorial contract and product voice. Do not imitate any named publication or journalist. Do not output schema labels, canned causal chains, forecasts as realised outcomes, investment recommendations, or claims of supplier awards without evidence. Include every material source uncertainty naturally. Facts, quantities and claims must be grounded in source evidence. Follow destination submission length and format requirements. Return subject, body, language, signal_state, evidence_refs, claims (each with exact body text and evidence_refs), and qualifications (each with source_index into source_uncertainty and exact body text). Do not promise future research, investigation, monitoring, updates, coverage or any ongoing service. The only permitted offer is the current source-linked note. Return capability_claims listing every material service claim with exact body text and capability; use an empty array when absent. A separate verifier must validate factual entailment, uncertainty preservation, originality, destination fit and completeness of the capability inventory, returning editorial_checks.capability_inventory=PASS only when all service claims are enumerated.'
   };
 }
 
 export function validateEditorial(result,proof,context){
   const refs=context.source.evidence;
+  validateCapabilityInventory(result,proof);
   const copy=`Subject: ${result?.subject||''}\n\n${result?.body||''}`;
   if(!result?.subject?.trim()||!result?.body?.trim()||result.signal_state!==context.source.state||result.language!==context.target_language)throw new Error('EDITORIAL_RESULT_INVALID');
   if(externalSchemaLeak(copy))throw new Error('EXTERNAL_EDITORIAL_SCHEMA_LEAK');

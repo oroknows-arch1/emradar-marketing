@@ -159,6 +159,11 @@ const server=http.createServer(async(req,res)=>{
     try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));if(process.env.MARKETING_AUTONOMOUS!=='true')return json(res,200,{status:'SCHEDULER_DISABLED',result:null,feedback:null});const result=await (await marketingEngine()).tick();return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
+  if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/revise'){
+    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
+    catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
