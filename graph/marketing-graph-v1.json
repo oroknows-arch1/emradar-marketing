@@ -193,11 +193,32 @@
       "authority": "bounded_transformation",
       "failure_state": "BLOCKED_OR_UNKNOWN",
       "handoff": [
-        "editorial_quality_gate",
+        "localization",
         "receipt"
       ],
       "max_attempts": 1,
       "execution_lane": "deterministic_approved_reuse"
+    },
+    {
+      "id": "localization",
+      "worker": "bounded_localization",
+      "inputs": [
+        "destination_native_copy",
+        "source_state",
+        "source_evidence",
+        "target_locale"
+      ],
+      "outputs": [
+        "verified_localized_copy_or_unchanged_copy"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED_OR_UNKNOWN",
+      "handoff": [
+        "editorial_quality_gate",
+        "receipt"
+      ],
+      "max_attempts": 2,
+      "execution_lane": "harness_selected_for_required_localization"
     },
     {
       "id": "editorial_quality_gate",
@@ -1015,6 +1036,11 @@
     },
     {
       "from": "editorial_intelligence",
+      "to": "localization",
+      "event": "success"
+    },
+    {
+      "from": "localization",
       "to": "editorial_quality_gate",
       "event": "success"
     },
@@ -1140,6 +1166,11 @@
     },
     {
       "from": "editorial_intelligence",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "localization",
       "to": "receipt",
       "event": "blocked"
     },

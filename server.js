@@ -8,7 +8,7 @@ import { RedisStore } from './runtime/store.js';
 import {ProductIntake,loadPolicies,emradarSource,signSource} from './runtime/intake.js';
 import {applyAuthority} from './runtime/authority.js';
 import {loadHarness} from './runtime/harness.js';
-import { xAdapter, localAdapter } from './runtime/adapters.js';
+import { xAdapter, localAdapter, loadEditorialOutreach } from './runtime/adapters.js';
 import {blueskyConnector,linkedinConnector,mastodonConnector,socialAdapter} from './runtime/social-connectors.js';
 import {integrationStatus} from './runtime/integration-status.js';
 import {verifySchedulerToken} from './runtime/scheduler-auth.js';
@@ -104,6 +104,7 @@ async function marketingEngine(){
     if(!auth?.access_token)throw new Error('X authorization required');
     return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);
   }}),LINKEDIN:socialAdapter(linkedinConnector({accessToken:linkedinAuth?.access_token||process.env.LINKEDIN_ACCESS_TOKEN,organizationUrn:process.env.LINKEDIN_ORGANIZATION_URN,apiVersion:process.env.LINKEDIN_API_VERSION})),BLUESKY:socialAdapter(blueskyConnector({service:process.env.BLUESKY_SERVICE_URL,identifier:process.env.BLUESKY_IDENTIFIER,appPassword:process.env.BLUESKY_APP_PASSWORD})),MASTODON:socialAdapter(mastodonConnector({server:process.env.MASTODON_SERVER,accessToken:process.env.MASTODON_ACCESS_TOKEN}))};
+  const editorialOutreach=await loadEditorialOutreach(process.env.MARKETING_EDITORIAL_OUTREACH_MODULE);if(editorialOutreach)adapters.OPEN_ROUTE=editorialOutreach;
   if(process.env.MARKETING_TEST_DIRECTORY)adapters.LOCAL=localAdapter(process.env.MARKETING_TEST_DIRECTORY);
   return new GraphEngine({store:new RedisStore(await store()),products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)});
 }
@@ -226,7 +227,7 @@ async function runPendingCampaign(connectedClient=null){
   if(prior?.status==='IN_FLIGHT'&&Date.now()-Date.parse(prior.started_at)>60000){
     console.log('MARKETING_CAMPAIGN_RECOVERY '+JSON.stringify({campaign_id:input.campaign_id,status:'CHECKING_RECEIPTS'}));
     const receipts=await s.get('receipt_index')||[];
-    if(receipts.some(r=>r.campaign_id===input.campaign_id&&['PUBLISHED','IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)))throw new Error('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
+    if(receipts.some(r=>r.campaign_id===input.campaign_id&&['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)))throw new Error('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     const proposalKeys=await s.client.keys('marketing:graph:publication_review:*');
     for(const proposalKey of proposalKeys){const proposal=JSON.parse(await s.client.get(proposalKey));if(proposal?.input?.campaign_id===input.campaign_id){const result={product:input.product,campaign_id:input.campaign_id,status:'AWAITING_REVIEW',blocker:'PUBLICATION_REVIEW_REQUIRED',review:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs}};await s.put(key,{status:'COMPLETE',input,recovered_at:new Date().toISOString(),result});console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));return;}}
     const history=await s.get(key+':history')||[];history.push({...prior,status:'INTERRUPTED_BEFORE_PUBLICATION'});await s.put(key+':history',history.slice(-20));

@@ -8,7 +8,7 @@
     "status": "ACCEPTED_SOURCE",
     "product": "EMRADAR",
     "sequence": 1,
-    "digest": "bb68c8d1cc9773aa0a45e7e3a7c09ba83902d4e60c3d3409c124c5c5a2905404",
+    "digest": "e16bd1781fb00a47e038738ccba3ec21625c21d4044f8ca7311caa56aeca3db0",
     "ignored_authority_fields": [
       "budget",
       "destinations",
@@ -19,16 +19,20 @@
     "next": "ingest"
   },
   "run": {
-    "run_id": "73f62c31-300b-4aab-8ffd-24b4e9bfc21c",
+    "run_id": "130dd121-caa3-4beb-94a4-f2136ed59273",
     "product": "EMRADAR",
     "campaign_id": "NATIVE_SOURCE_SAFE_BLOCKED_PROOF",
     "status": "BLOCKED",
     "blocker": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+    "blocker_disposition": {
+      "scope": "INTERNAL_EXECUTION",
+      "surface_to_owner": false
+    },
     "nodes": [
       {
         "node": "ingest",
         "lane": "deterministic",
-        "at": "2026-10-02T17:17:12.125Z",
+        "at": "2026-10-05T03:33:50.895Z",
         "status": "BLOCKED",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
         "reason": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
@@ -37,51 +41,54 @@
       {
         "node": "receipt",
         "lane": "deterministic",
-        "at": "2026-10-02T17:17:12.126Z",
+        "at": "2026-10-05T03:33:50.895Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "5cb15077e9cf275efd19737e1abc66a0a5e16e6d20d3939863a05565b0425136"
+        "output_hash": "c569c53746a78bcab2d224df3c1579e141712a8a038832cd46ca62ca32325c3b"
       },
       {
         "node": "observe",
         "lane": "deterministic",
-        "at": "2026-10-02T17:17:12.127Z",
+        "at": "2026-10-05T03:33:50.896Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "5cb15077e9cf275efd19737e1abc66a0a5e16e6d20d3939863a05565b0425136"
+        "output_hash": "c569c53746a78bcab2d224df3c1579e141712a8a038832cd46ca62ca32325c3b"
       },
       {
         "node": "normalize",
         "lane": "deterministic",
-        "at": "2026-10-02T17:17:12.127Z",
+        "at": "2026-10-05T03:33:50.896Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "d64ab5b694999e1d5019d550c659f54c3509bfc2f70caf632d241cd99d698c69"
+        "output_hash": "317f9e3e5cd1da94ef1deaa67d77f83749d15678191ddb7f0216c65838ef8e5e"
       },
       {
         "node": "learn",
         "lane": "deterministic",
-        "at": "2026-10-02T17:17:12.128Z",
+        "at": "2026-10-05T03:33:50.896Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "d64ab5b694999e1d5019d550c659f54c3509bfc2f70caf632d241cd99d698c69"
+        "output_hash": "317f9e3e5cd1da94ef1deaa67d77f83749d15678191ddb7f0216c65838ef8e5e"
       },
       {
         "node": "distribution_map",
         "lane": "deterministic",
-        "at": "2026-10-02T17:17:12.128Z",
+        "at": "2026-10-05T03:33:50.897Z",
         "status": "PASS",
         "input_hash": "216ed1b5f7c521977c34b0acc6057de54262ceae44b90f6e39b87d55e6e600ff",
-        "output_hash": "d64ab5b694999e1d5019d550c659f54c3509bfc2f70caf632d241cd99d698c69"
+        "output_hash": "317f9e3e5cd1da94ef1deaa67d77f83749d15678191ddb7f0216c65838ef8e5e"
       }
     ],
+    "route_plan": null,
+    "commercial_evidence": null,
+    "review": null,
     "receipt": {
-      "id": "88b7a65cb3684c8dc82a49b317dbb2eb9e05a9a7de586da214084fee515a70c5",
+      "id": "c0946a7fcbba80bd106077545521d7f422c549d52590a8efcb559dc93ea6d1de",
       "destination": "UNKNOWN",
       "platform": "UNKNOWN",
       "variant": "UNKNOWN",
       "format": "UNKNOWN",
-      "timestamp": "2026-10-02T17:17:12.126Z",
+      "timestamp": "2026-10-05T03:33:50.895Z",
       "execution_status": "BLOCKED",
       "external_id": null,
       "url": null,
@@ -96,7 +103,7 @@
         "9e5945f6f5ec3f3b3dc5776e304079c0183379511e7700e431da898703db247c"
       ],
       "source_receipt": {
-        "digest": "bb68c8d1cc9773aa0a45e7e3a7c09ba83902d4e60c3d3409c124c5c5a2905404",
+        "digest": "e16bd1781fb00a47e038738ccba3ec21625c21d4044f8ca7311caa56aeca3db0",
         "sequence": 1
       },
       "route_key": null,
@@ -104,6 +111,11 @@
       "max_attempts": 0,
       "retry_at": null,
       "error": "SOURCE_REVIEW_OR_RELEASE_REQUIRED",
+      "blocker_disposition": {
+        "scope": "INTERNAL_EXECUTION",
+        "surface_to_owner": false
+      },
+      "review": null,
       "api_cost_usd": 0,
       "worker_reserved_usd": 0,
       "ad_spend_usd": 0,
@@ -113,14 +125,14 @@
       "status": "UNKNOWN",
       "metrics": {},
       "source": "UNAVAILABLE",
-      "observed_at": "2026-10-02T17:17:12.127Z",
+      "observed_at": "2026-10-05T03:33:50.896Z",
       "cost_usd": "UNKNOWN"
     },
     "outcome": {
-      "receipt_id": "88b7a65cb3684c8dc82a49b317dbb2eb9e05a9a7de586da214084fee515a70c5",
+      "receipt_id": "c0946a7fcbba80bd106077545521d7f422c549d52590a8efcb559dc93ea6d1de",
       "route_key": null,
       "execution_status": "BLOCKED",
-      "observed_at": "2026-10-02T17:17:12.127Z",
+      "observed_at": "2026-10-05T03:33:50.896Z",
       "source": "UNAVAILABLE",
       "measurements": {},
       "engagement_rate": "UNKNOWN",

@@ -106,3 +106,17 @@ persists an exact draft with its source state, copy, asset, destination and hash
 returns `AWAITING_REVIEW`, and performs no external action. An owner-only approval
 for that exact hash resumes execution, receipt, measurement and learning. A changed
 asset, route or product truth needs a new review. Local safe tests remain unattended.
+
+Verified public editorial email and submission-form routes use the same graph through
+the optional trusted `MARKETING_EDITORIAL_OUTREACH_MODULE`. That module may export
+`sendEditorialEmail`, `submitEditorialForm`, `collectEditorialOutcome`,
+`editorialRouteAuthorized`, and `editorialRouteSupported`. A reviewed delivery records
+`SUBMITTED` rather than pretending the destination published it; subsequent replies and
+publication confirmation re-enter observation and learning. If no transport is
+configured, preparation still reaches `PUBLICATION_REVIEW`, but the execution deficiency
+is recorded as internal and never presented as a new owner-authority decision.
+
+REDIMIN copy passes through a bounded `es-CL` localization worker before the existing
+editorial quality gate. The verified translation is source/evidence bound and cached by
+source revision, destination, locale, and source copy, so an exact recorded publication
+approval resumes without paying for or requesting routine re-localization.

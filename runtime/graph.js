@@ -15,6 +15,8 @@ const fail=(reason)=>{throw new Error(reason);};
 const initial=()=>({version:0,routes:{},platforms:{},processed:{},history:[]});
 const keyOf=(p,s,d,f)=>[p,s,d,f].map(encodeURIComponent).join(':');
 const score=(state,key)=>{const r=state.routes[key];return r?Math.max(-1,Math.min(1,(r.successes-r.failures)/(r.successes+r.failures+2)+(r.measurement_adjustment||0))):0;};
+const ownerBlockers=new Set(['PUBLICATION_REVIEW_REQUIRED','DESTINATION_PERMISSION_REQUIRED','ACCOUNT_AUTHORIZATION_REQUIRED','API_COST_APPROVAL_REQUIRED','WORKER_COST_APPROVAL_REQUIRED']);
+const blockerDisposition=reason=>ownerBlockers.has(reason)?{scope:'OWNER_AUTHORITY',surface_to_owner:true}:{scope:'INTERNAL_EXECUTION',surface_to_owner:false};
 function registeredEmradarDestinations(signal){
   const reviewed=integrationRegister.reviewed_at;
   const validUntil=new Date(Date.parse(reviewed+'T00:00:00Z')+365*24*3600000).toISOString();
@@ -49,7 +51,7 @@ export class GraphEngine {
       const p=await this.store.get('publication_review:'+proposal_id);
       if(!p||p.review_hash!==review_hash||Date.parse(p.expires_at)<=Date.now())fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
       const existing=await this.store.get('receipt:'+p.publication_key);
-      if(existing?.execution_status==='PUBLISHED')fail('PUBLICATION_ALREADY_EXECUTED');
+      if(['PUBLISHED','SUBMITTED'].includes(existing?.execution_status))fail('PUBLICATION_ALREADY_EXECUTED');
       await this.store.put('publication_approval:'+proposal_id,{review_hash,approved_by:'OWNER',approved_at:now(),expires_at:p.expires_at});
       return p;
     });
@@ -91,7 +93,7 @@ export class GraphEngine {
         if(selected)break;
       }
       await this.store.put('scheduler_seen',seen);
-      const due=index.find(r=>r.execution_status==='PUBLISHED'&&this.products[r.product]?.autonomous?.enabled&&Date.now()-Date.parse(r.last_collection||r.timestamp)>=300000);
+      const due=index.find(r=>['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&this.products[r.product]?.autonomous?.enabled&&Date.now()-Date.parse(r.last_collection||r.timestamp)>=300000);
       if(due){due.last_collection=now();await this.store.put('receipt_index',index);}
       const trace={node:'autonomous_scheduler',status:'PASS',input:'trusted_product_revisions_and_receipt_index',output:{next_input:selected,feedback_receipt:due?.id||null},at:now()};
       await this.store.put('scheduler_latest',trace);return trace;
@@ -106,8 +108,8 @@ export class GraphEngine {
     return this.store.locked('engine',async()=>{
       const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
       c.learning_before=structuredClone(c.state);await this.traverse(c,'ingest');
-      if(c.status==='RUNNING')c.status=c.receipt?.execution_status==='PUBLISHED'?'PASS':c.receipt?.execution_status||'BLOCKED';
-      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,nodes:c.trace,selection:c.selection,route_plan:c.route_plan||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
+      if(c.status==='RUNNING')c.status=['PUBLISHED','SUBMITTED'].includes(c.receipt?.execution_status)?'PASS':c.receipt?.execution_status||'BLOCKED';
+      const result={run_id:c.run_id,product:input.product,campaign_id:input.campaign_id,status:c.status,blocker:c.blocker||null,blocker_disposition:c.blocker?blockerDisposition(c.blocker):null,nodes:c.trace,selection:c.selection,route_plan:c.route_plan||null,commercial_evidence:c.commercial_evidence||null,review:c.review||null,receipt:c.receipt||null,performance:c.performance||null,outcome:c.outcome||null,learning_before:c.learning_before,learning_after:c.state};
       await this.store.put('run:'+c.run_id,result);await this.store.put('latest',result);return result;
     });
   }
@@ -172,7 +174,13 @@ const workers={
         const validUntil=priorPlan?.valid_until||new Date(Date.now()+7*86400000).toISOString();
         c.route_plan={...open,valid_until:validUntil,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:c.commercial_evidence,stop:'PUBLICATION_REVIEW'};
         await e.store.put('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.route_plan);
-        const openCandidates=open.candidates.map(d=>({id:d.destination_id,platform:d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE',signal_ids:[c.signal.id],formats:['text'],relevance:d.route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:d.destination_id!=='EMRADAR-X-OROKNOWS',route_record:d}));
+        const openCandidates=[];
+        for(const d of open.candidates){
+          const platform=d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE';
+          const executable=platform==='X'||!!(e.adapters.OPEN_ROUTE?.supportsRoute?.(d)&&await e.adapters.OPEN_ROUTE.authorized?.(c.input.product,d));
+          const {classification,prepare_eligible,execution_state,route_score,score_factors,route_reason,...routeRecord}=d;
+          openCandidates.push({id:d.destination_id,platform,signal_ids:[c.signal.id],formats:['text'],relevance:route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:executable?'EXECUTE_AFTER_EXACT_PUBLICATION_REVIEW':'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:platform==='OPEN_ROUTE'&&!executable,route_record:routeRecord});
+        }
         const existing=c.candidates.length?c.candidates:configured;
         c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))];
       }
@@ -201,7 +209,7 @@ const workers={
   async route(c) {
     const options=[];
     for(const d of c.candidates)for(const f of d.formats){const key=keyOf(c.input.product,c.signal.id,d.id,f);const l=c.state.routes[key];const health=c.state.platforms?.[c.input.product+':'+d.platform];options.push({id:d.id,destination:d,format:f,key,score:(d.relevance||0)+score(c.state,key),learned:score(c.state,key),breaker:l?.failures>=3||health?.failures>=3,cooldown:Date.parse(l?.retry_at||0)>Date.now()||Date.parse(health?.retry_at||0)>Date.now()});}
-    options.sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id)||a.format.localeCompare(b.format));
+    options.sort((a,b)=>Number(a.destination.open_access_prepare_only)-Number(b.destination.open_access_prepare_only)||b.score-a.score||a.id.localeCompare(b.id)||a.format.localeCompare(b.format));
     c.route=options.find(o=>!o.breaker&&!o.cooldown);
     c.selection={learning_version:c.state.version,options:options.map(({destination,...o})=>o),selected:c.route?.key||null};
     if(!c.route)fail('CIRCUIT_OPEN_OR_RATE_LIMITED');
@@ -231,6 +239,21 @@ const workers={
     }
     c.copy=c.allowed_copy[0];if(!c.copy)fail('COPY_PRODUCTION_FAILED');
   },
+  async localization(c,e) {
+    if(c.route?.id!=='REDIMIN-EDITORIAL')return;
+    const source_copy=c.copy;
+    const cacheKey='localization:'+digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,source_copy,'es-CL']);
+    let localized=await e.store.get(cacheKey);
+    if(!localized){
+      const work=await e.modelWork(c,'localization',{source_copy,source_language:'en',target_language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id},'creation_approved');
+      localized={...work.result,evidence_refs:[...work.proof.evidence_refs]};
+      await e.store.put(cacheKey,localized);
+    }
+    if(localized.language!=='es-CL'||typeof localized.copy!=='string'||!localized.copy.trim())fail('LOCALIZATION_RESULT_INVALID');
+    if(!localized.evidence_refs.every(id=>c.signal.evidence.includes(id))||localized.signal_state!==c.signal.state)fail('LOCALIZATION_EVIDENCE_VALIDATION_FAILED');
+    if(!localized.copy.includes(c.signal.state)||/\b(compra ahora|rendimiento garantizado|inversi[oó]n sin riesgo)\b/i.test(localized.copy))fail('LOCALIZATION_QUALITY_GATE_FAILED');
+    c.allowed_copy=[localized.copy];c.copy=localized.copy;c.localization={language:'es-CL',source_hash:digest(source_copy),copy_hash:digest(c.copy),evidence_refs:[...localized.evidence_refs],status:'VERIFIED'};
+  },
   async editorial_quality_gate(c) {
     if(!c.allowed_copy.includes(c.copy)||!c.copy.includes(c.signal.state)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
     if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('UNSUPPORTED_FINANCIAL_CLAIM');
@@ -242,7 +265,7 @@ const workers={
     c.variant_key=digest([c.input.product,c.signal.id,c.route.id,c.route.format,c.copy]);
     c.variant={id:digest([c.signal.id,c.signal.revision,c.copy]).slice(0,16),copy:c.copy,source_state:c.signal.state,evidence:[...c.signal.evidence],voice:c.product.brand_system||'UNDEFINED'};},
   async format(c) {
-    if(c.route.destination.open_access_prepare_only){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy};}
+    if(c.route.destination.platform==='OPEN_ROUTE'){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy,delivery:{...c.route.destination.route_record},localization:c.localization||null};}
     else if(c.route.format==='svg'){
       const escape=s=>s.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
       const rows=c.copy.match(/.{1,65}(?:\s|$)|.{1,65}/g)||[];
@@ -272,7 +295,8 @@ const workers={
   async publication_review(c,e) {
     if(c.route.destination.platform==='LOCAL')return;
     const publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
-    const review_hash=digest({product_truth:c.truth_hash,signal_revision:c.signal.revision,asset:c.asset,destination:c.route.destination,source_receipt:c.product.source_receipt||null});
+    const destination_binding={id:c.route.destination.id,platform:c.route.destination.platform,format:c.route.format,permission:c.route.destination.permission,route_record:c.route.destination.route_record||null};
+    const review_hash=digest({product_truth:c.truth_hash,signal_revision:c.signal.revision,asset:c.asset,destination:destination_binding,source_receipt:c.product.source_receipt||null});
     const proposal_id=digest([publication_key,review_hash]);
     const approval=await e.store.get('publication_approval:'+proposal_id);
     if(approval?.review_hash===review_hash&&approval.approved_by==='OWNER'&&Date.parse(approval.expires_at)>Date.now()){
@@ -287,7 +311,7 @@ const workers={
     if(c.route.destination.open_access_prepare_only)fail('OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
     c.publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const prior=await e.store.get('receipt:'+c.publication_key);
-    if(prior?.execution_status==='PUBLISHED'){c.receipt=prior;c.duplicate=true;return;}
+    if(['PUBLISHED','SUBMITTED'].includes(prior?.execution_status)){c.receipt=prior;c.duplicate=true;return;}
     if(prior?.execution_status==='IN_FLIGHT'||prior?.execution_status==='AMBIGUOUS')fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     if(prior?.attempts>=c.max_attempts)fail('RETRY_BOUND');
     if(Date.parse(prior?.retry_at||0)>Date.now())fail('RETRY_NOT_DUE');
@@ -307,8 +331,8 @@ const workers={
     await e.store.put(pendingKey,{receipt_id:c.publication_key,status:'IN_FLIGHT'});
     try {
       const result=await c.adapter.publish(c.asset,c.publication_key,c.input.product);
-      if(!result?.id||result.status!=='PUBLISHED')fail('PUBLICATION_RECEIPT_MISSING');
-      Object.assign(c.receipt,{execution_status:'PUBLISHED',external_id:String(result.id),url:result.url||null,timestamp:now(),api_cost_usd:result.cost_usd??'UNKNOWN'});
+      if(!result?.id||!['PUBLISHED','SUBMITTED'].includes(result.status))fail('PUBLICATION_RECEIPT_MISSING');
+      Object.assign(c.receipt,{execution_status:result.status,external_id:String(result.id),url:result.url||null,timestamp:now(),api_cost_usd:result.cost_usd??'UNKNOWN',delivery_status:result.delivery_status||null,provider_receipt:result.provider_receipt||null});
       c.provider_billing=result.billing;
     }catch(error){
       const status=error.status;
@@ -320,7 +344,7 @@ const workers={
     if(c.receipt.execution_status!=='AMBIGUOUS')await e.store.put(pendingKey,null);
   },
   async receipt(c,e) {
-    if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:c.review_pending?'AWAITING_REVIEW':'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',review:c.review||null,api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
+    if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:c.review_pending?'AWAITING_REVIEW':'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',blocker_disposition:c.blocker?blockerDisposition(c.blocker):null,review:c.review||null,api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
     c.receipt.worker_costs=c.provider_costs||[];
     await e.store.put('receipt:'+c.receipt.id,c.receipt);await e.store.put('latest_receipt',c.receipt);
     const index=await e.store.get('receipt_index')||[];const filtered=index.filter(r=>r.id!==c.receipt.id);filtered.push({...c.receipt,last_collection:now()});await e.store.put('receipt_index',filtered.slice(-200));
@@ -329,8 +353,8 @@ const workers={
     c.performance={status:'UNKNOWN',metrics:{},source:'UNAVAILABLE',observed_at:now(),cost_usd:'UNKNOWN'};
     const r=c.receipt;const a=e.adapters[r.platform];
     if(Date.parse(c.state.platforms?.[r.product+':'+r.platform]?.retry_at||0)>Date.now()){c.performance.reason='PLATFORM_RATE_LIMIT_COOLDOWN';await e.store.put('performance:'+r.id,c.performance);return;}
-    if(r.execution_status==='PUBLISHED'&&a?.collect&&a.cost==='ZERO') {try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
-    else if(r.execution_status==='PUBLISHED'&&a?.collect){
+    if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect&&a.cost==='ZERO') {try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
+    else if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect){
       const p=e.products[r.product];if(!a.quote){c.performance.reason='ACTUAL_COST_BOUND_UNKNOWN';await e.store.put('performance:'+r.id,c.performance);return;}if(p?.budget?.metrics_approved&&Number.isFinite(p.budget.max_metrics_calls)&&p.budget.max_metrics_calls>0){
         const ledgerKey='metrics_cost:'+r.product+':'+now().slice(0,10);const ledger=await e.store.get(ledgerKey)||{calls:0,reserved_usd:0};const b=p.budget;
         if(!Number.isFinite(b.max_metrics_action_usd)||b.max_metrics_action_usd<=0||!Number.isFinite(b.max_metrics_daily_usd)||ledger.calls>=b.max_metrics_calls||ledger.reserved_usd+b.max_metrics_action_usd>b.max_metrics_daily_usd)c.performance.reason='METRICS_COST_OR_CALL_BOUND';
@@ -346,16 +370,16 @@ const workers={
     await e.store.put('outcome:'+c.receipt.id,c.outcome);
   },
   async learn(c) {
-    const r=c.receipt;if(!r.route_key||!['PUBLISHED','FAILED','RATE_LIMITED','AMBIGUOUS'].includes(r.execution_status))return;
+    const r=c.receipt;if(!r.route_key||!['PUBLISHED','SUBMITTED','FAILED','RATE_LIMITED','AMBIGUOUS'].includes(r.execution_status))return;
     const event=digest([r.id,r.attempts,r.execution_status]);
     const observation=digest([event,c.outcome.measurements,c.outcome.evidence_strength]);
     if(c.state.processed[observation])return;
     const newExecution=!c.state.processed[event];
     c.state.platforms ||= {};const platformKey=r.product+':'+r.platform;
-    if(newExecution){const health=c.state.platforms[platformKey]||{failures:0,retry_at:null};health.failures=r.execution_status==='PUBLISHED'?0:health.failures+1;health.retry_at=r.retry_at;c.state.platforms[platformKey]=health;}
+    if(newExecution){const health=c.state.platforms[platformKey]||{failures:0,retry_at:null};health.failures=['PUBLISHED','SUBMITTED'].includes(r.execution_status)?0:health.failures+1;health.retry_at=r.retry_at;c.state.platforms[platformKey]=health;}
     const old=c.state.routes[r.route_key]||{successes:0,failures:0,confidence:0,evidence_strength:'UNKNOWN',failed_routes:[]};
     const record=structuredClone(old);
-    if(newExecution&&r.execution_status==='PUBLISHED'){record.successes++;record.failures=0;}else if(newExecution){record.failures++;record.failed_routes.push({receipt_id:r.id,status:r.execution_status,at:r.timestamp});record.failed_routes=record.failed_routes.slice(-20);}
+    if(newExecution&&['PUBLISHED','SUBMITTED'].includes(r.execution_status)){record.successes++;record.failures=0;}else if(newExecution){record.failures++;record.failed_routes.push({receipt_id:r.id,status:r.execution_status,at:r.timestamp});record.failed_routes=record.failed_routes.slice(-20);}
     record.retry_at=r.retry_at;record.confidence=Math.min(0.8,(record.successes+record.failures)/10);record.evidence_strength=c.outcome.evidence_strength;
     // Local read-back affects local delivery reliability only; cannot imply audience engagement.
     const verified=c.outcome.measurements.content_verified;

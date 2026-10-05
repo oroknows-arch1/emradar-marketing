@@ -1,6 +1,45 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {pathToFileURL} from 'node:url';
+
+const editorialFormats=['editorial_pitch','finished_manuscript','newsroom_tip','latam_editor_pitch','visual_asset','contact_form'];
+
+// The transport performs only the final reviewed delivery. Permission, evidence,
+// editorial and identity decisions remain owned by the existing graph.
+export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,authorized=async()=>true,routeSupported=()=>true}={}) {
+  const routeMethod=route=>String(route?.access_method||'').toLowerCase();
+  const supportsRoute=route=>routeSupported(route)&&((routeMethod(route).includes('email')&&typeof sendEmail==='function')||(routeMethod(route).includes('form')&&typeof submitForm==='function'));
+  return {
+    cost:'ZERO',formats:editorialFormats,authorized,supportsRoute,
+    async validate(asset){
+      const d=asset?.delivery;
+      if(!d?.destination_id||!d?.access_method||!d?.evidence_source_url)throw new Error('EDITORIAL_ROUTE_BINDING_REQUIRED');
+      if(!supportsRoute(d))throw new Error('EDITORIAL_OUTREACH_CAPABILITY_UNAVAILABLE');
+      if(routeMethod(d).includes('email')&&!d.public_contact_point)throw new Error('EDITORIAL_EMAIL_CONTACT_REQUIRED');
+      if(routeMethod(d).includes('form')&&!d.public_submission_url)throw new Error('EDITORIAL_FORM_URL_REQUIRED');
+    },
+    async publish(asset,key,product){
+      await this.validate(asset);
+      const operation=routeMethod(asset.delivery).includes('email')?sendEmail:submitForm;
+      const result=await operation({idempotency_key:key,product,asset,route:asset.delivery});
+      if(!result?.id||!['SUBMITTED','DELIVERED','ACCEPTED'].includes(result.status))throw new Error('EDITORIAL_DELIVERY_RECEIPT_MISSING');
+      return {id:String(result.id),url:result.url||null,status:'SUBMITTED',delivery_status:result.status,cost_usd:0,provider_receipt:result.receipt||null};
+    },
+    async collect(receipt){
+      if(typeof collectOutcome!=='function')return {status:'UNKNOWN',source:'EDITORIAL_OUTCOME_NOT_CONNECTED',observed_at:new Date().toISOString(),metrics:{},cost_usd:0};
+      const result=await collectOutcome(receipt);const metrics={};
+      for(const [name,value] of Object.entries(result?.metrics||{}))if(Number.isFinite(value)&&value>=0)metrics[name]={value,unit:'boolean',scope:'editorial_outreach'};
+      return {status:Object.keys(metrics).length?'AVAILABLE':'UNKNOWN',source:result?.source||'editorial_outreach_followup',observed_at:new Date().toISOString(),metrics,cost_usd:0};
+    }
+  };
+}
+
+export async function loadEditorialOutreach(modulePath){
+  if(!modulePath)return null;
+  const module=await import(pathToFileURL(path.resolve(modulePath)).href);
+  return editorialOutreachAdapter({sendEmail:module.sendEditorialEmail,submitForm:module.submitEditorialForm,collectOutcome:module.collectEditorialOutcome,authorized:module.editorialRouteAuthorized,routeSupported:module.editorialRouteSupported});
+}
 
 // Real safe test destination. Actual exclusive file creation and read-back, no fake metrics.
 export function localAdapter(directory) {
