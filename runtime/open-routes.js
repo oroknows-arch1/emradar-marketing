@@ -21,7 +21,7 @@ export function routePackages(signal,candidates){
  const uncertainty=signal.source_uncertainty?.[0]||'UNKNOWN';
  return candidates.filter(x=>x.selected).map(d=>{
    const local=d.geography.some(g=>['Chile','South America','Latin America'].includes(g));
-   const angle=local?`What the Sierra Gorda construction start changes for Chile's copper-processing capacity, suppliers and execution risk`:`Sierra Gorda moves from approved capex to physical execution: the processing bottleneck, equipment chain and remaining delivery risk`;
+   const angle=local?`${signal.source_title}: local industry consequences, participants and unresolved execution risk`:`${signal.source_title}: formation mechanism, bottlenecks, participants and remaining execution risk`;
    const format=d.accepted_formats.includes('newsroom_tip')?'newsroom_tip':d.accepted_formats.includes('editor_pitch')?'editor_pitch':d.accepted_formats[0];
    return {destination_id:d.destination_id,format,contribution_angle:angle,asset:{state:signal.state,headline:angle,evidence_anchor:fact,uncertainty,falsification:signal.chain_evolution?.break_conditions||[],source_evidence:[...(signal.evidence||[])]},publication_state:'PROPOSED_NOT_SUBMITTED'};
  });
