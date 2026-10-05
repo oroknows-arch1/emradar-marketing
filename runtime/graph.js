@@ -193,10 +193,11 @@ const workers={
     c.selection={learning_version:c.state.version,options:options.map(({destination,...o})=>o),selected:c.route?.key||null};
     if(!c.route)fail('CIRCUIT_OPEN_OR_RATE_LIMITED');
   },
-  async commercial_evidence(c) {
+  async commercial_evidence(c,e) {
     const packages=routePackages(c.signal,c.open_routes||[]);
     c.route_portfolio={signal:c.signal.id,why_it_matters:c.signal.source_title,who_cares:[...new Set(packages.map(()=> 'specialist mining audiences'))],where_they_are:(c.route_reasoning||[]).filter(x=>x.selected),how_to_reach_them:(c.route_reasoning||[]).filter(x=>x.selected).map(x=>({destination_id:x.destination_id,contact_point:x.contact_point,submission_url:x.submission_url})),what_to_send:packages};
     c.commercial_evidence=commercialEvidence(c.signal);
+    await e.store.put('commercial_evidence:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,{signal_id:c.signal.id,signal_revision:c.signal.revision,hypotheses:c.commercial_evidence,route_portfolio:c.route_portfolio,updated_at:now()});
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
