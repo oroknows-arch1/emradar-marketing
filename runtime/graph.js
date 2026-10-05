@@ -218,7 +218,7 @@ const workers={
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
-    if(c.route?.destination?.open_access_prepare_only){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||!prepared.copy.includes(c.signal.state))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='verified_open_route_template';}
+    if(c.route?.destination?.platform==='OPEN_ROUTE'){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||!prepared.copy.includes(c.signal.state))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='verified_open_route_template';}
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
       const deterministicApproved=c.product.copy_policy?.extractive_template_approved===true||(c.input.product==='EMRADAR'&&c.product.review.editorial===true);
       if(!deterministicApproved)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
