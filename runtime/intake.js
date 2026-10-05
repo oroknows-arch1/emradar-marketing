@@ -47,6 +47,6 @@ export function emradarSource(scan,attestation={}){
   return {release_approved:attestation.release_approved===true,review:{evidence:attestation.evidence===true,editorial:attestation.editorial===true},signals:scan.records.map(r=>{
     if(!allowed.has(r.status))throw new Error('SOURCE_STATE_UNRECOGNISED');
     const facts=(r.evidence||[]).map(e=>({id:hash(e),text:e.fact,source:e.source||'UNKNOWN',url:e.url||null}));
-    return {id:r.id,revision:hash(r),state:r.status,evidence:facts.map(f=>f.id),source_facts:facts,source_title:r.theme||r.id,source_uncertainty:[...(r.contradictions||[]),...(r.chain_evolution?.unresolved_evidence||[])],causal_chain:r.causal_chain,chain_evolution:r.chain_evolution,source_snapshot:scan.snapshot_date,approved_copy:[]};
+    return {id:r.id,revision:hash(r),state:r.status,evidence:facts.map(f=>f.id),source_facts:facts,source_title:r.theme||r.id,source_location:r.location||'UNKNOWN',source_uncertainty:[...(r.contradictions||[]),...(r.chain_evolution?.unresolved_evidence||[])],causal_chain:r.causal_chain,chain_evolution:r.chain_evolution,source_snapshot:scan.snapshot_date,approved_copy:[]};
   })};
 }
