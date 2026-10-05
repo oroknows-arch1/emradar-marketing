@@ -4,7 +4,7 @@ import {GraphEngine} from '../../runtime/graph.js';
 import {editorialOutreachAdapter} from '../../runtime/adapters.js';
 import {fixture} from './fixture.js';
 
-const spanish='EMRADAR sigue esta formación como FORMING. Evidencia verificada para la audiencia minera chilena. Incertidumbre: el resultado previsto aún no se ha realizado.';
+const spanish='La construcción de la cuarta línea de molienda de Sierra Gorda ha comenzado. La producción prevista todavía no se ha materializado.';
 
 async function editorialFixture(){
   const f=await fixture();
@@ -64,7 +64,7 @@ test('explicit REDIMIN review uses source-bound es-CL copy without a harness',as
   assert.equal(candidate.status,'AWAITING_REVIEW');
   assert.equal(candidate.review.destination,'REDIMIN-EDITORIAL');
   assert.match(candidate.review.copy,/Región de Antofagasta/);
-  assert.match(candidate.review.copy,/FORMING/);
+  assert.doesNotMatch(candidate.review.copy,/FORMING|No resuelto|Acción para el lector/);
   const proposal=await f.store.get('publication_review:'+candidate.review.proposal_id);
   assert.equal(proposal.input.destination_id,'REDIMIN-EDITORIAL');
   assert.equal(f.sends(),0);

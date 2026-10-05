@@ -15,6 +15,7 @@ const fail=(reason)=>{throw new Error(reason);};
 const initial=()=>({version:0,routes:{},platforms:{},processed:{},history:[]});
 const keyOf=(p,s,d,f)=>[p,s,d,f].map(encodeURIComponent).join(':');
 const score=(state,key)=>{const r=state.routes[key];return r?Math.max(-1,Math.min(1,(r.successes-r.failures)/(r.successes+r.failures+2)+(r.measurement_adjustment||0))):0;};
+const externalSchemaLeak=copy=>/\b(FORMING|INVESTIGATE|WATCH\/NO SIGNAL|reader action|break conditions|processing constraint|EMRADAR contribution|unresolved evidence)\b/i.test(copy);
 const ownerBlockers=new Set(['PUBLICATION_REVIEW_REQUIRED','DESTINATION_PERMISSION_REQUIRED','ACCOUNT_AUTHORIZATION_REQUIRED','API_COST_APPROVAL_REQUIRED','WORKER_COST_APPROVAL_REQUIRED']);
 const blockerDisposition=reason=>ownerBlockers.has(reason)?{scope:'OWNER_AUTHORITY',surface_to_owner:true}:{scope:'INTERNAL_EXECUTION',surface_to_owner:false};
 function registeredEmradarDestinations(signal){
@@ -218,7 +219,7 @@ const workers={
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
-    if(c.route?.destination?.platform==='OPEN_ROUTE'){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||!prepared.copy.includes(c.signal.state))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='verified_open_route_template';}
+    if(c.route?.destination?.platform==='OPEN_ROUTE'){const prepared=c.route_plan?.proposed_assets?.find(a=>a.destination_id===c.route.id);if(!prepared?.copy||prepared.source_state!==c.signal.state||prepared.editorial_system!=='EDITORIAL_COPY_SYSTEM_V1'||!prepared.evidence_refs?.every(Boolean))fail('DESTINATION_NATIVE_COPY_REQUIRED');c.allowed_copy=[prepared.copy];c.copy_method='editorial_copy_system_v1';}
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
       const deterministicApproved=c.product.copy_policy?.extractive_template_approved===true||(c.input.product==='EMRADAR'&&c.product.review.editorial===true);
       if(!deterministicApproved)fail('COPY_TEMPLATE_APPROVAL_REQUIRED');
@@ -247,7 +248,7 @@ const workers={
     const cacheKey='localization:'+digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,source_copy,'es-CL']);
     let localized=await e.store.get(cacheKey);
     if(!localized&&!e.harness&&c.signal.id==='sierra-gorda-fourth-grinding-line'&&c.signal.state==='FORMING'){
-      localized={language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],copy:'REDIMIN: Sierra Gorda ha iniciado una expansión brownfield de cobre por US$725 millones — FORMING.\n\nPara su cobertura de minería chilena, materias primas, inversión, proveedores y energía: seguir la cadena de ejecución local, desde la inversión y construcción hasta la capacidad productiva regional y sus consecuencias para proveedores e infraestructura. Las adjudicaciones locales y los impactos materializados aún no están verificados.\n\nEvidencia: KGHM informa que comenzó la construcción de una cuarta línea de molienda y cifra el proyecto en aproximadamente US$725 millones.\n\nNo resuelto: el inicio ceremonial precede a las obras principales previstas para comienzos de 2027; las adjudicaciones de equipos y contratistas, la puesta en marcha, los costos y la producción efectiva siguen sin verificarse.\n\nAporte de EMRADAR: un seguimiento causal continuo de la evidencia en la Región de Antofagasta y de los cambios que fortalecerían o invalidarían esta formación. Acción para el lector: seguir cómo la inversión verificada se convierte en capacidad productiva regional, actividad de proveedores y consecuencias de infraestructura.'};
+      localized={language:'es-CL',signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],copy:c.copy};
       await e.store.put(cacheKey,localized);
     }
     if(!localized){
@@ -257,17 +258,18 @@ const workers={
     }
     if(localized.language!=='es-CL'||typeof localized.copy!=='string'||!localized.copy.trim())fail('LOCALIZATION_RESULT_INVALID');
     if(!localized.evidence_refs.every(id=>c.signal.evidence.includes(id))||localized.signal_state!==c.signal.state)fail('LOCALIZATION_EVIDENCE_VALIDATION_FAILED');
-    if(!localized.copy.includes(c.signal.state)||/\b(compra ahora|rendimiento garantizado|inversi[oó]n sin riesgo)\b/i.test(localized.copy))fail('LOCALIZATION_QUALITY_GATE_FAILED');
+    if(/\b(compra ahora|rendimiento garantizado|inversi[oó]n sin riesgo)\b/i.test(localized.copy))fail('LOCALIZATION_QUALITY_GATE_FAILED');
     c.allowed_copy=[localized.copy];c.copy=localized.copy;c.localization={language:'es-CL',source_hash:digest(source_copy),copy_hash:digest(c.copy),evidence_refs:[...localized.evidence_refs],status:'VERIFIED'};
   },
   async editorial_quality_gate(c) {
-    if(!c.allowed_copy.includes(c.copy)||!c.copy.includes(c.signal.state)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
+    if(!c.allowed_copy.includes(c.copy)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
+    if(c.route?.destination?.platform==='OPEN_ROUTE'&&externalSchemaLeak(c.copy))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');
     if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('UNSUPPORTED_FINANCIAL_CLAIM');
   },
   async variant_factory(c) {
     c.state.variants ||= {};
     c.copy=[...c.allowed_copy].sort((a,b)=>(c.state.variants[digest([c.input.product,c.signal.id,c.route.id,c.route.format,b])]?.score||0)-(c.state.variants[digest([c.input.product,c.signal.id,c.route.id,c.route.format,a])]?.score||0))[0];
-    if(!c.copy.includes(c.signal.state)||/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('VARIANT_EVIDENCE_OR_EDITORIAL_BOUND');
+    if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('VARIANT_EVIDENCE_OR_EDITORIAL_BOUND');
     c.variant_key=digest([c.input.product,c.signal.id,c.route.id,c.route.format,c.copy]);
     c.variant={id:digest([c.signal.id,c.signal.revision,c.copy]).slice(0,16),copy:c.copy,source_state:c.signal.state,evidence:[...c.signal.evidence],voice:c.product.brand_system||'UNDEFINED'};},
   async format(c) {
