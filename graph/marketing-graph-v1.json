@@ -214,7 +214,7 @@
       "authority": "bounded_transformation",
       "failure_state": "BLOCKED_OR_UNKNOWN",
       "handoff": [
-        "editorial_quality_gate",
+        "human_ready_email",
         "receipt"
       ],
       "max_attempts": 2,
@@ -832,6 +832,46 @@
       "handoff": [],
       "max_attempts": 1,
       "execution_lane": "deterministic"
+    },
+    {
+      "id": "human_ready_email",
+      "worker": "human_ready_email",
+      "inputs": [
+        "evidence_qualified_proposition",
+        "verified_destination",
+        "approved_sender"
+      ],
+      "outputs": [
+        "exact_email"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "capability_claim_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
+    },
+    {
+      "id": "capability_claim_gate",
+      "worker": "capability_claim_gate",
+      "inputs": [
+        "evidence_qualified_proposition",
+        "verified_destination",
+        "approved_sender"
+      ],
+      "outputs": [
+        "capability_claim_gate_result"
+      ],
+      "authority": "bounded_transformation",
+      "failure_state": "BLOCKED",
+      "handoff": [
+        "editorial_quality_gate",
+        "receipt"
+      ],
+      "max_attempts": 1,
+      "execution_lane": "deterministic"
     }
   ],
   "invariants": {
@@ -1041,7 +1081,7 @@
     },
     {
       "from": "localization",
-      "to": "editorial_quality_gate",
+      "to": "human_ready_email",
       "event": "success"
     },
     {
@@ -1349,6 +1389,26 @@
     },
     {
       "from": "commercial_evidence",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "human_ready_email",
+      "to": "capability_claim_gate",
+      "event": "success"
+    },
+    {
+      "from": "human_ready_email",
+      "to": "receipt",
+      "event": "blocked"
+    },
+    {
+      "from": "capability_claim_gate",
+      "to": "editorial_quality_gate",
+      "event": "success"
+    },
+    {
+      "from": "capability_claim_gate",
       "to": "receipt",
       "event": "blocked"
     }

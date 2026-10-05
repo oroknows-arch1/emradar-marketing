@@ -7,11 +7,11 @@ const editorialFormats=['editorial_pitch','editor_pitch','financial_guest_view_p
 
 // The transport performs only the final reviewed delivery. Permission, evidence,
 // editorial and identity decisions remain owned by the existing graph.
-export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,authorized=async()=>true,routeSupported=()=>true}={}) {
+export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,authorized=async()=>true,routeSupported=()=>true,senderIdentity}={}) {
   const routeMethod=route=>String(route?.access_method||'').toLowerCase();
   const supportsRoute=route=>routeSupported(route)&&((routeMethod(route).includes('email')&&typeof sendEmail==='function')||(routeMethod(route).includes('form')&&typeof submitForm==='function'));
   return {
-    cost:'ZERO',formats:editorialFormats,authorized,supportsRoute,
+    cost:'ZERO',formats:editorialFormats,authorized,supportsRoute,senderIdentity,
     async validate(asset){
       const d=asset?.delivery;
       if(!d?.destination_id||!d?.access_method||!d?.evidence_source_url)throw new Error('EDITORIAL_ROUTE_BINDING_REQUIRED');
@@ -38,7 +38,7 @@ export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,au
 export async function loadEditorialOutreach(modulePath){
   if(!modulePath)return null;
   const module=await import(pathToFileURL(path.resolve(modulePath)).href);
-  return editorialOutreachAdapter({sendEmail:module.sendEditorialEmail,submitForm:module.submitEditorialForm,collectOutcome:module.collectEditorialOutcome,authorized:module.editorialRouteAuthorized,routeSupported:module.editorialRouteSupported});
+  return editorialOutreachAdapter({sendEmail:module.sendEditorialEmail,submitForm:module.submitEditorialForm,collectOutcome:module.collectEditorialOutcome,authorized:module.editorialRouteAuthorized,routeSupported:module.editorialRouteSupported,senderIdentity:module.editorialSenderIdentity});
 }
 
 // Real safe test destination. Actual exclusive file creation and read-back, no fake metrics.
