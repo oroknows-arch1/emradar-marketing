@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "reviewed_at": "2026-10-05",
+  "rules": {
+    "unknown_remains_unknown": true,
+    "no_fabricated_contacts": true,
+    "open_access_only": true,
+    "account_creation_not_required": true
+  },
+  "destinations": [
+    {
+      "destination_id": "EMRADAR-X-OROKNOWS",
+      "destination_name": "EMRADAR on X",
+      "destination_class": "social",
+      "organisation": "X",
+      "relevant_beat_topic": [
+        "emerging markets",
+        "mining",
+        "commodities"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "all"
+      ],
+      "access_method": "existing authorised connector",
+      "public_contact_point": "@oroknows",
+      "public_submission_url": "UNKNOWN",
+      "submission_requirements": "Exact PUBLICATION_REVIEW before external action",
+      "accepted_formats": [
+        "x_post"
+      ],
+      "account_required": true,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://x.com/oroknows/status/2105745130712187147",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "MINING-WEEKLY-TIP",
+      "destination_name": "Mining Weekly tip-off",
+      "destination_class": "newsroom_tip",
+      "organisation": "Creamer Media / Mining Weekly",
+      "relevant_beat_topic": [
+        "global mining",
+        "base metals",
+        "copper"
+      ],
+      "geography": [
+        "global",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Molybdenum",
+        "Mine construction"
+      ],
+      "access_method": "public feedback/tip-off form",
+      "public_contact_point": "public tip-off form",
+      "public_submission_url": "https://www.miningweekly.com/article/about-us-2016-11-07-1",
+      "submission_requirements": "Public form accepts tip-offs; factual, destination-specific contribution required.",
+      "accepted_formats": [
+        "newsroom_tip"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://www.miningweekly.com/article/about-us-2016-11-07-1",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "INTERNATIONAL-MINING-EDITORIAL",
+      "destination_name": "International Mining editorial",
+      "destination_class": "named_editor",
+      "organisation": "International Mining",
+      "relevant_beat_topic": [
+        "mining technology",
+        "mine operations",
+        "processing",
+        "equipment"
+      ],
+      "geography": [
+        "global",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Grinding equipment",
+        "Mine construction"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "paul@im-mining.com",
+      "public_submission_url": "https://im-mining.com/contact/",
+      "submission_requirements": "Editorial idea/contact route; acceptance and exact contribution requirements remain UNKNOWN until response.",
+      "accepted_formats": [
+        "editor_pitch",
+        "contributed_article_proposal"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://im-mining.com/contact/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "GLOBAL-MINING-REVIEW-EDITORIAL",
+      "destination_name": "Global Mining Review editorial enquiry",
+      "destination_class": "trade_publication",
+      "organisation": "Global Mining Review",
+      "relevant_beat_topic": [
+        "global mining",
+        "technical articles",
+        "case studies",
+        "industry trends"
+      ],
+      "geography": [
+        "global",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Grinding equipment",
+        "Mine construction",
+        "Grid and electrification materials"
+      ],
+      "access_method": "public editorial enquiry email",
+      "public_contact_point": "enquiries@globalminingreview.com",
+      "public_submission_url": "https://www.globalminingreview.com/contact/",
+      "submission_requirements": "Public enquiry route verified; exact unsolicited-contribution requirements remain UNKNOWN.",
+      "accepted_formats": [
+        "editor_pitch",
+        "contributed_article_proposal"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://www.globalminingreview.com/contact/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    }
+  ]
+}
