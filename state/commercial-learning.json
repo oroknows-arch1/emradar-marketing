@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "rule": "Historical outcomes are evidence for routing, not proof of demand or willingness to pay.",
+  "cases": [
+    {
+      "case_id": "SEMICONDUCTOR-FOR-YOU-2026-10-02",
+      "formation": "india-semiconductor-ecosystem",
+      "destination": "Semiconductor For You",
+      "destination_class": "trade_publication",
+      "outcome": {
+        "submitted": true,
+        "accepted": true,
+        "published": true,
+        "response": "ACCEPTED_AND_PUBLISHED",
+        "traffic": "UNKNOWN",
+        "engagement": "UNKNOWN",
+        "downstream_enquiry": "UNKNOWN",
+        "commercial_signal": "UNKNOWN",
+        "cost": "UNKNOWN",
+        "elapsed_time": "UNKNOWN"
+      },
+      "learning": "A formation-specific destination and strong evidence-backed narrative coincided with publication acceptance. One case is insufficient to estimate general acceptance probability or commercial demand.",
+      "measurement_classes": {
+        "editorial_success": "DIRECT_ACCEPTANCE",
+        "distribution_success": "PUBLISHED",
+        "audience_response": "UNKNOWN",
+        "commercial_signal": "UNKNOWN"
+      }
+    }
+  ]
+}
