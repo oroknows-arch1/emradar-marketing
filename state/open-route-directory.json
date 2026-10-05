@@ -204,6 +204,207 @@
       "evidence_source_url": "https://au.investing.com/about-us/editorial-guidelines",
       "verified_at": "2026-10-05",
       "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "REDIMIN-EDITORIAL",
+      "destination_name": "REDIMIN editorial",
+      "destination_class": "latam_trade_publication",
+      "organisation": "Revista Digital Minera REDIMIN",
+      "relevant_beat_topic": [
+        "Chile mining",
+        "commodities",
+        "investment",
+        "suppliers",
+        "energy"
+      ],
+      "geography": [
+        "Chile",
+        "South America",
+        "Antofagasta Region"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mine construction",
+        "Grinding equipment",
+        "Grid and electrification materials"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "editorial@redimin.cl",
+      "public_submission_url": "https://www.redimin.cl/contacto-editorial",
+      "submission_requirements": "Send editorial proposal or information with identity/contact, summary, official links and graphics where relevant; submission does not guarantee publication.",
+      "accepted_formats": [
+        "latam_editor_pitch",
+        "newsroom_tip",
+        "visual_asset"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://www.redimin.cl/contacto-editorial",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "TERRITORIO-MINERO-PRESS",
+      "destination_name": "Territorio Minero press/editorial",
+      "destination_class": "latam_trade_publication",
+      "organisation": "Territorio Minero",
+      "relevant_beat_topic": [
+        "Chile mining",
+        "energy",
+        "supply chain",
+        "territorial development",
+        "sustainability"
+      ],
+      "geography": [
+        "Chile",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mine construction",
+        "Grid and electrification materials"
+      ],
+      "access_method": "public press/editorial email",
+      "public_contact_point": "prensa@territoriominero.cl",
+      "public_submission_url": "https://territoriominero.cl/contacto/",
+      "submission_requirements": "Public route for editorial proposals, interviews and columns.",
+      "accepted_formats": [
+        "latam_editor_pitch",
+        "column_proposal"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://territoriominero.cl/contacto/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "LATINOMINERIA-EDITOR",
+      "destination_name": "Latinominería editorial",
+      "destination_class": "latam_trade_publication",
+      "organisation": "Latinominería / Editec",
+      "relevant_beat_topic": [
+        "Latin American mining",
+        "Chile mining",
+        "projects",
+        "copper"
+      ],
+      "geography": [
+        "Chile",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mine construction",
+        "Molybdenum"
+      ],
+      "access_method": "public named-editor email",
+      "public_contact_point": "Rodrigo Fuentes — public editor contact",
+      "public_submission_url": "https://www.latinomineria.com/contacto/type_editorial_pid_115230/",
+      "submission_requirements": "Public editorial contact verified; exact unsolicited contribution requirements UNKNOWN until response.",
+      "accepted_formats": [
+        "latam_editor_pitch",
+        "newsroom_tip"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://www.latinomineria.com/contacto/type_editorial_pid_115230/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "AUSTRALIAN-MINING-REVIEW-EDITORIAL",
+      "destination_name": "Australian Mining Review editorial",
+      "destination_class": "supplier_procurement_publication",
+      "organisation": "The Australian Mining Review",
+      "relevant_beat_topic": [
+        "economics and commodity prices",
+        "procurement and suppliers",
+        "projects and operations",
+        "technology"
+      ],
+      "geography": [
+        "global",
+        "Australia",
+        "South America"
+      ],
+      "industries": [
+        "Copper mining",
+        "Mine construction",
+        "Grinding equipment",
+        "Grid and electrification materials"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "editorial@australianminingreview.com.au",
+      "public_submission_url": "https://australianminingreview.com.au/services/",
+      "submission_requirements": "Public editorial route; exact unsolicited-contribution requirements UNKNOWN.",
+      "accepted_formats": [
+        "supplier_chain_pitch",
+        "markets_editor_pitch"
+      ],
+      "account_required": false,
+      "cost": "ZERO",
+      "evidence_source_url": "https://australianminingreview.com.au/services/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED"
+    },
+    {
+      "destination_id": "KITCO-CONTRIBUTOR",
+      "destination_name": "Kitco contributor program",
+      "destination_class": "analyst_research_publication",
+      "organisation": "Kitco News",
+      "relevant_beat_topic": [
+        "mining",
+        "market analysis",
+        "metals investors"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Copper mining"
+      ],
+      "access_method": "public contributor application",
+      "public_contact_point": "Contributor application",
+      "public_submission_url": "https://contribute.kitco.com/",
+      "submission_requirements": "Contributor application and editorial approval required before submission access.",
+      "accepted_formats": [
+        "market_analysis_article"
+      ],
+      "account_required": true,
+      "cost": "ZERO",
+      "evidence_source_url": "https://contribute.kitco.com/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED_DISCOVERY_ONLY"
+    },
+    {
+      "destination_id": "HOTCOPPER-CONTRIBUTOR",
+      "destination_name": "HotCopper contributor",
+      "destination_class": "capital_markets_community",
+      "organisation": "HotCopper",
+      "relevant_beat_topic": [
+        "capital markets",
+        "investment insights",
+        "ASX"
+      ],
+      "geography": [
+        "Australia"
+      ],
+      "industries": [
+        "Copper mining"
+      ],
+      "access_method": "contributor signup",
+      "public_contact_point": "Contributor workflow",
+      "public_submission_url": "https://join.hotcopper.com.au/contributor-guidelines/",
+      "submission_requirements": "Contributor signup required; original content first on HotCopper; paid exposure exists but is outside current authority.",
+      "accepted_formats": [
+        "capital_markets_article"
+      ],
+      "account_required": true,
+      "cost": "ZERO_OR_PAID_OPTION",
+      "evidence_source_url": "https://join.hotcopper.com.au/contributor-guidelines/",
+      "verified_at": "2026-10-05",
+      "verification_state": "VERIFIED_DISCOVERY_ONLY"
     }
   ]
 }
