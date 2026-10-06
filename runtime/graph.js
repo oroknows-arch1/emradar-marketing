@@ -1,4 +1,8 @@
 import fs from 'node:fs/promises';
+import scanControl from '../config/scan-control.json' with {type:'json'};
+import {normalizeOutcome,analyseOutcomes,learnRouting,historicalRoutingInput} from './outcomes.js';
+import {evaluateX} from './route-feedback.js';
+import {checkPublication} from './publication-outcomes.js';
 import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
 import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
@@ -36,7 +40,7 @@ function approved(p,s) {
 }
 
 export class GraphEngine {
-  constructor({store,products,adapters,harness=null,maxSteps=40}) {this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;this.spend=new SpendEnvelope(store);}
+  constructor({store,products,adapters,harness=null,maxSteps=40,xAccountStatus=null}) {this.xAccountStatus=xAccountStatus;this.store=store;this.products=products;this.adapters=adapters;this.harness=harness;this.maxSteps=maxSteps;this.spend=new SpendEnvelope(store);}
   async previewDiscovery(input) {
     if(input.product!=='EMRADAR'||input.test_id!==discoveryTestId)fail('X_DISCOVERY_SOURCE_OR_TEST_NOT_AUTHORIZED');
     return this.store.locked('x_discovery',async()=>{
@@ -104,7 +108,7 @@ export class GraphEngine {
     c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',provider_cost,reserved_usd:b.max_worker_usd*2};
     await this.store.put('work:'+c.run_id+':'+node,c.node_work);return work;
   }
-  async tick() {
+  async tick({feedbackOnly=scanControl.hold_new_scans}={}) {
     // Bounded autonomous scheduler node: one product revision, then at most one
     // due performance observation. State is persistent across restarts.
     const plan=await this.store.locked('engine',async()=>{
@@ -112,7 +116,7 @@ export class GraphEngine {
       const seen=await this.store.get('scheduler_seen')||{};
       let selected=null;
       for(const [product,p] of Object.entries(this.products)) {
-        if(!p.autonomous?.enabled)continue;
+        if((feedbackOnly&&product==='EMRADAR')||!p.autonomous?.enabled)continue;
         for(const signal of p.signals||[]) {
           const key=digest([product,signal.id,signal.revision]);const fingerprint=digest(p);
           const old=seen[key];
@@ -123,7 +127,7 @@ export class GraphEngine {
         if(selected)break;
       }
       await this.store.put('scheduler_seen',seen);
-      const due=index.find(r=>['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&this.products[r.product]?.autonomous?.enabled&&Date.now()-Date.parse(r.last_collection||r.timestamp)>=300000);
+      const due=index.find(r=>['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&Date.now()-Date.parse(r.last_collection||r.timestamp)>=300000);
       if(due){due.last_collection=now();await this.store.put('receipt_index',index);}
       const trace={node:'autonomous_scheduler',status:'PASS',input:'trusted_product_revisions_and_receipt_index',output:{next_input:selected,feedback_receipt:due?.id||null},at:now()};
       await this.store.put('scheduler_latest',trace);return trace;
@@ -134,10 +138,11 @@ export class GraphEngine {
     return {scheduler:plan,result,feedback};
   }
   async run(input) {
+    if(scanControl.hold_new_scans&&!input.revision_proposal_id&&!input.reviewed_proposal_id&&input.product==='EMRADAR')fail('NEXT_SCAN_HELD_BY_OWNER');
     if(!input.product||!input.campaign_id)fail('PRODUCT_AND_CAMPAIGN_REQUIRED');
     if(input.revision_proposal_id&&input.stop_at!=='PUBLICATION_REVIEW')fail('REVISION_MUST_STOP_AT_PUBLICATION_REVIEW');
     return this.store.locked('engine',async()=>{
-      const c={input,trace:[],state:await this.store.get('learning')||initial(),run_id:crypto.randomUUID(),status:'RUNNING'};
+      const c={input,trace:[],state:await this.store.get('learning')||initial(),routing_memory:await this.store.get('routing_memory'),run_id:crypto.randomUUID(),status:'RUNNING'};
       c.learning_before=structuredClone(c.state);
       await beginCosts(this.store,{run_id:c.run_id,input,source:this.products[input.product]?.signals?.find(s=>!input.signal_id||s.id===input.signal_id)});
       try{await this.traverse(c,'ingest');}catch(error){c.status='FAILED';c.blocker=error.message;}
@@ -165,10 +170,12 @@ export class GraphEngine {
   async feedback(receiptId) {
     return this.store.locked('engine',async()=>{
       const r=await this.store.get('receipt:'+receiptId);if(!r)fail('RECEIPT_NOT_FOUND');
+      const p=this.products[r.product],signal=p?.signals.find(v=>v.id===r.signal_id&&v.revision===r.signal_revision);
+      if(signal&&digest(p.source_receipt||null)===digest(r.source_receipt||null))await this.store.put('signal_snapshot:'+r.product+':'+r.signal_id+':'+r.signal_revision,{signal,source_receipt:r.source_receipt});
       const c={input:{product:r.product,campaign_id:r.campaign_id},receipt:r,state:await this.store.get('learning')||initial(),trace:[],status:'RUNNING',run_id:crypto.randomUUID()};
       await beginCosts(this.store,{run_id:c.run_id,input:c.input,source:{id:r.signal_id,revision:r.signal_revision},kind:'FEEDBACK'});
       try{await this.traverse(c,'observe');}finally{await finishCosts(this.store,c.run_id,{outcome:c.status==='RUNNING'?'FEEDBACK_COMPLETE':c.status,blocker:c.blocker});}
-      await this.store.put('feedback:'+r.id,{trace:c.trace,outcome:c.outcome||null,learning:c.state});return {trace:c.trace,outcome:c.outcome,learning:c.state};
+      const feedbackRecord={run_id:c.run_id,trace:c.trace,outcome:c.outcome||null,learning:c.state,routing_memory:c.routing_memory};await this.store.put('feedback_run:'+c.run_id,feedbackRecord);const feedbackIndex=await this.store.get('feedback_history:'+r.id)||[];feedbackIndex.push(c.run_id);await this.store.put('feedback_history:'+r.id,feedbackIndex);await this.store.put('feedback:'+r.id,feedbackRecord);return {trace:c.trace,outcome:c.outcome,learning:c.state};
     });
   }
 }
@@ -188,6 +195,7 @@ const workers={
       if(p.signal_revision!==c.signal.revision||p.signal_state!==c.signal.state||digest(p.evidence_refs)!==digest(c.signal.evidence))fail('REVISION_SOURCE_CHANGED');
       c.reused_proposal=p;
     }
+    await e.store.put('signal_snapshot:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,{signal:c.signal,source_receipt:c.product.source_receipt,truth_hash:c.truth_hash});
     c.max_attempts=Math.min(3,Math.max(1,c.product.max_attempts||2));
   },
   async signal_extraction(c) {c.signals=c.product.signals.filter(s=>s.evidence?.length);},
@@ -202,6 +210,7 @@ const workers={
     // Persistent product-scoped map first. No broad discovery or invented destination.
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
+    if(c.input.product==='EMRADAR')c.x_evaluation=await evaluateX({store:e.store,product:c.product,signal:c.signal,adapter:e.adapters.X,accountStatus:e.xAccountStatus,campaign_id:c.input.campaign_id});
     if(c.reused_proposal){
       const p=c.reused_proposal,d=p.asset.delivery;
       if(!isEmail(d)||d.verification_state!=='VERIFIED'||d.destination_id!==p.destination)fail('REVISION_VERIFIED_EMAIL_ROUTE_REQUIRED');
@@ -229,13 +238,14 @@ const workers={
         await e.store.put('route_plan:'+c.input.product+':'+c.signal.id+':'+c.signal.revision,c.route_plan);
         const openCandidates=[];
         for(const d of open.candidates){
+          if(d.destination_id==='EMRADAR-X-OROKNOWS'&&c.x_evaluation?.state!=='X_SELECTED')continue;
           const platform=d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE';
           const executable=platform==='X'||!!(e.adapters.OPEN_ROUTE?.supportsRoute?.(d)&&await e.adapters.OPEN_ROUTE.authorized?.(c.input.product,d));
           const {classification,prepare_eligible,execution_state,route_score,score_factors,route_reason,...routeRecord}=d;
           openCandidates.push({id:d.destination_id,platform,signal_ids:[c.signal.id],formats:['text'],relevance:route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:executable?'EXECUTE_AFTER_EXACT_PUBLICATION_REVIEW':'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:platform==='OPEN_ROUTE'&&!executable,route_record:routeRecord});
         }
         const existing=c.candidates.length?c.candidates:configured;
-        c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))];
+        c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))].filter(d=>d.platform!=='X'||c.x_evaluation?.state==='X_SELECTED');
       }
       if(!c.candidates.length)c.candidates=configured.length?configured:registeredEmradarDestinations(c.signal);
       if(!c.candidates.length)fail('NO_VERIFIED_OPEN_OR_EXECUTABLE_DESTINATION');
@@ -259,9 +269,10 @@ const workers={
   async baseline(c) {c.candidates=c.candidates.filter(d=>d.baseline?.id&&d.baseline?.valid_until&&Date.parse(d.baseline.valid_until)>Date.now());if(!c.candidates.length)fail('DESTINATION_BASELINE_REQUIRED');},
   async delta(c) {c.candidates=c.candidates.filter(d=>d.delta?.signal_revision===c.signal.revision&&d.delta?.meaningful===true&&d.delta?.evidence_ids?.every(id=>c.signal.evidence.includes(id))&&d.delta.evidence_ids.length);},
   async novelty_gate(c) {if(!c.candidates.length)fail('NO_MEANINGFUL_DELTA');},
-  async route(c) {
+  async route(c,e) {
+    c.routing_memory ||= await e.store.get('routing_memory');
     const options=[];
-    for(const d of c.candidates)for(const f of d.formats){const key=keyOf(c.input.product,c.signal.id,d.id,f);const l=c.state.routes[key];const health=c.state.platforms?.[c.input.product+':'+d.platform];options.push({id:d.id,destination:d,format:f,key,score:(d.relevance||0)+score(c.state,key),learned:score(c.state,key),breaker:l?.failures>=3||health?.failures>=3,cooldown:Date.parse(l?.retry_at||0)>Date.now()||Date.parse(health?.retry_at||0)>Date.now()});}
+    for(const d of c.candidates)for(const f of d.formats){const key=keyOf(c.input.product,c.signal.id,d.id,f);const l=c.state.routes[key];const health=c.state.platforms?.[c.input.product+':'+d.platform];const feedback=historicalRoutingInput(c.routing_memory,{destination:d.id,platform:d.platform,evidence_state:c.signal.state});options.push({id:d.id,destination:d,format:f,key,score:(d.relevance||0)+score(c.state,key)+feedback.adjustment,learned:score(c.state,key),historical_evidence:feedback,breaker:l?.failures>=3||health?.failures>=3,cooldown:Date.parse(l?.retry_at||0)>Date.now()||Date.parse(health?.retry_at||0)>Date.now()});}
     options.sort((a,b)=>Number(a.destination.open_access_prepare_only)-Number(b.destination.open_access_prepare_only)||b.score-a.score||a.id.localeCompare(b.id)||a.format.localeCompare(b.format));
     const available=options.filter(o=>!o.breaker&&!o.cooldown);
     c.route=c.input.destination_id?available.find(o=>o.id===c.input.destination_id):available[0];
@@ -426,6 +437,10 @@ const workers={
     c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,publication_review:c.review||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     const pendingKey='pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision;
     if(c.asset.email)Object.assign(c.receipt,{recipient:c.asset.email.to,sender_identity:c.asset.email.from,approved_artifact_hash:c.review.review_hash,proposal_id:c.review.proposal_id,idempotency_key:c.publication_key});
+    if(prior){const history=await e.store.get('receipt_history:'+c.publication_key)||[];history.push(prior);await e.store.put('receipt_history:'+c.publication_key,history);}
+    c.receipt.account=c.route.destination.route_record?.public_contact_point||'UNKNOWN';
+    c.receipt.approved_artifact_hash ||= c.review?.review_hash||null;
+    c.receipt.proposal_id ||= c.review?.proposal_id||null;
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     await e.store.put(pendingKey,{receipt_id:c.publication_key,status:'IN_FLIGHT'});
     try {
@@ -447,29 +462,28 @@ const workers={
     if(!c.receipt)c.receipt={id:digest([c.run_id,c.input]),destination:c.route?.id||'UNKNOWN',platform:c.route?.destination.platform||'UNKNOWN',variant:c.variant?.id||'UNKNOWN',format:c.asset?.format||'UNKNOWN',timestamp:now(),execution_status:c.review_pending?'AWAITING_REVIEW':'BLOCKED',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal?.id||'UNKNOWN',signal_revision:c.signal?.revision||'UNKNOWN',signal_state:c.signal?.state||'UNKNOWN',evidence_refs:c.signal?.evidence||[],source_receipt:c.product?.source_receipt||null,route_key:c.route?.key||null,attempts:0,max_attempts:c.max_attempts||0,retry_at:null,error:c.blocker||'UNKNOWN',blocker_disposition:c.blocker?blockerDisposition(c.blocker):null,review:c.review||null,api_cost_usd:c.worker_reserved_usd?'UNKNOWN':0,worker_reserved_usd:c.worker_reserved_usd||0,ad_spend_usd:0};
     c.receipt.worker_costs=c.provider_costs||[];
     await e.store.put('receipt:'+c.receipt.id,c.receipt);await e.store.put('latest_receipt',c.receipt);
-    const index=await e.store.get('receipt_index')||[];const filtered=index.filter(r=>r.id!==c.receipt.id);filtered.push({...c.receipt,last_collection:now()});await e.store.put('receipt_index',filtered.slice(-200));
+    const index=await e.store.get('receipt_index')||[];const filtered=index.filter(r=>r.id!==c.receipt.id);filtered.push({...c.receipt,last_collection:now()});await e.store.put('receipt_index',filtered);
   },
   async observe(c,e) {
     c.performance={status:'UNKNOWN',metrics:{},source:'UNAVAILABLE',observed_at:now(),cost_usd:'UNKNOWN'};
-    const r=c.receipt;const a=e.adapters[r.platform];
+    const r=c.receipt;const a=e.adapters[r.platform];const linkedProposal=await e.store.get('publication_review:'+(r.proposal_id||r.publication_review?.proposal_id));const readReceipt={...r,publication_domain:linkedProposal?.asset.delivery?.evidence_source_url?new URL(linkedProposal.asset.delivery.evidence_source_url).hostname.replace(/^www\./,''):null};
     if(Date.parse(c.state.platforms?.[r.product+':'+r.platform]?.retry_at||0)>Date.now()){c.performance.reason='PLATFORM_RATE_LIMIT_COOLDOWN';await e.store.put('performance:'+r.id,c.performance);return;}
-    if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect&&a.cost==='ZERO') {await costCall(e.store,c.run_id,{action_id:c.run_id+':collect',category:'observation',provider:r.platform,service:'collect',amount_aud:0,state:'ZERO',reason:'VERIFIED_ZERO_COST_ADAPTER'});try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
+    if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect&&a.cost==='ZERO') {await costCall(e.store,c.run_id,{action_id:c.run_id+':collect',category:'observation',provider:r.platform,service:'collect',amount_aud:0,state:'ZERO',reason:'VERIFIED_ZERO_COST_ADAPTER'});try{c.performance=await a.collect(readReceipt);}catch(error){c.performance.reason=error.message;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}}
     else if(['PUBLISHED','SUBMITTED'].includes(r.execution_status)&&a?.collect){
       const p=e.products[r.product];if(!a.quote){c.performance.reason='ACTUAL_COST_BOUND_UNKNOWN';await e.store.put('performance:'+r.id,c.performance);return;}if(p?.budget?.metrics_approved&&Number.isFinite(p.budget.max_metrics_calls)&&p.budget.max_metrics_calls>0){
         const ledgerKey='metrics_cost:'+r.product+':'+now().slice(0,10);const ledger=await e.store.get(ledgerKey)||{calls:0,reserved_usd:0};const b=p.budget;
         if(!Number.isFinite(b.max_metrics_action_usd)||b.max_metrics_action_usd<=0||!Number.isFinite(b.max_metrics_daily_usd)||ledger.calls>=b.max_metrics_calls||ledger.reserved_usd+b.max_metrics_action_usd>b.max_metrics_daily_usd)c.performance.reason='METRICS_COST_OR_CALL_BOUND';
-        else{const quote=await a.quote({operation:'collect',receipt:r});const reservation=await e.spend.reserve({campaign_id:r.campaign_id,quote,action_id:c.run_id+':collect',run_id:c.run_id,category:'observation'});ledger.calls++;ledger.reserved_usd+=b.max_metrics_action_usd;await e.store.put(ledgerKey,ledger);try{c.performance=await a.collect(r);}catch(error){c.performance.reason=error.message;c.performance.billing=error.billing;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}c.performance.provider_cost=await e.spend.settle(reservation,c.performance.billing);}
+        else{const quote=await a.quote({operation:'collect',receipt:r});const reservation=await e.spend.reserve({campaign_id:r.campaign_id,quote,action_id:c.run_id+':collect',run_id:c.run_id,category:'observation'});ledger.calls++;ledger.reserved_usd+=b.max_metrics_action_usd;await e.store.put(ledgerKey,ledger);try{c.performance=await a.collect(readReceipt);}catch(error){c.performance.reason=error.message;c.performance.billing=error.billing;if(error.status===429){c.state.platforms ||= {};const k=r.product+':'+r.platform;c.state.platforms[k]={...(c.state.platforms[k]||{failures:0}),retry_at:new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString()};}}c.performance.provider_cost=await e.spend.settle(reservation,c.performance.billing);}
       }else c.performance.reason='METRICS_API_COST_APPROVAL_REQUIRED';
     }
+    const candidates=await e.store.get('publication_candidates:'+r.id)||[];for(const url of c.performance.publication_candidates||[]){if(candidates.length<3&&!candidates.some(c=>c.url===url))candidates.push({url,at:now(),origin:'MATCHED_GMAIL_REPLY_LINK_NOT_PUBLICATION_PROOF'});}await e.store.put('publication_candidates:'+r.id,candidates);
+    for(const candidate of candidates.slice(0,3)){try{const proposal=await e.store.get('publication_review:'+(r.proposal_id||r.publication_review?.proposal_id));const observation=await checkPublication({proposal,receipt:r,url:candidate.url});await e.store.put('publication_check:'+r.id+':'+digest(candidate.url),observation);if(observation.state==='PUBLISHED')(c.performance.events||=[]).push(observation);}catch(error){await e.store.put('publication_check:'+r.id+':'+digest(candidate.url),{state:'UNKNOWN',reason:error.message});}}
     await e.store.put('performance:'+r.id,c.performance);
   },
-  async normalize(c,e) {
-    c.outcome={receipt_id:c.receipt.id,route_key:c.receipt.route_key,execution_status:c.receipt.execution_status,observed_at:c.performance.observed_at,source:c.performance.source,measurements:c.performance.metrics,engagement_rate:'UNKNOWN',reach:'UNKNOWN',conversion:'UNKNOWN',cost_usd:c.performance.cost_usd??'UNKNOWN',provider_costs:{execution:c.receipt.provider_cost||'UNKNOWN',workers:c.receipt.worker_costs||[],observation:c.performance.provider_cost||'UNKNOWN'},evidence_strength:c.performance.status==='AVAILABLE'?'DIRECT_MEASUREMENT':'EXECUTION_ONLY'};
-    // Channel-native values retain names/units/scopes. No email/X/local pseudo-score.
-    if(!Object.values(c.outcome.measurements).every(m=>Number.isFinite(m.value)&&m.value>=0&&m.unit&&m.scope))fail('INVALID_MEASUREMENT');
-    await e.store.put('outcome:'+c.receipt.id,c.outcome);
-  },
-  async learn(c) {
+  async normalize(c,e) {c.outcome=await normalizeOutcome(e.store,c.receipt,c.performance);},
+  async performance_analysis(c,e) {c.analysis=await analyseOutcomes(e.store);},
+  async learn(c,e) {
+    c.routing_memory=await learnRouting(e.store,c.analysis);
     const r=c.receipt;if(!r.route_key||!['PUBLISHED','SUBMITTED','FAILED','RATE_LIMITED','AMBIGUOUS'].includes(r.execution_status))return;
     const event=digest([r.id,r.attempts,r.execution_status]);
     const observation=digest([event,c.outcome.measurements,c.outcome.evidence_strength]);
@@ -493,7 +507,7 @@ const workers={
     record.last_known_evidence_strength=record.evidence_strength==='DIRECT_MEASUREMENT'?'DIRECT_MEASUREMENT':old.last_known_evidence_strength||'UNKNOWN';
     c.state.routes[r.route_key]=record;
     c.state.variants ||= {};if(r.variant_key)c.state.variants[r.variant_key]={score:record.measurement_adjustment||0,evidence_strength:record.evidence_strength,receipt_id:r.id};c.state.processed[event]=true;c.state.processed[observation]=true;c.state.version++;
-    c.state.history.push({version:c.state.version,route_key:r.route_key,receipt_id:r.id,before:old,after:record});c.state.history=c.state.history.slice(-100);
+    c.state.history.push({version:c.state.version,route_key:r.route_key,receipt_id:r.id,before:old,after:record});
   },
   async distribution_map(c,e) {if(c.product&&digest(c.product)!==c.truth_hash)fail('LEARNING_CANNOT_CHANGE_PRODUCT_TRUTH');await e.store.put('learning',c.state);},
 };

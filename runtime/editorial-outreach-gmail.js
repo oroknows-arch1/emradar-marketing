@@ -54,6 +54,8 @@ export async function sendEditorialEmail({idempotency_key,product,asset,route}){
   return {id:info.messageId,status:'ACCEPTED',receipt:{message_id:info.messageId,accepted:[...info.accepted],rejected:[...(info.rejected||[])],idempotency_key}};
 }
 
-export async function collectEditorialOutcome(){
-  return {source:'GMAIL_OUTCOME_NOT_CONNECTED',metrics:{}};
+export async function collectEditorialOutcome(receipt){
+  if(editorialSenderStatus().gate!=='PASS')throw new Error('EDITORIAL_AUTHENTICATED_SENDER_MISMATCH');
+  if(!relay())return {source:'GMAIL_READ_TRANSPORT_UNAVAILABLE',metrics:{},collection:{status:'BLOCKED',reason:'EXISTING_PAID_RELAY_REQUIRED'}};
+  return relayRequest('collect',{receipt:{id:receipt.id,message_id:receipt.provider_receipt?.message_id,recipient:receipt.recipient,submitted_at:receipt.timestamp,publication_domain:receipt.publication_domain}});
 }

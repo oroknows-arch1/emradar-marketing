@@ -1,4 +1,7 @@
 import http from "node:http";
+import scanControl from "./config/scan-control.json" with {type:"json"};
+import {evaluateX} from "./runtime/route-feedback.js";
+import {historicalRoutingInput,outcomeHistory} from "./runtime/outcomes.js";
 import crypto from "node:crypto";
 import { URL, URLSearchParams } from "node:url";
 import { createClient } from "redis";
@@ -107,7 +110,7 @@ async function marketingEngine(){
   }}),LINKEDIN:socialAdapter(linkedinConnector({accessToken:linkedinAuth?.access_token||process.env.LINKEDIN_ACCESS_TOKEN,organizationUrn:process.env.LINKEDIN_ORGANIZATION_URN,apiVersion:process.env.LINKEDIN_API_VERSION})),BLUESKY:socialAdapter(blueskyConnector({service:process.env.BLUESKY_SERVICE_URL,identifier:process.env.BLUESKY_IDENTIFIER,appPassword:process.env.BLUESKY_APP_PASSWORD})),MASTODON:socialAdapter(mastodonConnector({server:process.env.MASTODON_SERVER,accessToken:process.env.MASTODON_ACCESS_TOKEN}))};
   const editorialOutreach=await loadEditorialOutreach(process.env.MARKETING_EDITORIAL_OUTREACH_MODULE);if(editorialOutreach)adapters.OPEN_ROUTE=editorialOutreach;
   if(process.env.MARKETING_TEST_DIRECTORY)adapters.LOCAL=localAdapter(process.env.MARKETING_TEST_DIRECTORY);
-  return new GraphEngine({store:new RedisStore(await store()),products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)});
+  return new GraphEngine({store:new RedisStore(await store()),products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE),xAccountStatus:async()=>{const auth=await currentAuth('EMRADAR');return {status:auth?.access_token&&(!auth.expires_at||auth.expires_at>Date.now())?(auth.refreshed_at?'REFRESHED_RUNTIME_AUTHORIZATION':'CURRENT_RUNTIME_AUTHORIZATION'):'OWNER_REAUTHORIZATION_REQUIRED',expires_at:auth?.expires_at?new Date(auth.expires_at).toISOString():null,refreshed_at:auth?.refreshed_at||null,scope:auth?.scope||'UNKNOWN',provider_revocation_check:'NOT_PROBED_UNKNOWN_API_COST'};}});
 }
 
 const server=http.createServer(async(req,res)=>{
@@ -154,11 +157,51 @@ const server=http.createServer(async(req,res)=>{
     const result=await oauth.callback(Object.fromEntries(u.searchParams));if(result.location){res.writeHead(result.status,{location:result.location,"cache-control":"no-store"});return res.end();}return json(res,result.status,result.body);
   }
   if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
+    if(scanControl.hold_new_scans)return json(res,423,{reason:'NEXT_SCAN_HELD_BY_OWNER'});
     try{const envelope=JSON.parse(await readBody(req));const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
-    try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));if(process.env.MARKETING_AUTONOMOUS!=='true')return json(res,200,{status:'SCHEDULER_DISABLED',result:null,feedback:null});const result=await (await marketingEngine()).tick();return json(res,200,result);}
+    try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));const result=await (await marketingEngine()).tick();return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(u.pathname==='/OUTCOME_REVIEW'&&['GET','POST'].includes(req.method)){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{
+      const engine=await marketingEngine(),s=engine.store;
+      if(req.method==='GET'){
+        const receiptId=u.searchParams.get('receipt_id');
+        if(receiptId&&!/^[a-f0-9]{64}$/.test(receiptId))throw new Error('RECEIPT_ID_INVALID');
+        const ids=receiptId?[receiptId]:await s.get('outcome_index')||[];
+        const memory=await s.get('routing_memory');
+        const records=[];
+        for(const id of ids){const receipt=await s.get('receipt:'+id);if(receipt)records.push({receipt,outcome:await s.get('outcome:'+id),history:await outcomeHistory(s,id),attempt_history:await s.get('receipt_history:'+id)||[],recovery:await s.get('delivery_recovery:'+id),cost_receipts:await s.get('campaign_cost_index:'+receipt.campaign_id)||[]});}
+        return json(res,200,{records,performance_analysis:await s.get('performance_analysis'),routing_memory:memory,hypothetical_next_routing_input:historicalRoutingInput(memory,{destination:u.searchParams.get('destination')||'REUTERS-BREAKINGVIEWS-GUEST',platform:'OPEN_ROUTE',evidence_state:'FORMING'}),scan_control:scanControl,source_receipt:await s.get('source_receipt:EMRADAR'),closed_loop_proof:await s.get('closed_loop_proof')});
+      }
+      const input=JSON.parse(await readBody(req));
+      if(input.action==='COLLECT'){
+        if(!Array.isArray(input.receipt_ids)||input.receipt_ids.length<1||input.receipt_ids.length>4||input.receipt_ids.some(id=>!/^[a-f0-9]{64}$/.test(id)))throw new Error('BOUNDED_RECEIPT_IDS_REQUIRED');
+        const before=[];for(const id of input.receipt_ids)before.push(JSON.stringify(await s.get('receipt:'+id)));const sourceBefore=JSON.stringify(await s.get('source_receipt:EMRADAR'));
+        const results=[];for(const id of input.receipt_ids)results.push(await engine.feedback(id));
+        const memory=await s.get('routing_memory'),proof={at:new Date().toISOString(),receipt_ids:input.receipt_ids,nodes:results.map(v=>v.trace.map(n=>({node:n.node,status:n.status}))),receipt_parity:[],source_receipt_unchanged:sourceBefore===JSON.stringify(await s.get('source_receipt:EMRADAR')),scan_processed:false,external_publications:0,learning_reference:memory?.analysis_reference,hypothetical_next_input:historicalRoutingInput(memory,{destination:'REUTERS-BREAKINGVIEWS-GUEST',platform:'OPEN_ROUTE',evidence_state:'FORMING'})};for(let i=0;i<input.receipt_ids.length;i++)proof.receipt_parity.push(before[i]===JSON.stringify(await s.get('receipt:'+input.receipt_ids[i])));await s.put('closed_loop_proof',proof);
+        return json(res,200,{results,external_publications:0,scan_processed:false});
+      }
+      if(input.action==='X_EVALUATE'){
+        if(!/^[a-f0-9]{64}$/.test(input.proposal_id||''))throw new Error('PROPOSAL_ID_INVALID');
+        const p=await s.get('publication_review:'+input.proposal_id),product=engine.products[p?.product];
+        const signal=product?.signals.find(v=>v.id===p.signal_id&&v.revision===p.signal_revision);
+        if(!signal||JSON.stringify(product.source_receipt)!==JSON.stringify(p.source_receipt))throw new Error('SAVED_APPROVED_SOURCE_UNAVAILABLE');
+        const result=await s.locked('engine',()=>evaluateX({store:s,product,signal,adapter:engine.adapters.X,accountStatus:engine.xAccountStatus,campaign_id:p.input.campaign_id}));
+        return json(res,200,{result,previous_route_plan:await s.get('route_plan:'+p.product+':'+signal.id+':'+signal.revision),external_publications:0,scan_processed:false});
+      }
+      if(input.action==='PUBLICATION_CANDIDATE'){
+        const r=await s.get('receipt:'+input.receipt_id);if(!r?.proposal_id||typeof input.url!=='string')throw new Error('RECEIPT_AND_CANDIDATE_REQUIRED');
+        const p=await s.get('publication_review:'+r.proposal_id),host=new URL(p.asset.delivery.evidence_source_url).hostname.replace(/^www\./,'');
+        const target=new URL(input.url);if(target.protocol!=='https:'||target.hostname.replace(/^www\./,'')!==host||target.port||target.username||target.password)throw new Error('VERIFIED_PUBLICATION_DOMAIN_REQUIRED');
+        await s.locked('engine',async()=>{const key='publication_candidates:'+r.id,candidates=await s.get(key)||[];if(!candidates.some(c=>c.url===input.url)){if(candidates.length>=3)throw new Error('PUBLICATION_CANDIDATE_BOUND');candidates.push({url:input.url,at:new Date().toISOString(),origin:'OWNER_CANDIDATE_NOT_PUBLICATION_PROOF'});await s.put(key,candidates);}});
+        return json(res,200,{status:'CANDIDATE_QUEUED',external_publications:0});
+      }
+      throw new Error('OUTCOME_ACTION_NOT_ALLOWED');
+    }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/PUBLICATION_REVIEW/delivery-status'){
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
@@ -237,7 +280,7 @@ const server=http.createServer(async(req,res)=>{
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
   runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
-  runPendingSourceRelease().then(()=>runPendingCampaign(kv)).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+  (scanControl.hold_new_scans?Promise.resolve():runPendingSourceRelease().then(()=>runPendingCampaign(kv))).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
 });
 
 async function runPendingSourceRelease(){
@@ -307,7 +350,7 @@ async function runPendingCampaign(connectedClient=null){
 
 // No per-request polling loop. Every bounded tick loads the trusted current source
 // package, so new product revisions can enter without a human triggering each run.
-if(process.env.MARKETING_AUTONOMOUS==='true'){
+if(process.env.MARKETING_AUTONOMOUS==='true'||scanControl.hold_new_scans){
   let ticking=false;
   const interval=Math.max(60000,Number(process.env.MARKETING_CYCLE_INTERVAL_MS)||300000);
   setInterval(async()=>{if(ticking)return;ticking=true;try{await (await marketingEngine()).tick();}catch(e){console.error('Marketing scheduler blocked:',e.message);}finally{ticking=false;}},interval).unref();

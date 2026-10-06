@@ -30,7 +30,7 @@ export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,au
       if(typeof collectOutcome!=='function')return {status:'UNKNOWN',source:'EDITORIAL_OUTCOME_NOT_CONNECTED',observed_at:new Date().toISOString(),metrics:{},cost_usd:0};
       const result=await collectOutcome(receipt);const metrics={};
       for(const [name,value] of Object.entries(result?.metrics||{}))if(Number.isFinite(value)&&value>=0)metrics[name]={value,unit:'boolean',scope:'editorial_outreach'};
-      return {status:Object.keys(metrics).length?'AVAILABLE':'UNKNOWN',source:result?.source||'editorial_outreach_followup',observed_at:new Date().toISOString(),metrics,cost_usd:0};
+      return {status:Object.keys(metrics).length?'AVAILABLE':'UNKNOWN',source:result?.source||'editorial_outreach_followup',observed_at:new Date().toISOString(),metrics,cost_usd:0,events:result?.events||[],collection:result?.collection||null,publication_candidates:result?.publication_candidates||[]};
     }
   };
 }
