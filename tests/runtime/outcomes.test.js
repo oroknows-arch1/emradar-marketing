@@ -51,3 +51,12 @@ test('native X copy preserves a whole fact and forecast/ceremonial uncertainty w
  const result=nativeXCopy(signal);assert(result.copy.length<=280);assert(result.copy.includes(signal.source_facts[0].text));assert(result.copy.includes('FORMING'));assert(result.copy.includes('ceremonial'));assert(result.copy.includes('forecast rather than realised'));assert.deepEqual(result.qualification_indexes,[0,1]);assert(!result.copy.includes('can provide'));
  assert.throws(()=>nativeXCopy({...signal,source_facts:[{id:'e',text:'Whole source fact '.repeat(100)}]}),/SHORTER_APPROVED_FACT/);
 });
+
+test('actual X creation receipt establishes public posting, without fabricating a fetched page or audience success',async()=>{
+ const f=await fixture(),r={...receipt(),platform:'X',execution_status:'PUBLISHED',external_id:'123',url:'https://x.com/i/web/status/123',provider_receipt:null,delivery_status:null};
+ const o=await normalizeOutcome(f.store,r,{metrics:{}});assert.equal(o.outcome_state,'PUBLISHED');assert.equal(o.outcome_evidence.type,'X_PUBLICATION_RECEIPT');assert.equal(o.outcome_evidence.page_hash,undefined);assert.deepEqual(o.measurements,{});const a=await analyseOutcomes(f.store);assert.equal(Object.values(a.groups)[0].positive_evidence.length,0);
+});
+
+test('a production scan hold makes scheduler feedback-only even if another registered product is autonomous',async()=>{
+ const f=await fixture();f.p.autonomous={enabled:true};f.engine.products.EMRADAR={...f.p,autonomous:{enabled:true}};let publishes=0;f.adapter.publish=async()=>publishes++;const tick=await f.engine.tick();assert.equal(tick.result,null);assert.equal(tick.scheduler.output.next_input,null);assert.equal(publishes,0);
+});

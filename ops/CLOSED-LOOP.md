@@ -82,7 +82,7 @@ Native X formatting reuses a whole approved fact and the first source qualificat
 The OAuth refresh/expiry check does not claim to prove API access or revocation
 without an actual provider call. Paid metrics remain gated by verified quotes and
 existing budgets; absent metrics are UNKNOWN, not zero. Real X post receipts use
-the same outcome/analysis/learning path as emails.
+the same outcome/analysis/learning path as emails. An actual X creation receipt is distinguished from a fetched publication page; self-publication is not positive audience evidence. Measured likes/impressions can influence X ranking only after three distinct formations and three comparable observations, with provenance and the same 0.15 cap.
 
 ## Scan hold and cost
 

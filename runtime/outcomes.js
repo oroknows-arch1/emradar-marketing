@@ -5,7 +5,7 @@ export const outcomeStates=['PREPARED','APPROVED','SUBMITTED','PROVIDER_ACCEPTED
 const substantive=new Set(['DELIVERY_FAILED','BOUNCED','RESPONSE_RECEIVED','EDITOR_INTEREST','MORE_INFORMATION_REQUESTED','REJECTED','PUBLISHED']);
 export async function appendOutcome(store,id,event){
   if(!outcomeStates.includes(event.state)||!event.evidence?.type||!event.evidence?.reference||!Number.isFinite(Date.parse(event.at)))throw new Error('OUTCOME_EVIDENCE_REQUIRED');
-  if(event.state==='PUBLISHED'&&(event.evidence.type!=='VERIFIED_PUBLICATION_PAGE'||!event.evidence.url||!event.evidence.page_hash||!event.evidence.artifact_match||!event.evidence.publication_date))throw new Error('PUBLICATION_PAGE_EVIDENCE_REQUIRED');
+  if(event.state==='PUBLISHED'){const e=event.evidence,page=e.type==='VERIFIED_PUBLICATION_PAGE'&&e.url&&e.page_hash&&e.artifact_match&&e.publication_date,post=e.type==='X_PUBLICATION_RECEIPT'&&e.provider_post_id&&e.url&&e.artifact_hash&&e.publication_date;if(!page&&!post)throw new Error('PUBLICATION_PAGE_EVIDENCE_REQUIRED');}
   if(['EDITOR_INTEREST','MORE_INFORMATION_REQUESTED','REJECTED'].includes(event.state)&&(!event.evidence.reply_message_id||!event.evidence.explicit_statement||event.evidence.classification!=='EXPLICIT_REVIEWED_STATEMENT'))throw new Error('EXPLICIT_EDITORIAL_EVIDENCE_REQUIRED');
   if(event.state==='BOUNCED'&&(!event.evidence.matched_original_message_id||event.evidence.action!=='failed'||!/^5\./.test(event.evidence.dsn_status||'')))throw new Error('MATCHED_FAILURE_DSN_REQUIRED');
   const key='outcome_event:'+id+':'+hash(event),indexKey='outcome_history:'+id;
@@ -26,7 +26,7 @@ export async function normalizeOutcome(store,receipt,performance){
   const emailAccepted=receipt.execution_status==='SUBMITTED'&&receipt.delivery_status==='ACCEPTED'&&receipt.provider_receipt?.message_id&&receipt.provider_receipt.accepted?.includes(receipt.recipient);
   if(emailAccepted)await event('PROVIDER_ACCEPTED',receipt.timestamp,{type:'GMAIL_SMTP_ACCEPTANCE',reference,message_id:receipt.provider_receipt.message_id});
   if(receipt.execution_status==='FAILED')await event('DELIVERY_FAILED',receipt.timestamp,{type:'DEFINITIVE_TRANSPORT_FAILURE',reference,reason:receipt.error});
-  if(receipt.platform==='X'&&receipt.execution_status==='PUBLISHED'&&receipt.external_id&&receipt.url)await event('PUBLISHED',receipt.timestamp,{type:'VERIFIED_PUBLICATION_PAGE',reference,url:receipt.url,page_hash:receipt.delivery_hash,artifact_match:true,publication_date:receipt.timestamp,provider_post_id:receipt.external_id});
+  if(receipt.platform==='X'&&receipt.execution_status==='PUBLISHED'&&receipt.external_id&&receipt.url)await event('PUBLISHED',receipt.timestamp,{type:'X_PUBLICATION_RECEIPT',reference,url:receipt.url,artifact_hash:receipt.delivery_hash,publication_date:receipt.timestamp,provider_post_id:receipt.external_id});
   for(const e of performance.events||[]){if(['BOUNCED','RESPONSE_RECEIVED'].includes(e.state)&&e.evidence?.matched_original_message_id!==receipt.provider_receipt?.message_id)throw new Error('OUTCOME_RECEIPT_MESSAGE_MISMATCH');await appendOutcome(store,receipt.id,e);}
   let history=await outcomeHistory(store,receipt.id);
   const published=history.findLast(e=>e.state==='PUBLISHED');
@@ -48,7 +48,7 @@ export async function analyseOutcomes(store){
     const g=groups[key]||={key,destination:o.destination,platform:o.distribution_channel,evidence_state:o.evidence_state,format:o.format,language:o.language,supporting_observations:[],campaigns:[],positive_evidence:[],negative_evidence:[],neutral_evidence:[],measurements:[],costs:[]};
     g.supporting_observations.push({receipt_id:o.receipt_id,outcome_reference:'outcome:'+o.receipt_id,artifact_hash:o.artifact_hash,source_scan_id:o.source_scan_id,formation_id:o.formation_id,source_scan_date:o.source_scan_date,location:o.location,industries:o.industries,angle:o.angle,state:o.outcome_state,observed_at:o.observed_at});
     if(!g.campaigns.includes(o.campaign_id))g.campaigns.push(o.campaign_id);
-    const bucket=['EDITOR_INTEREST','MORE_INFORMATION_REQUESTED','PUBLISHED'].includes(o.outcome_state)?g.positive_evidence:['REJECTED','BOUNCED','DELIVERY_FAILED'].includes(o.outcome_state)||o.execution_status==='FAILED'?g.negative_evidence:g.neutral_evidence;
+    const bucket=['EDITOR_INTEREST','MORE_INFORMATION_REQUESTED','PUBLISHED'].includes(o.outcome_state)&&o.distribution_channel!=='X'?g.positive_evidence:['REJECTED','BOUNCED','DELIVERY_FAILED'].includes(o.outcome_state)||o.execution_status==='FAILED'?g.negative_evidence:g.neutral_evidence;
     bucket.push({receipt_id:o.receipt_id,state:o.outcome_state,evidence:o.outcome_evidence,reason:bucket===g.neutral_evidence?'Silence/acceptance is not editorial success or rejection':null});
     if(Object.keys(o.measurements).length)g.measurements.push({receipt_id:o.receipt_id,metrics:o.measurements});
     g.costs.push({receipt_id:o.receipt_id,distribution:o.distribution_cost});
@@ -66,8 +66,10 @@ export async function learnRouting(store,analysis){
     const n=g.positive_evidence.length+g.negative_evidence.length;
     // A minimum of three distinct formations prevents one campaign becoming a rule.
     const independent=new Set(g.supporting_observations.map(o=>o.formation_id)).size;
-    const adjustment=independent>=3&&n>=3?Math.max(-0.15,Math.min(0.15,(g.positive_evidence.length-g.negative_evidence.length)/(n+5)*0.15)):0;
-    signals[g.key]={kind:adjustment?'LEARNED_ROUTING_SIGNAL':'INSUFFICIENT_EVIDENCE',destination:g.destination,platform:g.platform,evidence_state:g.evidence_state,format:g.format,language:g.language,sample_size:g.sample_size,independent_formations:independent,confidence:independent>=3?Math.min(0.8,n/(n+10)):0,adjustment,positive_evidence:g.positive_evidence,negative_evidence:g.negative_evidence,neutral_evidence:g.neutral_evidence,supporting_observations:g.supporting_observations,provenance:analysis.reference,uncertainty:'Correlation is not causation. Novel destinations retain neutral historical weight.',at:now()};
+    let adjustment=independent>=3&&n>=3?Math.max(-0.15,Math.min(0.15,(g.positive_evidence.length-g.negative_evidence.length)/(n+5)*0.15)):0;
+    const measured=g.measurements.filter(m=>m.metrics.like_count?.scope==='x_public_metrics'&&m.metrics.impression_count?.scope==='x_public_metrics'&&m.metrics.impression_count.value>=100&&m.metrics.like_count.value<=m.metrics.impression_count.value);
+    if(g.platform==='X'&&independent>=3&&measured.length>=3){const likes=measured.reduce((sum,m)=>sum+m.metrics.like_count.value,0),impressions=measured.reduce((sum,m)=>sum+m.metrics.impression_count.value,0);adjustment=Math.min(0.15,likes/impressions*0.15);}
+    signals[g.key]={measurement_evidence:g.measurements,kind:adjustment?'LEARNED_ROUTING_SIGNAL':'INSUFFICIENT_EVIDENCE',destination:g.destination,platform:g.platform,evidence_state:g.evidence_state,format:g.format,language:g.language,sample_size:g.sample_size,independent_formations:independent,confidence:independent>=3?Math.min(0.8,(n+measured.length)/(n+measured.length+10)):0,adjustment,positive_evidence:g.positive_evidence,negative_evidence:g.negative_evidence,neutral_evidence:g.neutral_evidence,supporting_observations:g.supporting_observations,provenance:analysis.reference,uncertainty:'Correlation is not causation. Novel destinations retain neutral historical weight.',at:now()};
   }
   const version=hash({groups:analysis.groups,route_evaluations:analysis.route_evaluations}),memory={version,signals,route_evaluations:analysis.route_evaluations,updated_at:now(),analysis_reference:analysis.reference};
   await store.put('routing_memory:'+version,memory);await store.put('routing_memory',memory);return memory;

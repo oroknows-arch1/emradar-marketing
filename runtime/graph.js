@@ -109,7 +109,7 @@ export class GraphEngine {
     c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',provider_cost,reserved_usd:b.max_worker_usd*2};
     await this.store.put('work:'+c.run_id+':'+node,c.node_work);return work;
   }
-  async tick({feedbackOnly=scanControl.hold_new_scans}={}) {
+  async tick({feedbackOnly=scanControl.hold_new_scans&&!!this.products.EMRADAR}={}) {
     // Bounded autonomous scheduler node: one product revision, then at most one
     // due performance observation. State is persistent across restarts.
     const plan=await this.store.locked('engine',async()=>{
@@ -117,7 +117,7 @@ export class GraphEngine {
       const seen=await this.store.get('scheduler_seen')||{};
       let selected=null;
       for(const [product,p] of Object.entries(this.products)) {
-        if((feedbackOnly&&product==='EMRADAR')||!p.autonomous?.enabled)continue;
+        if(feedbackOnly||!p.autonomous?.enabled)continue;
         for(const signal of p.signals||[]) {
           const key=digest([product,signal.id,signal.revision]);const fingerprint=digest(p);
           const old=seen[key];
@@ -176,6 +176,7 @@ export class GraphEngine {
       const c={input:{product:r.product,campaign_id:r.campaign_id},receipt:r,state:await this.store.get('learning')||initial(),trace:[],status:'RUNNING',run_id:crypto.randomUUID()};
       await beginCosts(this.store,{run_id:c.run_id,input:c.input,source:{id:r.signal_id,revision:r.signal_revision},kind:'FEEDBACK'});
       try{await this.traverse(c,'observe');}finally{await finishCosts(this.store,c.run_id,{outcome:c.status==='RUNNING'?'FEEDBACK_COMPLETE':c.status,blocker:c.blocker});}
+      const receiptIndex=await this.store.get('receipt_index')||[];const indexed=receiptIndex.find(v=>v.id===r.id);if(indexed){indexed.last_collection=now();await this.store.put('receipt_index',receiptIndex);}
       const feedbackRecord={run_id:c.run_id,trace:c.trace,outcome:c.outcome||null,learning:c.state,routing_memory:c.routing_memory};await this.store.put('feedback_run:'+c.run_id,feedbackRecord);const feedbackIndex=await this.store.get('feedback_history:'+r.id)||[];feedbackIndex.push(c.run_id);await this.store.put('feedback_history:'+r.id,feedbackIndex);await this.store.put('feedback:'+r.id,feedbackRecord);return {trace:c.trace,outcome:c.outcome,learning:c.state};
     });
   }
@@ -248,7 +249,7 @@ const workers={
         const existing=c.candidates.length?c.candidates:configured;
         c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))].filter(d=>d.platform!=='X'||c.x_evaluation?.state==='X_SELECTED');
       }
-      if(!c.candidates.length)c.candidates=configured.length?configured:registeredEmradarDestinations(c.signal);
+      if(!c.candidates.length)c.candidates=(configured.length?configured:registeredEmradarDestinations(c.signal)).filter(d=>d.platform!=='X'||c.x_evaluation?.state==='X_SELECTED');
       if(!c.candidates.length)fail('NO_VERIFIED_OPEN_OR_EXECUTABLE_DESTINATION');
       return;
     }
