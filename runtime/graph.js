@@ -299,11 +299,7 @@ const workers={
       }
       const context=editorialContext(c),key='editorial_copy:'+digest(context);
       let editorial=await e.store.get(key);
-      if(!editorial){const work=await e.modelWork(c,'editorial_intelligence',context,'creation_approved');
-        try{validateEditorial(work.result,work.proof,context);}catch(error){
-          console.log('EDITORIAL_CONTRACT_FAILURE '+JSON.stringify({campaign_id:c.input.campaign_id,run_id:c.run_id,reason:error.message,result:work.result,proof:work.proof}));throw error;
-        }
-        editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id};await e.store.put(key,editorial);}
+      if(!editorial){const work=await e.modelWork(c,'editorial_intelligence',context,'creation_approved');validateEditorial(work.result,work.proof,context);editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id};await e.store.put(key,editorial);}
       c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];c.copy_method='editorial_copy_system_v1';c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};
       c.copy=c.allowed_copy[0];return;
     }
