@@ -13,7 +13,7 @@ import {organicWorkers,discoveryTestId} from './organic-discovery.js';
 import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
 import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFromSignal} from './open-route-scout.js';
 import {editorialContext,validateEditorial,produceEditorial,externalSchemaLeak,editorialVersion} from './editorial-copy.js';
-import {humanReadyEmail,validateHumanEmail,reuseProposition,isEmail,emailVersion} from './editorial-email.js';
+import {humanReadyEmail,normalizeCorrespondence,validateHumanEmail,reuseProposition,isEmail,emailVersion} from './editorial-email.js';
 import {beginCosts,finishCosts,costCall,costKey} from './campaign-costs.js';
 import {ownerPreview,previewWarning,previewCorrespondence} from './owner-preview.js';
 
@@ -306,6 +306,8 @@ const workers={
       const context=editorialContext(c),key='editorial_copy:'+digest(context);
       let editorial=await e.store.get(key);
       if(!editorial){const work=await produceEditorial(context,(request,attempt)=>e.modelWork(c,'editorial_intelligence',request,'creation_approved',attempt),record=>e.store.put('editorial_attempt:'+c.run_id+':'+record.attempt,{...record,campaign_id:c.input.campaign_id,destination:c.route.id}));editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id,preview_warnings:work.preview_warnings||[]};await e.store.put(key,editorial);}
+      editorial.result=normalizeCorrespondence(editorial.result,c.signal,c.route.destination.route_record);
+      try{validateEditorial(editorial.result,editorial.proof,context);editorial.preview_warnings=[];}catch{}
       c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};c.preview_warnings=[...(c.preview_warnings||[]),...(editorial.preview_warnings||[])];
       try{c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];}catch(error){if(!ownerPreview(c.input)||!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'editorial_intelligence',reason:error.message});c.allowed_copy=['Subject: '+editorial.result.subject+'\n\n'+editorial.result.body];}c.copy_method='editorial_copy_system_v1';
       c.copy=c.allowed_copy[0];return;
@@ -424,7 +426,7 @@ const workers={
       c.review={proposal_id,review_hash,decision:'APPROVED',approved_at:approval.approved_at};return;
     }
     const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id,destination_id:c.route.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
-    proposal.review_contract_revision='sfy-bounded-draft-correspondence-v1';
+    proposal.review_contract_revision='sfy-bounded-draft-correspondence-v2';
     if(ownerPreview(c.input)){proposal.preview_warnings=[...new Map((c.preview_warnings||[]).map(w=>[w.gate+':'+w.reason,w])).values()];proposal.review_state=proposal.preview_warnings.length?'PREVIEW_WITH_WARNING':'READY';proposal.preview_only=proposal.preview_warnings.length>0||c.email?.preview_only===true;proposal.permission_state='EXACT_OWNER_REVIEW_REQUIRED';}
     if(c.route.destination.platform==='X'){proposal.content_review_state='READY';proposal.distribution_cost_state=c.adapter.cost;proposal.distribution_state=c.adapter.cost==='ZERO'?'EXACT_OWNER_REVIEW_REQUIRED':'BLOCKED_PENDING_COST_RESOLUTION';}
     proposal.review_binding={product_truth:c.truth_hash,destination:destination_binding};

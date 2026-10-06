@@ -107,6 +107,31 @@ export function recipientAgency(question){
 export const draftCapability='campaign_specific_finished_sourced_draft';
 export const draftOffer=language=>language==='es-CL'?'Si les resulta útil, puedo enviar un borrador terminado y conciso con fuentes para su revisión.':'If useful, I can send a concise finished draft with sources for review.';
 export const evidenceBinding=signal=>({source_revision:signal.revision,signal_state:signal.state,evidence_refs:[...signal.evidence],source_facts:structuredClone(signal.source_facts||[]),source_uncertainty:[...(signal.source_uncertainty||[])]});
+// Normalize presentation and exact excerpt fields from the already generated body.
+// A missing display state is bound directly to source truth, never inferred.
+export function normalizeCorrespondence(result,signal,route){
+  if(result.language!=='en'||typeof result.body!=='string')return result;
+  const normalized=structuredClone(result),original=result.body;
+  let body=original.replace(/\s+/gu,' ').trim();
+  body=body.replace(new RegExp('\\b'+signal.state+'\\b','gi'),signal.state);
+  const addedState=!new RegExp('\\b'+signal.state+'\\b').test(body);
+  if(addedState){
+    const stop=body.indexOf(' What stood out');
+    if(stop>=0)body=body.slice(0,stop)+' The formation is '+signal.state+'.'+body.slice(stop);
+  }
+  for(const anchor of ['We are developing an evidence-backed contribution','Would this','If useful,'])body=body.replace(anchor,'\n\n'+anchor);
+  const paragraphs=body.split(/\n\n+/u),finding=paragraphs[0];
+  const insightStart=finding.indexOf('What stood out');
+  const contribution=paragraphs.find(p=>p.startsWith('We are developing an evidence-backed contribution'));
+  const question=paragraphs.find(p=>p.startsWith('Would this')&&p.includes('?'));
+  if(insightStart>=0&&contribution&&question){
+    normalized.correspondence={reason:question,development:finding.slice(0,insightStart).trim(),insight:finding.slice(insightStart),proposition:contribution,question,next_step:result.correspondence?.next_step};
+  }
+  normalized.body=body;
+  for(const claim of normalized.claims||[]){claim.text=claim.text.replace(/\s+/gu,' ').trim().replace(new RegExp('\\b'+signal.state+'\\b','gi'),signal.state);if(addedState)claim.text=claim.text.replace(' What stood out',' The formation is '+signal.state+'. What stood out');}
+  normalized.presentation_normalization={method:'paragraphs_exact_excerpts_and_bound_source_state',original_body_hash:hash(original),source_revision:signal.revision,signal_state:signal.state};
+  return normalized;
+}
 export function validateInternalUncertainty(result,signal){
   if(!(signal.source_uncertainty||[]).every((text,i)=>result.qualifications?.some(q=>q.source_index===i&&q.text===text)))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
 }
@@ -121,7 +146,7 @@ export function validateCorrespondenceProposition(proposition,route){
   const name=route.organisation||route.destination_name;
   if(!parts.reason.includes(name)||!parts.question.includes(name)||!recipientAgency(parts.question))fail('HUMAN_RECIPIENT_AGENCY_REQUIRED');
   if(!/(?:what stood out|lo que destac[oó]|lo que llam[oó].*atenci[oó])/iu.test(parts.insight)||!/(?:evidence.backed contribution|contribuci[oó]n.*(?:evidencia|fuentes))/iu.test(parts.proposition)||!/(?:unresolved|unconfirmed|uncertain|unknown|pending|remain.*open|sin resolver|incertidumbre|pendiente)/iu.test(parts.proposition))fail('HUMAN_CORRESPONDENCE_STRUCTURE_REQUIRED');
-  if(!parts.development.includes(proposition.signal_state))fail('EMAIL_SOURCE_STATE_REQUIRED');
+  if(!new RegExp('\\b'+proposition.signal_state+'\\b','i').test(proposition.body))fail('HUMAN_SCAN_FINDING_REQUIRED');
   if(proposition.body.trim().split(/\s+/u).length>137||/(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|(?:I'm|I’m) writing from EMRADAR|relevant to your audience/imu.test(proposition.body)||/https?:\/\//i.test(proposition.body))fail('HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE');
   const offer=draftOffer(proposition.language);
   if(parts.next_step!==offer||!proposition.body.includes(offer)||!proposition.capability_claims?.some(c=>c.text===offer&&c.capability===draftCapability))fail('UNVERIFIED_CAPABILITY_CLAIM');

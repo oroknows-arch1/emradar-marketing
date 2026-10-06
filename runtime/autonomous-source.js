@@ -6,7 +6,7 @@ import {validateCombinedX} from './x-visual.js';
 const origin='https://emerging-markets-radar.onrender.com';
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const at=()=>new Date().toISOString();
-export const reviewContractRevision='sfy-bounded-draft-correspondence-v1';
+export const reviewContractRevision='sfy-bounded-draft-correspondence-v2';
 const executed=new Set(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS']);
 // Terminal optional content/qualification failures are retained for review.
 // Infrastructure, ambiguous execution, source truth and cost authority failures
@@ -77,8 +77,8 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   if(state.attempts>=3)return {status:'BLOCKED',blocker:state.blocker,handoff,campaign_id:state.campaign_id,external_actions:0};
   state.attempts++;state.status='PREPARING';await store.put(key,state);
   const existingProposals=[];
-  for(const r of matching){const id=r.proposal_id||r.review?.proposal_id||r.publication_review?.proposal_id;if(id){const p=await store.get('publication_review:'+id);if(p?.signal_revision===state.signal_revision&&JSON.stringify(p.source_receipt)===JSON.stringify(product.source_receipt))existingProposals.push(p);}}
-  const reuse=destination=>existingProposals.find(p=>p.destination===destination);
+  for(const r of matching){const id=r.proposal_id||r.review?.proposal_id||r.publication_review?.proposal_id;if(id){const p=await store.get('publication_review:'+id);if(p?.status==='AWAITING_REVIEW'&&p.input?.campaign_id===state.campaign_id&&p.signal_revision===state.signal_revision&&JSON.stringify(p.source_receipt)===JSON.stringify(product.source_receipt))existingProposals.push(p);}}
+  const reuse=destination=>existingProposals.filter(p=>p.destination===destination).sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at))[0];
   const external=destination=>matching.find(r=>r.destination===destination&&executed.has(r.execution_status));
   const results=[];
   const preview=state.campaign_id==='EMRADAR_2026_10_06_LAUNCH';

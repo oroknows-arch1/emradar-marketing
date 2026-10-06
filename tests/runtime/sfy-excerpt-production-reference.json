@@ -1,0 +1,685 @@
+[
+  {
+    "proposition": {
+      "subject": "Energy logistics and refining bottlenecks keep fuel costs high despite export recovery",
+      "body": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was that despite Middle East crude exports recovering to pre-war levels, fuel delivery costs remain elevated due to tanker risks, insurance, refinery damage, and inventory depletion. We are developing an evidence-backed contribution around how refinery damage, medium-sour processing limits, and reduced inventories interrupt the conversion of crude into usable fuel — while keeping unresolved the duration of tanker risks, refinery restoration schedules, fuel price pass-through, and inventory accessibility. Would this be suitable as an article or research contribution for Oil & Gas Journal? If useful, I can send a concise finished draft with sources for review.",
+      "language": "en",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "claims": [
+        {
+          "text": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was that despite Middle East crude exports recovering to pre-war levels, fuel delivery costs remain elevated due to tanker risks, insurance, refinery damage, and inventory depletion.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "We are developing an evidence-backed contribution around how refinery damage, medium-sour processing limits, and reduced inventories interrupt the conversion of crude into usable fuel — while keeping unresolved the duration of tanker risks, refinery restoration schedules, fuel price pass-through, and inventory accessibility.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4"
+          ]
+        },
+        {
+          "text": "Would this be suitable as an article or research contribution for Oil & Gas Journal?",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        },
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        }
+      ],
+      "qualifications": [
+        {
+          "source_index": 0,
+          "text": "Crude export recovery could alleviate some upstream tightness."
+        },
+        {
+          "source_index": 1,
+          "text": "Industry executives have commercial incentives to emphasise scarcity and high prices."
+        },
+        {
+          "source_index": 2,
+          "text": "War-risk data can change rapidly and some ship movements are obscured by disabled tracking."
+        },
+        {
+          "source_index": 3,
+          "text": "Duration of tanker risk"
+        },
+        {
+          "source_index": 4,
+          "text": "Refinery restoration schedule"
+        },
+        {
+          "source_index": 5,
+          "text": "Country-level fuel pass-through"
+        },
+        {
+          "source_index": 6,
+          "text": "Accessible inventory quality and location"
+        }
+      ],
+      "capability_claims": [
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "capability": "campaign_specific_finished_sourced_draft"
+        }
+      ],
+      "correspondence": {
+        "reason": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was that despite Middle East crude exports recovering to pre-war levels, fuel delivery costs remain elevated due to tanker risks, insurance, refinery damage, and inventory depletion.",
+        "development": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was that despite Middle East crude exports recovering to pre-war levels, fuel delivery costs remain elevated due to tanker risks, insurance, refinery damage, and inventory depletion.",
+        "insight": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was that despite Middle East crude exports recovering to pre-war levels, fuel delivery costs remain elevated due to tanker risks, insurance, refinery damage, and inventory depletion.",
+        "proposition": "We are developing an evidence-backed contribution around how refinery damage, medium-sour processing limits, and reduced inventories interrupt the conversion of crude into usable fuel — while keeping unresolved the duration of tanker risks, refinery restoration schedules, fuel price pass-through, and inventory accessibility.",
+        "question": "Would this be suitable as an article or research contribution for Oil & Gas Journal?",
+        "next_step": "If useful, I can send a concise finished draft with sources for review."
+      }
+    },
+    "route": {
+      "destination_id": "OIL-GAS-JOURNAL-EDITORIAL",
+      "destination_name": "Oil & Gas Journal",
+      "destination_class": "trade_publication",
+      "organisation": "Oil & Gas Journal",
+      "relevant_beat_topic": [
+        "refining and processing",
+        "pipelines and transportation"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Refining",
+        "Storage and strategic reserves",
+        "Diesel and jet fuel"
+      ],
+      "access_method": "public contact form",
+      "public_contact_point": "UNKNOWN",
+      "public_submission_url": "https://www.ogj.com/contact-us",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.ogj.com/contact-us",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "REFINING_AND_STORAGE",
+      "editorial_focus": "Refinery damage, medium-sour processing constraints and depleted inventories interrupt the conversion of crude into usable fuel.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful."
+    },
+    "binding": {
+      "source_revision": "ba28a6a7d07982bad5e72cfc6b1d7c6244784cc8362fe3a937826bc24aa13ca3",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "source_facts": [
+        {
+          "id": "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+          "text": "Aramco's CEO said nearly 3 billion barrels of gross supply had been lost, more than 1 billion barrels had been drawn from stocks and replenishment could take up to two years.",
+          "source": "Saudi Aramco",
+          "url": "https://www.aramco.com/en/news-media/speeches/2026/remarks-by-amin-h-nasser-at-energy-intelligence-2026"
+        },
+        {
+          "id": "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+          "text": "UKMTO recorded repeated tanker attacks and a 5 October incident in which a tanker was instructed to turn back or be targeted.",
+          "source": "United Kingdom Maritime Trade Operations",
+          "url": "https://www.ukmto.org/recent-incidents"
+        },
+        {
+          "id": "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+          "text": "Reuters reports Middle East exports briefly exceeded pre-war levels while tanker attacks and logistical constraints continued.",
+          "source": "Reuters",
+          "url": "https://www.reuters.com/business/energy/middle-east-crude-oil-exports-exceed-pre-war-levels-tanker-attacks-increase-2026-10-05/"
+        },
+        {
+          "id": "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39",
+          "text": "Reuters reports VLCC rates above US$1.2 million per day versus roughly US$30,000 in January and freight rising from about 3% to 27% of delivered barrel cost.",
+          "source": "Reuters Open Interest",
+          "url": "https://www.reuters.com/commentary/reuters-open-interest/oils-new-problem-isnt-supply-its-logistics-2026-10-05/"
+        }
+      ],
+      "source_uncertainty": [
+        "Crude export recovery could alleviate some upstream tightness.",
+        "Industry executives have commercial incentives to emphasise scarcity and high prices.",
+        "War-risk data can change rapidly and some ship movements are obscured by disabled tracking.",
+        "Duration of tanker risk",
+        "Refinery restoration schedule",
+        "Country-level fuel pass-through",
+        "Accessible inventory quality and location"
+      ]
+    }
+  },
+  {
+    "proposition": {
+      "subject": "Energy logistics bottleneck deepens despite crude export recovery",
+      "body": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as CONFIRMED. What stood out was that longer routes and ship-to-ship transfers continue impacting operational tanker availability distinctly from crude production. We are developing an evidence-backed contribution around this maritime logistics angle — while keeping unresolved issues such as the duration of tanker risk, refinery restoration schedules, fuel price pass-through, and accessible inventory quality explicit. Would this be suitable as an article or research contribution for Riviera Maritime Media / Tanker Shipping & Trade? If useful, I can send a concise finished draft with sources for review.",
+      "language": "en",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "claims": [
+        {
+          "text": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as CONFIRMED. What stood out was that longer routes and ship-to-ship transfers continue impacting operational tanker availability distinctly from crude production.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "We are developing an evidence-backed contribution around this maritime logistics angle — while keeping unresolved issues such as the duration of tanker risk, refinery restoration schedules, fuel price pass-through, and accessible inventory quality explicit.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "Would this be suitable as an article or research contribution for Riviera Maritime Media / Tanker Shipping & Trade?",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        },
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        }
+      ],
+      "qualifications": [
+        {
+          "source_index": 0,
+          "text": "Crude export recovery could alleviate some upstream tightness."
+        },
+        {
+          "source_index": 1,
+          "text": "Industry executives have commercial incentives to emphasise scarcity and high prices."
+        },
+        {
+          "source_index": 2,
+          "text": "War-risk data can change rapidly and some ship movements are obscured by disabled tracking."
+        },
+        {
+          "source_index": 3,
+          "text": "Duration of tanker risk"
+        },
+        {
+          "source_index": 4,
+          "text": "Refinery restoration schedule"
+        },
+        {
+          "source_index": 5,
+          "text": "Country-level fuel pass-through"
+        },
+        {
+          "source_index": 6,
+          "text": "Accessible inventory quality and location"
+        }
+      ],
+      "capability_claims": [
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "capability": "campaign_specific_finished_sourced_draft"
+        }
+      ],
+      "correspondence": {
+        "reason": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as CONFIRMED. What stood out was that longer routes and ship-to-ship transfers continue impacting operational tanker availability distinctly from crude production.",
+        "development": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as CONFIRMED. What stood out was that longer routes and ship-to-ship transfers continue impacting operational tanker availability distinctly from crude production.",
+        "insight": "What stood out was that longer routes and ship-to-ship transfers continue impacting operational tanker availability distinctly from crude production.",
+        "proposition": "We are developing an evidence-backed contribution around this maritime logistics angle — while keeping unresolved issues such as the duration of tanker risk, refinery restoration schedules, fuel price pass-through, and accessible inventory quality explicit.",
+        "question": "Would this be suitable as an article or research contribution for Riviera Maritime Media / Tanker Shipping & Trade?",
+        "next_step": "If useful, I can send a concise finished draft with sources for review."
+      }
+    },
+    "route": {
+      "destination_id": "RIVIERA-TANKER-EDITORIAL",
+      "destination_name": "Riviera Maritime Media / Tanker Shipping & Trade",
+      "destination_class": "trade_publication",
+      "organisation": "Riviera Maritime Media / Tanker Shipping & Trade",
+      "relevant_beat_topic": [
+        "tanker operations",
+        "maritime logistics"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Marine insurance"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "john.snyder@rivieramm.com",
+      "public_submission_url": "https://www.rivieramm.com/our-team",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.rivieramm.com/our-team",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Longer routes and ship-to-ship transfers affect operational tanker availability separately from crude production.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful.",
+      "recipient_identity": {
+        "state": "VERIFIED",
+        "name": "John",
+        "address": "john.snyder@rivieramm.com",
+        "evidence_source_url": "https://www.rivieramm.com/our-team",
+        "verified_at": "2026-10-07"
+      }
+    },
+    "binding": {
+      "source_revision": "ba28a6a7d07982bad5e72cfc6b1d7c6244784cc8362fe3a937826bc24aa13ca3",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "source_facts": [
+        {
+          "id": "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+          "text": "Aramco's CEO said nearly 3 billion barrels of gross supply had been lost, more than 1 billion barrels had been drawn from stocks and replenishment could take up to two years.",
+          "source": "Saudi Aramco",
+          "url": "https://www.aramco.com/en/news-media/speeches/2026/remarks-by-amin-h-nasser-at-energy-intelligence-2026"
+        },
+        {
+          "id": "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+          "text": "UKMTO recorded repeated tanker attacks and a 5 October incident in which a tanker was instructed to turn back or be targeted.",
+          "source": "United Kingdom Maritime Trade Operations",
+          "url": "https://www.ukmto.org/recent-incidents"
+        },
+        {
+          "id": "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+          "text": "Reuters reports Middle East exports briefly exceeded pre-war levels while tanker attacks and logistical constraints continued.",
+          "source": "Reuters",
+          "url": "https://www.reuters.com/business/energy/middle-east-crude-oil-exports-exceed-pre-war-levels-tanker-attacks-increase-2026-10-05/"
+        },
+        {
+          "id": "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39",
+          "text": "Reuters reports VLCC rates above US$1.2 million per day versus roughly US$30,000 in January and freight rising from about 3% to 27% of delivered barrel cost.",
+          "source": "Reuters Open Interest",
+          "url": "https://www.reuters.com/commentary/reuters-open-interest/oils-new-problem-isnt-supply-its-logistics-2026-10-05/"
+        }
+      ],
+      "source_uncertainty": [
+        "Crude export recovery could alleviate some upstream tightness.",
+        "Industry executives have commercial incentives to emphasise scarcity and high prices.",
+        "War-risk data can change rapidly and some ship movements are obscured by disabled tracking.",
+        "Duration of tanker risk",
+        "Refinery restoration schedule",
+        "Country-level fuel pass-through",
+        "Accessible inventory quality and location"
+      ]
+    }
+  },
+  {
+    "proposition": {
+      "subject": "Energy logistics bottleneck sustains fuel costs despite crude export recovery",
+      "body": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was how fuel availability and logistics constraints still matter to marine fuel buyers even with crude export volumes improving. We are developing an evidence-backed contribution around this angle — while keeping unresolved questions explicit, including crude export recovery effects, refinery repair timelines, tanker risk duration, and inventory accessibility. Would this be suitable as an article or research contribution for ship.energy? If useful, I can send a concise finished draft with sources for review.",
+      "language": "en",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "claims": [
+        {
+          "text": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was how fuel availability and logistics constraints still matter to marine fuel buyers even with crude export volumes improving.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "We are developing an evidence-backed contribution around this angle — while keeping unresolved questions explicit, including crude export recovery effects, refinery repair timelines, tanker risk duration, and inventory accessibility.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "Would this be suitable as an article or research contribution for ship.energy?",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        },
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        }
+      ],
+      "qualifications": [
+        {
+          "source_index": 0,
+          "text": "Crude export recovery could alleviate some upstream tightness."
+        },
+        {
+          "source_index": 1,
+          "text": "Industry executives have commercial incentives to emphasise scarcity and high prices."
+        },
+        {
+          "source_index": 2,
+          "text": "War-risk data can change rapidly and some ship movements are obscured by disabled tracking."
+        },
+        {
+          "source_index": 3,
+          "text": "Duration of tanker risk"
+        },
+        {
+          "source_index": 4,
+          "text": "Refinery restoration schedule"
+        },
+        {
+          "source_index": 5,
+          "text": "Country-level fuel pass-through"
+        },
+        {
+          "source_index": 6,
+          "text": "Accessible inventory quality and location"
+        }
+      ],
+      "capability_claims": [
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "capability": "campaign_specific_finished_sourced_draft"
+        }
+      ],
+      "correspondence": {
+        "reason": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed. What stood out was how fuel availability and logistics constraints still matter to marine fuel buyers even with crude export volumes improving.",
+        "development": "Our 6 October scan identified a durable energy-logistics and refining bottleneck as confirmed.",
+        "insight": "What stood out was how fuel availability and logistics constraints still matter to marine fuel buyers even with crude export volumes improving.",
+        "proposition": "We are developing an evidence-backed contribution around this angle — while keeping unresolved questions explicit, including crude export recovery effects, refinery repair timelines, tanker risk duration, and inventory accessibility.",
+        "question": "Would this be suitable as an article or research contribution for ship.energy?",
+        "next_step": "If useful, I can send a concise finished draft with sources for review."
+      }
+    },
+    "route": {
+      "destination_id": "SHIP-ENERGY-EDITORIAL",
+      "destination_name": "ship.energy",
+      "destination_class": "trade_publication",
+      "organisation": "ship.energy",
+      "relevant_beat_topic": [
+        "marine fuels",
+        "bunker markets"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Diesel and jet fuel"
+      ],
+      "access_method": "public contact form",
+      "public_contact_point": "UNKNOWN",
+      "public_submission_url": "https://www.bunkerspot.com/contact/",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.bunkerspot.com/contact/",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Fuel availability and logistics constraints matter to marine fuel buyers even when crude export volumes recover.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful."
+    },
+    "binding": {
+      "source_revision": "ba28a6a7d07982bad5e72cfc6b1d7c6244784cc8362fe3a937826bc24aa13ca3",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "source_facts": [
+        {
+          "id": "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+          "text": "Aramco's CEO said nearly 3 billion barrels of gross supply had been lost, more than 1 billion barrels had been drawn from stocks and replenishment could take up to two years.",
+          "source": "Saudi Aramco",
+          "url": "https://www.aramco.com/en/news-media/speeches/2026/remarks-by-amin-h-nasser-at-energy-intelligence-2026"
+        },
+        {
+          "id": "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+          "text": "UKMTO recorded repeated tanker attacks and a 5 October incident in which a tanker was instructed to turn back or be targeted.",
+          "source": "United Kingdom Maritime Trade Operations",
+          "url": "https://www.ukmto.org/recent-incidents"
+        },
+        {
+          "id": "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+          "text": "Reuters reports Middle East exports briefly exceeded pre-war levels while tanker attacks and logistical constraints continued.",
+          "source": "Reuters",
+          "url": "https://www.reuters.com/business/energy/middle-east-crude-oil-exports-exceed-pre-war-levels-tanker-attacks-increase-2026-10-05/"
+        },
+        {
+          "id": "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39",
+          "text": "Reuters reports VLCC rates above US$1.2 million per day versus roughly US$30,000 in January and freight rising from about 3% to 27% of delivered barrel cost.",
+          "source": "Reuters Open Interest",
+          "url": "https://www.reuters.com/commentary/reuters-open-interest/oils-new-problem-isnt-supply-its-logistics-2026-10-05/"
+        }
+      ],
+      "source_uncertainty": [
+        "Crude export recovery could alleviate some upstream tightness.",
+        "Industry executives have commercial incentives to emphasise scarcity and high prices.",
+        "War-risk data can change rapidly and some ship movements are obscured by disabled tracking.",
+        "Duration of tanker risk",
+        "Refinery restoration schedule",
+        "Country-level fuel pass-through",
+        "Accessible inventory quality and location"
+      ]
+    }
+  },
+  {
+    "proposition": {
+      "subject": "Middle East crude export recovery reveals tanker and refining bottlenecks",
+      "body": "Our 6 October scan identified a durable energy-logistics and refining bottleneck is supporting high delivered fuel costs even when crude export volumes improve. What stood out was safe tanker capacity and war-risk insurance distinguish recovered crude flows from delivered fuel availability. We are developing an evidence-backed contribution around how repeated tanker attacks, prolonged routes, damaged refineries, and depleted inventories elevate freight and fuel prices — while keeping unresolved issues such as tanker risk duration, refinery repair schedules, fuel pass-through, and accessible inventory location explicit. Would this be suitable as an article or research contribution for TradeWinds? If useful, I can send a concise finished draft with sources for review.",
+      "language": "en",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "claims": [
+        {
+          "text": "Our 6 October scan identified a durable energy-logistics and refining bottleneck is supporting high delivered fuel costs even when crude export volumes improve. What stood out was safe tanker capacity and war-risk insurance distinguish recovered crude flows from delivered fuel availability.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "We are developing an evidence-backed contribution around how repeated tanker attacks, prolonged routes, damaged refineries, and depleted inventories elevate freight and fuel prices — while keeping unresolved issues such as tanker risk duration, refinery repair schedules, fuel pass-through, and accessible inventory location explicit.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+            "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+            "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+            "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+          ]
+        },
+        {
+          "text": "Would this be suitable as an article or research contribution for TradeWinds?",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        },
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "evidence_refs": [
+            "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721"
+          ]
+        }
+      ],
+      "qualifications": [
+        {
+          "source_index": 0,
+          "text": "Crude export recovery could alleviate some upstream tightness."
+        },
+        {
+          "source_index": 1,
+          "text": "Industry executives have commercial incentives to emphasise scarcity and high prices."
+        },
+        {
+          "source_index": 2,
+          "text": "War-risk data can change rapidly and some ship movements are obscured by disabled tracking."
+        },
+        {
+          "source_index": 3,
+          "text": "Duration of tanker risk"
+        },
+        {
+          "source_index": 4,
+          "text": "Refinery restoration schedule"
+        },
+        {
+          "source_index": 5,
+          "text": "Country-level fuel pass-through"
+        },
+        {
+          "source_index": 6,
+          "text": "Accessible inventory quality and location"
+        }
+      ],
+      "capability_claims": [
+        {
+          "text": "If useful, I can send a concise finished draft with sources for review.",
+          "capability": "campaign_specific_finished_sourced_draft"
+        }
+      ],
+      "correspondence": {
+        "reason": "Would this be suitable as an article or research contribution for TradeWinds?",
+        "development": "Our 6 October scan identified a durable energy-logistics and refining bottleneck is supporting high delivered fuel costs even when crude export volumes improve. What stood out was safe tanker capacity and war-risk insurance distinguish recovered crude flows from delivered fuel availability.",
+        "insight": "What stood out was safe tanker capacity and war-risk insurance distinguish recovered crude flows from delivered fuel availability. Our 6 October scan identified a durable energy-logistics and refining bottleneck is supporting high delivered fuel costs even when crude export volumes improve.",
+        "proposition": "We are developing an evidence-backed contribution around how repeated tanker attacks, prolonged routes, damaged refineries, and depleted inventories elevate freight and fuel prices — while keeping unresolved issues such as tanker risk duration, refinery repair schedules, fuel pass-through, and accessible inventory location explicit.",
+        "question": "Would this be suitable as an article or research contribution for TradeWinds?",
+        "next_step": "If useful, I can send a concise finished draft with sources for review."
+      }
+    },
+    "route": {
+      "destination_id": "TRADEWINDS-EDITORIAL",
+      "destination_name": "TradeWinds",
+      "destination_class": "trade_publication",
+      "organisation": "TradeWinds",
+      "relevant_beat_topic": [
+        "tankers",
+        "marine insurance",
+        "shipping markets"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Marine insurance"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "julian.bray@tradewindsnews.com",
+      "public_submission_url": "https://www.tradewindsnews.com/author/j_bray",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.tradewindsnews.com/author/j_bray",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Safe tanker capacity and insurance risk distinguish recovered crude flows from delivered fuel availability.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful.",
+      "recipient_identity": {
+        "state": "VERIFIED",
+        "name": "Julian",
+        "address": "julian.bray@tradewindsnews.com",
+        "evidence_source_url": "https://www.tradewindsnews.com/author/j_bray",
+        "verified_at": "2026-10-07"
+      }
+    },
+    "binding": {
+      "source_revision": "ba28a6a7d07982bad5e72cfc6b1d7c6244784cc8362fe3a937826bc24aa13ca3",
+      "signal_state": "CONFIRMED",
+      "evidence_refs": [
+        "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+        "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+        "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+        "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39"
+      ],
+      "source_facts": [
+        {
+          "id": "1cc3779f2cc2405ac7943a1885b4a8e588d93dbbcceadc8671b1df7b12eca721",
+          "text": "Aramco's CEO said nearly 3 billion barrels of gross supply had been lost, more than 1 billion barrels had been drawn from stocks and replenishment could take up to two years.",
+          "source": "Saudi Aramco",
+          "url": "https://www.aramco.com/en/news-media/speeches/2026/remarks-by-amin-h-nasser-at-energy-intelligence-2026"
+        },
+        {
+          "id": "85f0872722e94d2dc3f657ea3b825233a403bea06cb3324fac8c2fb8f02cad63",
+          "text": "UKMTO recorded repeated tanker attacks and a 5 October incident in which a tanker was instructed to turn back or be targeted.",
+          "source": "United Kingdom Maritime Trade Operations",
+          "url": "https://www.ukmto.org/recent-incidents"
+        },
+        {
+          "id": "14f966e585259791de5992af6a255d4484775967bff176e059c6cdcac80887f4",
+          "text": "Reuters reports Middle East exports briefly exceeded pre-war levels while tanker attacks and logistical constraints continued.",
+          "source": "Reuters",
+          "url": "https://www.reuters.com/business/energy/middle-east-crude-oil-exports-exceed-pre-war-levels-tanker-attacks-increase-2026-10-05/"
+        },
+        {
+          "id": "6264d29793d7c8500dc50a52e15b8cef1ad2131c445aad5d761726c4456efd39",
+          "text": "Reuters reports VLCC rates above US$1.2 million per day versus roughly US$30,000 in January and freight rising from about 3% to 27% of delivered barrel cost.",
+          "source": "Reuters Open Interest",
+          "url": "https://www.reuters.com/commentary/reuters-open-interest/oils-new-problem-isnt-supply-its-logistics-2026-10-05/"
+        }
+      ],
+      "source_uncertainty": [
+        "Crude export recovery could alleviate some upstream tightness.",
+        "Industry executives have commercial incentives to emphasise scarcity and high prices.",
+        "War-risk data can change rapidly and some ship movements are obscured by disabled tracking.",
+        "Duration of tanker risk",
+        "Refinery restoration schedule",
+        "Country-level fuel pass-through",
+        "Accessible inventory quality and location"
+      ]
+    }
+  }
+]

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import {correspondenceProbe} from '../../runtime/correspondence-probe.js';
-import {humanReadyEmail,validateHumanEmail,validateCapabilityInventory,correspondenceDensity,draftOffer,draftCapability,recipientGreeting} from '../../runtime/editorial-email.js';
+import {humanReadyEmail,validateHumanEmail,validateCapabilityInventory,correspondenceDensity,normalizeCorrespondence,draftOffer,draftCapability,recipientGreeting} from '../../runtime/editorial-email.js';
 import {editorialContext,validateEditorial} from '../../runtime/editorial-copy.js';
 import {previewCorrespondence} from '../../runtime/owner-preview.js';
 import {GraphEngine} from '../../runtime/graph.js';
@@ -89,10 +89,16 @@ test('Production-shaped signed-source graph prepares every credible destination;
 });
 test('Old unsent publication artifacts are superseded once; valid X copy and visual stay exactly unchanged',async()=>{
  const f=await productionSetup(),r=await autonomousScanCycle(f.args),x=r.package.proposals.find(p=>p.platform==='X');const key='autonomous_scan:'+scan.snapshot_date+':'+r.package.source_sha256;
- await f.store.put('receipt_index',r.package.proposals.map(p=>({product:'EMRADAR',campaign_id:r.campaign_id,signal_id:p.signal_id,signal_revision:p.signal_revision,destination:p.destination,proposal_id:p.proposal_id,execution_status:'AWAITING_REVIEW'})));
+ const obsolete={...r.package.proposals.find(p=>p.platform!=='X'),proposal_id:'superseded-oldest',status:'SUPERSEDED'};await f.store.put('publication_review:'+obsolete.proposal_id,obsolete);
+ await f.store.put('receipt_index',[{product:'EMRADAR',campaign_id:r.campaign_id,signal_id:obsolete.signal_id,signal_revision:obsolete.signal_revision,destination:obsolete.destination,proposal_id:obsolete.proposal_id,execution_status:'AWAITING_REVIEW'},...r.package.proposals.map(p=>({product:'EMRADAR',campaign_id:r.campaign_id,signal_id:p.signal_id,signal_revision:p.signal_revision,destination:p.destination,proposal_id:p.proposal_id,execution_status:'AWAITING_REVIEW'}))]);
  for(const p of r.package.proposals){p.review_contract_revision='old';await f.store.put('publication_review:'+p.proposal_id,p);}
  const state=await f.store.get(key);state.review_contract_revision='old';await f.store.put(key,state);
  const second=await autonomousScanCycle(f.args);assert.equal(second.status,'AWAITING_REVIEW',JSON.stringify(second.package.blockers));const x2=second.package.proposals.find(p=>p.platform==='X');assert.deepEqual(x2.asset,x.asset);assert.equal(x2.proposal_id,x.proposal_id);assert.equal(f.actions(),0);assert.equal(second.package.review_contract_revision,reviewContractRevision);
 });
 
 test('Source-truth failures never become preview warnings',()=>{const p=correspondenceProbe(),r=structuredClone(p.email.proposition);r.signal_state='CONFIRMED';assert.throws(()=>validateEditorial(r,proof(p.signal),context(p)),/SOURCE_STATE_MISMATCH/);const verification=proof(p.signal);verification.editorial_checks.factual_entailment='FAIL';assert.throws(()=>validateEditorial(p.email.proposition,verification,context(p)),/SOURCE_TRUTH_VERIFICATION_REQUIRED/);});
+
+test('Scan state can share the adjacent finding sentence; lowercase state is not a changed evidence state',()=>{const p=correspondenceProbe();p.email.proposition.body=p.email.proposition.body.replace('FORMING','forming');p.email.proposition.correspondence.development=p.email.proposition.correspondence.development.replace('FORMING','forming');assert.doesNotThrow(()=>render(p));});
+
+import excerptProduction from './sfy-excerpt-production-reference.json' with {type:'json'};
+test('Real production excerpt failures normalize into six-section short emails with all internal sources',()=>{for(const sample of excerptProduction){const signal={revision:sample.binding.source_revision,state:sample.binding.signal_state,evidence:sample.binding.evidence_refs,source_facts:sample.binding.source_facts,source_uncertainty:sample.binding.source_uncertainty};const result=normalizeCorrespondence(sample.proposition,signal,sample.route);assert.doesNotThrow(()=>validateEditorial(result,proof(signal),{source:signal,destination:sample.route,target_language:'en'}));const identity={approved:true,name:'Sean Walker',address:'oroknows@gmail.com'};const route={...sample.route,access_method:'public editorial email',public_contact_point:sample.route.public_contact_point==='UNKNOWN'?'regression@example.test':sample.route.public_contact_point};const email=humanReadyEmail({proposition:result,signal,route,identity,product:'EMRADAR'});assert(email.body.split('\n\n').length===7);assert(correspondenceDensity(email.body)<=165);assert.deepEqual(email.evidence_binding.source_uncertainty,signal.source_uncertainty);assert(email.body.includes(signal.state));}});

@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
-import {validateCapabilityInventory,validateCorrespondenceProposition,validateInternalUncertainty,draftOffer,draftCapability,isEmail} from './editorial-email.js';
+import {validateCapabilityInventory,validateCorrespondenceProposition,validateInternalUncertainty,normalizeCorrespondence,draftOffer,draftCapability,isEmail} from './editorial-email.js';
 import {ownerPreview,previewWarning} from './owner-preview.js';
 
 export const editorialContract=await fs.readFile(new URL('../contracts/editorial-copy-system-v1.md',import.meta.url),'utf8');
@@ -80,6 +80,7 @@ export async function produceEditorial(context,work,record=async()=>{}){
   for(let attempt=1;attempt<=2;attempt++){
     const request=correction?{...context,editorial_correction:{attempt,failed_gate:correction,instructions:'Write a new destination-specific result using the exact response_schema. Preserve all source facts and uncertainty. Remove ongoing/unsupported services; retain the verified bounded campaign-specific finished sourced draft offer. Copy all correspondence excerpts exactly from body.'}}:context;
     const output=await work(request,attempt);
+    output.result=normalizeCorrespondence(output.result,context.source,context.destination);
     try{validateEditorial(output.result,output.proof,context);await record({attempt,status:'PASS'});return output;}
     catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(context.owner_preview&&previewWarning(error.message)&&output.result?.subject?.trim()&&output.result?.body?.trim()){return {...output,preview_warnings:[{gate:'editorial_intelligence',reason:error.message}],preview_only:true};}if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID'].includes(error.message))throw error;correction=error.message;}
   }
