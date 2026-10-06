@@ -1,0 +1,258 @@
+{
+  "version": 7,
+  "snapshot_date": "2026-10-06",
+  "previous_scan_date": "2026-10-05",
+  "contract": "causal-chain-evolution-v1",
+  "publication_state": "PUBLISHED",
+  "run_mode": "SCHEDULED",
+  "started_at": "2026-10-06T09:06:25+11:00",
+  "completed_at": "2026-10-06T09:08:22+11:00",
+  "timezone": "Australia/Sydney",
+  "rule": "Blank global candidate set first. Prior holdings, watchlists, themes and findings did not constrain discovery.",
+  "scope_note": "Fresh world-change-first scan. Twelve candidates were evaluated across energy, transport, manufacturing, health, infrastructure finance and technology; six survived. The 5 October scan was consulted only after classification for stable-ID comparison.",
+  "scan_statistics": {
+    "surviving_findings": 6,
+    "discarded_count": 6,
+    "total_candidates_reviewed": 12,
+    "by_status": {"UNKNOWN": 1, "INVESTIGATE": 2, "FORMING": 1, "CONFIRMED": 2},
+    "note": "Discarded candidates lacked a fresh dated change, independent support, a sufficiently specific mechanism, or a credible market consequence."
+  },
+  "scan_report": {
+    "headline": "Transport capacity—not raw supply—is becoming the binding constraint across energy and trade, while manufacturing diversification is moving into operating assets.",
+    "summary": "The strongest current change is that Middle East crude exports have partly recovered while delivered energy remains expensive because tankers, insurance, refining and inventories are constrained. A second CONFIRMED formation is the financed Douala–Bangui corridor, where Cameroon has now authorised its World Bank credit within a US$1.12 billion regional program. Vietnam's new Pandora factory is an operating supply-chain diversification asset. Venezuela's oil recovery is now visibly dependent on grid rehabilitation; South Africa's private-transmission procurement remains credible but has slipped into 2027; and a claimed R100 billion Free State industrial project remains UNKNOWN until its launch produces bankable detail.",
+    "narrative": [
+      "The energy shock is no longer explained by crude volumes alone. Middle East exports briefly returned to pre-war levels in late September, yet tanker rates, insurance, ship-to-ship transfers and missing refining capacity kept delivered prices elevated. Aramco says almost 3 billion barrels of gross supply have been lost since the crisis began and inventories could take up to two years to replenish. Repeated tanker incidents reported by UKMTO show why more physical supply does not immediately restore normal logistics. This energy-logistics chain is CONFIRMED.",
+      "Central Africa has a second CONFIRMED formation. The World Bank approved a US$1.12 billion multi-country program for the 1,400-kilometre Douala–Bangui corridor; Cameroon has now authorised a roughly US$391 million IBRD credit. Because the route carries more than 80% of the Central African Republic's external trade, road rehabilitation, border performance and maintenance reform have system-wide consequences rather than being a normal road project.",
+      "Vietnam's manufacturing role is broadening beyond electronics and footwear. Pandora's US$150 million Ho Chi Minh City facility has produced its first jewellery piece and is designed for up to 60 million pieces and 7,000 jobs, raising the company's global capacity by about 50% and creating its first production base outside Thailand. It is FORMING because the plant is operating but full scale and supplier localisation still have to be demonstrated.",
+      "Venezuela's oil-reconstruction ambitions expose an unusual dependency: electricity. Chevron, Eni and GE Vernova have signed energy agreements, but executives identify a grid deficit above 1,500 MW and CAF estimates roughly US$5 billion is needed to rehabilitate and automate the power system. Oil expansion therefore cannot be evaluated separately from generation, transmission and gas-to-power execution. This remains INVESTIGATE.",
+      "South Africa's first private-transmission procurement remains INVESTIGATE but carries fresh weakening evidence. Seven pre-qualified bidders completed due diligence, yet the final RFP has moved from the third quarter of 2026 to the second quarter of 2027 while guarantee and commercial structures are refined. The grid need—about 14,000 kilometres over a decade—remains, but the investable timetable has slipped.",
+      "The Free State government's announced R100 billion industrialisation project is retained as UNKNOWN. The stated manufacturing, green-economy and energy-transition scope is material, but the ceremony is still ahead and the announcement does not disclose financing, facilities, technology, land, customers or milestones. Those omissions prevent promotion."
+    ],
+    "unresolved_questions": [
+      "How quickly can tanker availability, insurance and refining capacity normalise even if Hormuz crude flows recover?",
+      "Will Douala–Bangui procurement and maintenance reform translate financing into lower freight time and cost?",
+      "How rapidly will Pandora ramp Vietnam output and localise suppliers beyond direct employment?",
+      "Can Venezuela restore enough reliable power to support oil expansion without worsening household and industrial shortages?",
+      "Will South Africa issue a bankable transmission RFP in the revised 2027 window?",
+      "Does the Free State project have committed capital, defined plants and credible counterparties?"
+    ]
+  },
+  "what_is_forming": [
+    {"id": "global-energy-logistics-refining-bottleneck", "status": "CONFIRMED", "summary": "Energy scarcity has shifted from crude availability toward transport, insurance, refining and inventory replacement."},
+    {"id": "douala-bangui-economic-corridor", "status": "CONFIRMED", "summary": "A financed multi-country trade corridor is moving through sovereign credit authorisation and procurement."},
+    {"id": "vietnam-jewellery-manufacturing-diversification", "status": "FORMING", "summary": "Vietnam now hosts Pandora's first production base outside Thailand and the world's largest fine-jewellery crafting facility."}
+  ],
+  "current_scene": [
+    {"name": "Saudi Aramco", "location": "Saudi Arabia / global energy routes", "role": "Major producer and inventory/logistics evidence source", "ticker": "2222", "exchange": "Tadawul", "why_now": "Quantifies the inventory draw and long recovery horizon."},
+    {"name": "World Bank Group", "location": "Cameroon / Central African Republic", "role": "Corridor financier and program coordinator", "ticker": null, "exchange": null, "why_now": "Finances the regional corridor program now entering country execution."},
+    {"name": "Pandora A/S", "location": "Ho Chi Minh City, Vietnam", "role": "Owner and operator of the new manufacturing facility", "ticker": "PNDORA", "exchange": "Nasdaq Copenhagen", "why_now": "The plant has opened and produced its first piece."},
+    {"name": "GE Vernova", "location": "Venezuela", "role": "Named grid-modernisation participant", "ticker": "GEV", "exchange": "NYSE", "why_now": "Power reliability is a required link in oil-sector recovery."},
+    {"name": "South African Department of Electricity and Energy", "location": "South Africa", "role": "Independent transmission procurement sponsor", "ticker": null, "exchange": null, "why_now": "The program advanced due diligence but delayed the final RFP."},
+    {"name": "Joy Long-YJC", "location": "Free State, South Africa", "role": "Named investor in an announced industrialisation project", "ticker": null, "exchange": null, "why_now": "The project is material but still lacks verifiable execution detail."}
+  ],
+  "records": [
+    {
+      "id": "global-energy-logistics-refining-bottleneck",
+      "theme": "Energy scarcity has shifted from crude supply toward logistics, refining and inventory replacement",
+      "status": "CONFIRMED",
+      "new_to_radar": true,
+      "location": "Strait of Hormuz / Middle East / global fuel markets",
+      "why_surfaced": "Middle East crude exports briefly recovered to pre-war levels while delivered prices stayed elevated, isolating tanker capacity, insurance, refining outages and depleted inventories as binding constraints.",
+      "causal_chain": {
+        "world_change": ["Crude flows are recovering faster than the transport, refining and inventory system required to deliver usable fuels."],
+        "pressure": ["Repeated tanker attacks, longer routes, ship-to-ship transfers, depleted inventories and damaged refineries."],
+        "bottleneck_or_scarcity": ["Safe tanker capacity, war-risk insurance, medium-sour refining capacity, diesel output and accessible commercial inventories."],
+        "formation": ["A durable energy-logistics and refining bottleneck is supporting high delivered fuel costs even when crude export volumes improve."],
+        "industries": ["Oil shipping", "Marine insurance", "Refining", "Diesel and jet fuel", "Storage and strategic reserves"],
+        "connected_companies_and_tickers": ["Saudi Aramco (Tadawul:2222)"],
+        "consequences": ["Persistent fuel and freight inflation", "Higher working-capital and insurance costs", "Pressure on fuel-import-dependent emerging markets", "Demand for refinery repair, storage and tanker capacity"],
+        "evidence": ["Aramco CEO inventory and supply-loss figures", "UKMTO incident reports", "Kpler export recovery and tanker-rate evidence reported by Reuters"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "CONFIRMED", "what_changed": "New stable formation ID in the blank 6 October scan; it was absent from the 5 October reading layer.", "why_state_changed": "Primary incident data, export-flow recovery and industry inventory/refining evidence independently converge on the same logistics mechanism.", "strengthening_evidence": ["Aramco said on 5 October that inventory replenishment could take up to two years.", "UKMTO recorded multiple tanker attacks or threats between 1 and 5 October.", "Exports temporarily returned to pre-war levels without normalising delivered prices."], "weakening_evidence": ["Higher crude export volumes have reduced the headline supply deficit from its peak."], "break_conditions": ["Hormuz transit normalises without repeated attacks", "Tanker and insurance costs return near pre-war levels", "Refining capacity and inventories recover materially"], "actual_breaks": [], "unresolved_evidence": ["Duration of tanker risk", "Refinery restoration schedule", "Country-level fuel pass-through", "Accessible inventory quality and location"], "new_links": ["Recovered crude volumes now separate the logistics/refining constraint from the upstream supply constraint."], "removed_links": []},
+      "listed_players": [{"name": "Saudi Aramco", "ticker": "2222", "exchange": "Tadawul", "role": "Producer with critical pipeline, storage and export infrastructure"}],
+      "valuation": null,
+      "valuation_research": "The formation can affect upstream, tanker and refining cash flows differently. No company-level entry valuation is asserted; security research must distinguish temporary war premiums from durable capacity economics and political risk.",
+      "evidence": [
+        {"fact": "Aramco's CEO said nearly 3 billion barrels of gross supply had been lost, more than 1 billion barrels had been drawn from stocks and replenishment could take up to two years.", "source": "Saudi Aramco", "url": "https://www.aramco.com/en/news-media/speeches/2026/remarks-by-amin-h-nasser-at-energy-intelligence-2026", "date": "2026-10-05", "language": "English"},
+        {"fact": "UKMTO recorded repeated tanker attacks and a 5 October incident in which a tanker was instructed to turn back or be targeted.", "source": "United Kingdom Maritime Trade Operations", "url": "https://www.ukmto.org/recent-incidents", "date": "2026-10-05", "language": "English"},
+        {"fact": "Reuters reports Middle East exports briefly exceeded pre-war levels while tanker attacks and logistical constraints continued.", "source": "Reuters", "url": "https://www.reuters.com/business/energy/middle-east-crude-oil-exports-exceed-pre-war-levels-tanker-attacks-increase-2026-10-05/", "date": "2026-10-05", "language": "English"},
+        {"fact": "Reuters reports VLCC rates above US$1.2 million per day versus roughly US$30,000 in January and freight rising from about 3% to 27% of delivered barrel cost.", "source": "Reuters Open Interest", "url": "https://www.reuters.com/commentary/reuters-open-interest/oils-new-problem-isnt-supply-its-logistics-2026-10-05/", "date": "2026-10-05", "language": "English"}
+      ],
+      "contradictions": ["Crude export recovery could alleviate some upstream tightness.", "Industry executives have commercial incentives to emphasise scarcity and high prices.", "War-risk data can change rapidly and some ship movements are obscured by disabled tracking."],
+      "missing_evidence": ["Independent refinery restoration schedule", "Verified global product-stock composition", "Country-level freight and retail fuel pass-through"],
+      "what_to_check_next": ["UKMTO incident frequency", "VLCC and war-risk insurance rates", "Refinery restarts", "Diesel cracks", "Import-dependent EM inflation"]
+    },
+    {
+      "id": "douala-bangui-economic-corridor",
+      "theme": "The Douala–Bangui trade corridor has moved into financed country execution",
+      "status": "CONFIRMED",
+      "new_to_radar": true,
+      "location": "Cameroon / Central African Republic / CEMAC",
+      "why_surfaced": "Cameroon authorised its IBRD credit on 2 October inside a US$1.12 billion regional program for a corridor carrying more than 80% of CAR's external trade.",
+      "causal_chain": {
+        "world_change": ["A 1,400-kilometre regional trade corridor is moving from multilateral approval into sovereign financing and procurement."],
+        "pressure": ["CAR depends on the route for most external trade while road condition, safety, borders and maintenance raise transport costs."],
+        "bottleneck_or_scarcity": ["Road rehabilitation, border efficiency, maintenance institutions, safety and coordinated cross-country execution."],
+        "formation": ["A US$1.12 billion multi-phase program combines physical works with maintenance and trade-facilitation reform."],
+        "industries": ["Road construction", "Freight logistics", "Border systems", "Maintenance services", "Regional trade"],
+        "connected_companies_and_tickers": [],
+        "consequences": ["Potentially lower freight time and vehicle cost", "Greater resilience for CAR imports and exports", "Construction and logistics demand", "Sovereign and security execution risk"],
+        "evidence": ["World Bank program approval", "Cameroon presidential credit decree", "Cameroon procurement notice"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "CONFIRMED", "what_changed": "New stable formation ID in the blank 6 October scan; absent on 5 October.", "why_state_changed": "Regional approval, country credit authorisation and procurement evidence establish finance, mechanism and implementation participants.", "strengthening_evidence": ["Cameroon's 2 October decree authorises the IBRD credit.", "The wider World Bank program is approved and procurement preparation is visible."], "weakening_evidence": [], "break_conditions": ["Credit agreement does not become effective", "Procurement or security delays prevent works", "Maintenance and border reforms fail"], "actual_breaks": [], "unresolved_evidence": ["Disbursement", "Contract awards", "Construction milestones", "Border-time and freight-cost outcomes"], "new_links": ["Regional program approval is now linked to sovereign credit authorisation in Cameroon."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "evidence": [
+        {"fact": "The World Bank approved a US$1.12 billion program, with a US$525 million first phase, for corridor works and reforms across Cameroon, CAR and CEMAC.", "source": "World Bank", "url": "https://www.worldbank.org/en/news/press-release/2026/06/12/world-bank-approves-us-1-12-billion-program-to-modernize-the-douala-bangui-economic-corridor", "date": "2026-06-12", "language": "English"},
+        {"fact": "Cameroon's president authorised a credit agreement for the corridor project on 2 October.", "source": "Presidency of Cameroon", "url": "https://www.prc.cm/en/news/the-acts/decrees/8482-decree-no-2026-321-of-2-october-2026-to-authorise-a-loan-agreement-for-the-execution-of-the-douala-bangui-economic-corridor-project", "date": "2026-10-02", "language": "English"},
+        {"fact": "The French decree is the original legal record authorising the IBRD credit.", "source": "Présidence de la République du Cameroun", "url": "https://www.prc.cm/fr/actualites/actes/decrets/8484-decret-n-2026-321-du-02-octobre-2026-autorisant-la-signature-d-un-accord-de-credit-avec-la-banque-internationale-pour-la-reconstruction-et-le-developpement-bird-pour-la-realisation-du-projet-de-corridor-economique-douala-bangui", "date": "2026-10-02", "language": "French", "english_summary": "The decree authorises signature of an IBRD credit agreement for the Douala–Bangui Economic Corridor project."},
+        {"fact": "Reuters independently reports the authorised credit at approximately US$391 million.", "source": "Reuters", "url": "https://www.reuters.com/world/africa/cameroon-authorises-391-million-world-bank-loan-2026-10-02/", "date": "2026-10-02", "language": "English"}
+      ],
+      "contradictions": ["Financing and decrees do not prove lower transport costs or completed works.", "The corridor crosses security- and governance-sensitive territory and requires multi-country coordination."],
+      "missing_evidence": ["Credit effectiveness", "Tender awards", "Construction and maintenance milestones", "Freight-time baseline and outcome data"],
+      "what_to_check_next": ["World Bank disbursement", "Cameroon procurement awards", "CAR-side execution", "Border dwell time", "Road-condition and safety metrics"]
+    },
+    {
+      "id": "vietnam-jewellery-manufacturing-diversification",
+      "theme": "Pandora has opened its first production base outside Thailand in Vietnam",
+      "status": "FORMING",
+      "new_to_radar": true,
+      "location": "Ho Chi Minh City, Vietnam",
+      "why_surfaced": "The US$150 million facility has produced its first piece and is designed to increase Pandora's global manufacturing capacity by about 50% while diversifying geography and metal inputs.",
+      "causal_chain": {
+        "world_change": ["A major global jewellery brand has opened a second-country manufacturing platform in Vietnam."],
+        "pressure": ["Pandora seeks capacity growth, resilience beyond Thailand and reduced exposure to volatile silver through more platinum-plated products."],
+        "bottleneck_or_scarcity": ["Skilled craftspeople, ramp quality, recycled-metal supply, supplier localisation and demand absorption."],
+        "formation": ["A 60-million-piece annual facility could add 50% to global crafting capacity and employ up to 7,000 people."],
+        "industries": ["Jewellery manufacturing", "Recycled precious metals", "Industrial parks", "Export logistics", "Workforce training"],
+        "connected_companies_and_tickers": ["Pandora A/S (Nasdaq Copenhagen:PNDORA)"],
+        "consequences": ["Vietnam gains a high-employment export manufacturing anchor", "Pandora diversifies production geography", "Potential local supplier and skills ecosystem"],
+        "evidence": ["Pandora opening release", "Vietnamese local-government reporting", "Reuters and AP independent reporting"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "FORMING", "what_changed": "New stable formation ID in the blank 6 October scan; absent on 5 October.", "why_state_changed": "The facility is physically open and producing, with quantified capacity and jobs, but the full ramp and supplier ecosystem are not yet proven.", "strengthening_evidence": ["The first piece was produced at the 1 October opening.", "Company and independent sources agree on investment, capacity and jobs."], "weakening_evidence": [], "break_conditions": ["Ramp is delayed", "Demand cannot absorb capacity", "Quality or labour constraints prevent full scale"], "actual_breaks": [], "unresolved_evidence": ["Ramp schedule", "Utilisation", "Vietnam supplier content", "Unit economics and product mix"], "new_links": ["Geographic diversification is now embodied in an operating factory rather than a construction plan."], "removed_links": []},
+      "listed_players": [{"name": "Pandora A/S", "ticker": "PNDORA", "exchange": "Nasdaq Copenhagen", "role": "Owner and operator of the Vietnam facility"}],
+      "valuation": null,
+      "valuation_research": "The factory adds nominal capacity equal to roughly half of Pandora's prior global base, but a security-level entry range requires demand, utilisation, margin and capital-return evidence. No recommendation is made.",
+      "evidence": [
+        {"fact": "Pandora says its US$150 million facility will produce up to 60 million pieces annually, add about 50% to capacity and create 7,000 jobs.", "source": "Pandora", "url": "https://pandoragroup.com/media/press-releases/Pandora-opens-worlds-largest-fine-jewellery-crafting-facility", "date": "2026-10-01", "language": "English"},
+        {"fact": "Ho Chi Minh City reporting confirms the inauguration at VSIP III Industrial Park and local-government participation.", "source": "Sài Gòn Giải Phóng", "url": "https://en.sggp.org.vn/pandora-group-inaugurates-factory-in-vietnam-post130043.html", "date": "2026-10-01", "language": "English"},
+        {"fact": "Reuters independently reports the factory is Pandora's first outside Thailand and may supply one-third of global capacity by 2030.", "source": "Reuters", "url": "https://www.reuters.com/business/retail-consumer/denmarks-pandora-opens-worlds-largest-jewellery-factory-vietnam-2026-10-01/", "date": "2026-10-01", "language": "English"}
+      ],
+      "contradictions": ["Opening capacity is not the same as full utilisation.", "The investment diversifies Pandora geographically but remains a single-company anchor rather than a proven cluster.", "Large added capacity could pressure returns if demand underperforms."],
+      "missing_evidence": ["Monthly ramp", "Local supplier contracts", "Training outcomes", "Vietnam unit margins and returns"],
+      "what_to_check_next": ["Output and utilisation", "Supplier localisation", "Product mix", "Pandora capex and margin disclosures"]
+    },
+    {
+      "id": "venezuela-oil-power-reconstruction-dependency",
+      "theme": "Venezuela's oil expansion is becoming a grid-rehabilitation market",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Venezuela",
+      "why_surfaced": "Large oil agreements and a GE Vernova grid alliance now collide with a power deficit above 1,500 MW and an estimated US$5 billion rehabilitation requirement.",
+      "causal_chain": {
+        "world_change": ["New oil and grid agreements are attempting to restart investment in Venezuela's energy system."],
+        "pressure": ["Oil output expansion, households and industry compete for unreliable electricity while outages worsen."],
+        "bottleneck_or_scarcity": ["Reliable generation, transmission automation, gas-to-power projects, equipment, finance and governance."],
+        "formation": ["Grid rehabilitation and self-generation are becoming prerequisite markets for oil-sector recovery."],
+        "industries": ["Power generation", "Grid equipment", "Gas-to-power", "Oilfield services", "Automation"],
+        "connected_companies_and_tickers": ["Chevron (NYSE:CVX)", "Eni (Borsa Italiana:ENI)", "GE Vernova (NYSE:GEV)"],
+        "consequences": ["Potential demand for turbines, substations and controls", "Oil investment delayed without reliable power", "Risk that energy projects crowd out household supply"],
+        "evidence": ["US Department of Energy agreements", "Reuters field reporting", "Spanish-language grid evidence"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "INVESTIGATE", "what_changed": "New stable formation ID in the blank 6 October scan; absent on 5 October.", "why_state_changed": "Named agreements and quantified grid deficits establish the dependency, but delivery and financing remain uncertain.", "strengthening_evidence": ["Chevron, Eni and GE Vernova agreements were signed on 2 September.", "Executives and CAF quantified the grid deficit and investment need on 30 September."], "weakening_evidence": ["Power cuts are worsening even as investment announcements multiply."], "break_conditions": ["Grid agreements are not funded or executed", "Political or sanctions conditions reverse", "Oil projects proceed without wider grid rehabilitation"], "actual_breaks": [], "unresolved_evidence": ["GE Vernova scope and finance", "Generation additions", "Grid restoration milestones", "Oil-project power allocation"], "new_links": ["The oil-recovery chain is now explicitly linked to grid reliability and gas-to-power investment."], "removed_links": []},
+      "listed_players": [
+        {"name": "Chevron", "ticker": "CVX", "exchange": "NYSE", "role": "Oil expansion agreement participant"},
+        {"name": "Eni", "ticker": "ENI", "exchange": "Borsa Italiana", "role": "Oil and gas agreement participant"},
+        {"name": "GE Vernova", "ticker": "GEV", "exchange": "NYSE", "role": "Grid-modernisation agreement participant"}
+      ],
+      "valuation": null,
+      "valuation_research": "Contract value, payment security, sanctions treatment and attributable earnings are not disclosed sufficiently for valuation. Exposure is contextual, not a recommendation.",
+      "evidence": [
+        {"fact": "The US Department of Energy says Chevron, Eni and GE Vernova signed agreements covering oil expansion and grid modernisation.", "source": "US Department of Energy", "url": "https://www.energy.gov/articles/fact-sheet-delivering-president-trumps-promise-unleash-prosperity-and-security-united", "date": "2026-09-02", "language": "English"},
+        {"fact": "Reuters reports an electricity deficit above 1,500 MW and a CAF estimate of US$5 billion to rehabilitate and automate the grid.", "source": "Reuters", "url": "https://www.reuters.com/business/energy/oil-executives-worried-over-lack-essential-element-for-venezuela-expansion-power-2026-09-30/", "date": "2026-09-30", "language": "English"},
+        {"fact": "Spanish-language reporting says Venezuela intends to add 1,300 MW while documenting the continuing electricity crisis.", "source": "EFE", "url": "https://efe.com/economia/2026-09-30/crisis-electrica-venezuela/", "date": "2026-09-30", "language": "Spanish", "english_summary": "The report describes a plan to add 1,300 MW and the scale of Venezuela's continuing power shortages."}
+      ],
+      "contradictions": ["Government investment claims may overstate executable finance and timing.", "Adding generation does not by itself repair transmission, distribution or governance.", "Political and sanctions conditions can rapidly alter participation."],
+      "missing_evidence": ["Binding contract values", "Financing and payment security", "Project schedules", "Independent generation and outage data"],
+      "what_to_check_next": ["GE Vernova disclosures", "CAF financing", "Generation additions", "Outage duration", "Chevron and Eni project milestones"]
+    },
+    {
+      "id": "south-africa-independent-transmission-procurement",
+      "theme": "South Africa's private-grid procurement is advancing due diligence but slipping into 2027",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "South Africa",
+      "why_surfaced": "Seven pre-qualified bidders completed investor due diligence, but the final RFP for the first private transmission program has been delayed while guarantee and commercial structures are refined.",
+      "causal_chain": {
+        "world_change": ["South Africa is attempting its first private procurement of national transmission assets."],
+        "pressure": ["About 14,000 kilometres of grid expansion is needed over a decade while public balance-sheet and delivery capacity are constrained."],
+        "bottleneck_or_scarcity": ["Bankable guarantees, regulatory structure, final RFP, grid connection planning and private capital."],
+        "formation": ["A credit-guaranteed procurement model could create a new private transmission market, but the bid window has moved into 2027."],
+        "industries": ["Transmission lines", "Substations", "Grid engineering", "Infrastructure finance", "Power equipment"],
+        "connected_companies_and_tickers": [],
+        "consequences": ["Potential opening of a new private infrastructure asset class", "Delayed renewable connections if procurement slips", "Future demand for equipment and EPC capacity"],
+        "evidence": ["South African government procurement update", "ITP program data", "Independent industry reporting on delay"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "INVESTIGATE", "what_changed": "New stable formation ID in the blank 6 October scan; absent on 5 October.", "why_state_changed": "Due diligence and pre-qualified bidders show credible preparation, but the final RFP delay prevents FORMING classification.", "strengthening_evidence": ["Seven pre-qualified bidders are engaged and due diligence took place from 28 September to 2 October."], "weakening_evidence": ["The final RFP target moved from Q3 2026 to Q2 2027."], "break_conditions": ["RFP slips again or is cancelled", "Guarantee vehicle is not operational", "Bid terms fail to attract finance"], "actual_breaks": [], "unresolved_evidence": ["Final RFP", "Guarantee capitalisation", "Bidder identities and consortia", "Project awards and tariffs"], "new_links": ["Investor due diligence now connects the policy concept to a defined bidder pool."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "evidence": [
+        {"fact": "South Africa says investor due diligence has occurred and a further bidder-consultation round will precede the final RFP.", "source": "Government of South Africa", "url": "https://www.gov.za/news/media-statements/government-reaffirms-commitment-landmark-independent-transmission-projects", "date": "2026-10-01", "language": "English"},
+        {"fact": "The official program site says the transmission plan requires about 14,000 kilometres of lines and related infrastructure over ten years.", "source": "Independent Transmission Projects Programme", "url": "https://www.itp-projects.co.za/", "date": "2026-10-05", "language": "English"},
+        {"fact": "Engineering News reports the final RFP target has shifted to the second quarter of 2027.", "source": "Engineering News", "url": "https://www.engineeringnews.co.za/article/south-africa-delays-rfp-for-1bn-inaugural-private-grid-procurement-to-2027-2026-10-01", "date": "2026-10-01", "language": "English"}
+      ],
+      "contradictions": ["Government describes progress, while the investable RFP has slipped materially.", "Transmission need does not guarantee bankable private returns or affordable tariffs."],
+      "missing_evidence": ["Final RFP and risk allocation", "Guarantee vehicle terms", "Bidder list", "Project-level capex and allowed returns"],
+      "what_to_check_next": ["Q2 2027 RFP milestone", "Guarantee vehicle launch", "Bidder consultation outcome", "Grid project packages"]
+    },
+    {
+      "id": "free-state-catalytic-industrialisation-project",
+      "theme": "A claimed R100 billion Free State industrial project lacks bankable detail",
+      "status": "UNKNOWN",
+      "new_to_radar": true,
+      "location": "Maluti-a-Phofung, Free State, South Africa",
+      "why_surfaced": "An official announcement names Chinese investors and a very large manufacturing and green-economy investment, but the launch is still ahead and the project structure is undisclosed.",
+      "causal_chain": {
+        "world_change": ["The Free State government announced an approximately R100 billion industrialisation project with Joy Long-YJC."],
+        "pressure": ["The region seeks manufacturing investment, permanent employment and energy-transition activity."],
+        "bottleneck_or_scarcity": ["Verified financing, defined facilities, land, utilities, technology, customers and delivery governance."],
+        "formation": ["Potential industrial and green-economy cluster if the announced capital and facilities are substantiated."],
+        "industries": ["Manufacturing", "Green economy", "Energy transition", "Industrial infrastructure"],
+        "connected_companies_and_tickers": [],
+        "consequences": ["Potential 6,500 permanent jobs", "Large local infrastructure demand", "High announcement and execution risk"],
+        "evidence": ["South African government media advisory", "Independent reproduction of the same announcement"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "UNKNOWN", "what_changed": "New stable formation ID in the blank 6 October scan; absent on 5 October.", "why_state_changed": "The scale is unusual enough to preserve, but evidence is not yet sufficient to explain what is being financed or built.", "strengthening_evidence": ["A government-hosted launch and named investor are scheduled for 9 October."], "weakening_evidence": ["The announcement provides no financing sources, facilities, timeline, technology or customers."], "break_conditions": ["Launch is postponed or cancelled", "No binding finance or land agreements appear", "Investor identity or capacity cannot be verified"], "actual_breaks": [], "unresolved_evidence": ["Investor ownership", "Funding commitments", "Plant list", "Land and utility agreements", "Construction schedule and customers"], "new_links": ["A named government-investor event creates a verifiable next checkpoint."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "evidence": [
+        {"fact": "The Free State government says Joy Long-YJC and provincial and municipal authorities will launch an approximately R100 billion project expected to create about 6,500 permanent jobs.", "source": "Government of South Africa", "url": "https://www.gov.za/news/media-advisories/government-activities/free-state-province-launches-catalytic-investment-and", "date": "2026-10-01", "language": "English"},
+        {"fact": "An independent distribution reproduces the stated investment and employment figures but adds no bankable detail.", "source": "Global Reporter Journal", "url": "https://www.globalreporterjournal.com/article/946979117-free-state-province-launches-catalytic-investment-and-industrialisation-project-in-maluti-a-phofung-local-municipality-9-oct", "date": "2026-10-05", "language": "English"}
+      ],
+      "contradictions": ["The claimed scale is exceptionally large relative to the detail disclosed.", "The second source repeats the government advisory rather than independently verifying finance or facilities.", "The launch event has not yet occurred."],
+      "missing_evidence": ["Audited or binding finance", "Investor corporate records", "Project components", "Land, utilities and permits", "Customer or offtake commitments"],
+      "what_to_check_next": ["9 October launch documents", "Company registration and ownership", "Finance agreements", "Environmental and land approvals", "Construction milestones"]
+    }
+  ],
+  "absent_from_current_scan": [
+    {"id": "sierra-gorda-fourth-grinding-line", "previous_scan_state": "FORMING", "current_scan_state": "ABSENT", "reason": "Did not independently re-enter the blank 6 October candidate set at the promotion threshold; the 5 October observation remains immutable."},
+    {"id": "centenario-ratones-lithium-brownfield-expansion", "previous_scan_state": "INVESTIGATE", "current_scan_state": "ABSENT", "reason": "No new evidence strong enough to promote it in today's blank scan."},
+    {"id": "east-africa-refining-localisation", "previous_scan_state": "INVESTIGATE", "current_scan_state": "ABSENT", "reason": "No new dated court or financing resolution entered today's candidate set."},
+    {"id": "uzbekistan-aiib-infrastructure-pipeline", "previous_scan_state": "INVESTIGATE", "current_scan_state": "ABSENT", "reason": "No new project approval or disbursement entered today's candidate set."},
+    {"id": "central-asia-south-asia-railway-option", "previous_scan_state": "UNKNOWN", "current_scan_state": "ABSENT", "reason": "No feasibility, route or financing evidence advanced the MoU today."},
+    {"id": "global-food-logistics-weather-pressure", "previous_scan_state": "INVESTIGATE", "current_scan_state": "ABSENT", "reason": "Today's stronger logistics evidence was energy-specific; the food-price chain did not independently re-qualify."}
+  ],
+  "published_at": "2026-10-06T09:13:15+11:00",
+  "publication_verification": {
+    "data_commit_sha": "bfb257c5a52dec3ef83952756991c8e1fc18ec24",
+    "render_service_id": "srv-damqhauk1f9s738iteh0",
+    "render_deployment_id": "dep-db221cbncjis73c54t20",
+    "render_status": "LIVE",
+    "live_verified_at": "2026-10-06T09:13:15+11:00",
+    "dashboard_url": "https://emerging-markets-radar.onrender.com/",
+    "custom_domain_url": "https://emradar.com.au/",
+    "custom_domain_status": "INACTIVE_502_AT_VERIFICATION",
+    "downstream_release_allowed": true
+  }
+}
+

@@ -121,15 +121,20 @@ export function humanReadyEmail({proposition,signal,route,identity,product}){
   const refs=(signal.source_facts||[]).filter(f=>signal.evidence.includes(f.id));
   const sourceText=refs.slice(0,1).map(f=>f.url).join('');if(!sourceText)fail('EMAIL_SOURCE_LINK_REQUIRED');
   const body=[greeting.text,context,clean,(es?'Fuente de apoyo: ':'Supporting source: ')+sourceText,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
-  const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:route.accepted_formats.includes('financial_guest_view_pitch')?'compact':introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'destination_specific_editorial_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
+  const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:route.accepted_formats.includes('financial_guest_view_pitch')?'compact':introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'recipient_agency_contribution_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
   const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE'};
   validateHumanEmail(email,signal,route,identity);return email;
+}
+export function recipientAgency(question){
+  const q=String(question||'');
+  return /[?？]/u.test(q)&&(/(?:you|your|les|le|su|ustedes)/iu.test(q)||/would.*(?:this|the).*useful/iu.test(q))&&/(?:useful|suit|interest|help|welcome|consider|prefer|fit|servir|interes|util|útil|prefer|encajar)/iu.test(q)&&/(?:note|angle|material|analysis|article|research|contribut|commentary|brief|evidence|enfoque|nota|análisis|artículo|aporte|investigación)/iu.test(q);
 }
 export function validateCorrespondenceProposition(proposition,route){
   const parts=proposition.correspondence;
   for(const key of ['reason','development','insight','proposition','question'])if(!parts?.[key]?.trim()||!proposition.body.includes(parts[key]))fail('HUMAN_PROPOSITION_QUALITIES_REQUIRED');
   const name=route.organisation||route.destination_name;
   if(!parts.reason.includes(name)||!/[?？]/u.test(parts.question))fail('HUMAN_DESTINATION_REASON_OR_QUESTION_REQUIRED');
+  if(!recipientAgency(parts.question))fail('HUMAN_RECIPIENT_AGENCY_REQUIRED');
   if(proposition.body.trim().split(/\s+/u).length>180||/(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|(?:I'm|I’m) writing from EMRADAR|Le escribo desde EMRADAR|relevant to your audience/imu.test(proposition.body)||/https?:\/\//i.test(proposition.body))fail('HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE');
   // Only the presently included, verified note can be offered. Future capability
   // expansion must pass the existing independently verified capability inventory.
@@ -163,3 +168,4 @@ export function validateHumanEmail(email,signal,route,identity){
   if(limit&&email.body.trim().split(/\s+/).length>Number(limit[1]))fail('EDITORIAL_DESTINATION_LENGTH_EXCEEDED');
   return {status:'PASS',version:emailVersion,claims:[{capability:'current_evidence_mapping',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence]}},{capability:'source_linked_note',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence],artifact_hash:hash({subject:email.subject,body:email.body})}}],excluded_capabilities:[{capability:'ongoing_monitoring_or_continuous_coverage',state:'UNVERIFIED',authorized:false,reason:'No current campaign-scoped production proof; no ongoing service promised.'}]};
 }
+

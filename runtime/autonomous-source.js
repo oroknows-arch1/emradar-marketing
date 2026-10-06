@@ -5,6 +5,7 @@ import scanControl from '../config/scan-control.json' with {type:'json'};
 const origin='https://emerging-markets-radar.onrender.com';
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const at=()=>new Date().toISOString();
+export const reviewContractRevision='mandatory-x-human-agency-v1';
 const executed=new Set(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS']);
 export const intakeHeld=(env=process.env)=>scanControl.hold_new_scans===true||env.MARKETING_EMERGENCY_STOP==='true';
 async function read(url,fetcher){
@@ -61,11 +62,12 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
       signal_id:signal.id,signal_revision:signal.revision,evidence_state:signal.state,created_at:at(),routes:{},attempts:0,status:'PREPARING'};
     await store.put(key,state);
   }
-  if(state.status==='AWAITING_REVIEW')return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:await store.get('review_package:'+state.campaign_id),external_actions:0};
-  if(state.runtime_commit===(env.RENDER_GIT_COMMIT||'UNKNOWN')&&state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
+  if(state.status==='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision)return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:await store.get('review_package:'+state.campaign_id),external_actions:0};
+  if(state.review_contract_revision===reviewContractRevision&&state.runtime_commit===(env.RENDER_GIT_COMMIT||'UNKNOWN')&&state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
   const runtime=env.RENDER_GIT_COMMIT||'UNKNOWN';
   // Bounded failures retry after a runtime repair, or at most three times per runtime.
-  const runtimeChanged=state.runtime_commit!==runtime;
+  const contractChanged=state.review_contract_revision!==reviewContractRevision;
+  const runtimeChanged=state.runtime_commit!==runtime||contractChanged;
   if(runtimeChanged){state.attempts=0;state.runtime_commit=runtime;state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>r.proposal_id||executed.has(r.status)));}
   if(state.attempts>=3)return {status:'BLOCKED',blocker:state.blocker,handoff,campaign_id:state.campaign_id,external_actions:0};
   state.attempts++;state.status='PREPARING';await store.put(key,state);
@@ -76,11 +78,12 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const results=[];
   const run=async destination=>{
     const saved=reuse(destination);
-    if(saved){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
+    if(saved&&saved.review_contract_revision===reviewContractRevision&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
+    if(saved&&await store.get('publication_approval:'+saved.proposal_id))throw Error('APPROVED_REVIEW_ARTIFACT_CANNOT_AUTO_SUPERSEDE');
     const sent=external(destination);
     if(sent){state.routes[destination]={status:sent.execution_status,receipt_id:sent.id,reused:true};return;}
     const result=await engine.run({product:'EMRADAR',campaign_id:state.campaign_id,signal_id:state.signal_id,
-      ...(destination?{destination_id:destination}:{}),stop_at:'PUBLICATION_REVIEW'});
+      ...(destination?{destination_id:destination}:{}),...(saved?{revision_proposal_id:saved.proposal_id,expected_review_hash:saved.review_hash,refresh_editorial:true}:{}),stop_at:'PUBLICATION_REVIEW'});
     if(result.nodes?.some(n=>n.node==='execute'))throw new Error('AUTONOMOUS_REVIEW_STOP_VIOLATION');
     results.push(result);
     const route=result.review?.destination||destination||result.selection?.options?.find(o=>o.key===result.selection.selected)?.id||'UNSELECTED';
@@ -89,28 +92,34 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
     return result;
   };
   let first;
-  if(existingProposals.length){for(const p of existingProposals)state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
+  if(contractChanged)state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>executed.has(r.status)));
+  if(existingProposals.length){for(const p of existingProposals.filter(p=>p.review_contract_revision===reviewContractRevision))state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
   // Reuse the graph's own persisted route decisions, never a second routing system.
   const planKey='route_plan:EMRADAR:'+state.signal_id+':'+state.signal_revision;
   let routePlan=await store.get(planKey);
-  if(!routePlan||(runtimeChanged&&!existingProposals.length)){first=await run();routePlan=first?.route_plan;}
-  const selected=first?.selection?.options?.map(o=>o.id)||routePlan?.candidates?.map(d=>d.destination_id)||[];
+  if(!routePlan||runtimeChanged){first=await run('EMRADAR-X-OROKNOWS');routePlan=first?.route_plan||routePlan;}
+  const selected=[...(routePlan?.candidates?.map(d=>d.destination_id)||[]),...(first?.selection?.options?.map(o=>o.id)||[])];
   const xEvaluation=await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision);
-  for(const destination of [...new Set(selected)].slice(0,5)){
-    if(destination==='EMRADAR-X-OROKNOWS'&&xEvaluation?.state!=='X_SELECTED')continue;
+  for(const destination of ['EMRADAR-X-OROKNOWS',...[...new Set(selected)].filter(id=>id!=='EMRADAR-X-OROKNOWS').slice(0,5)]){
     if(state.routes[destination]?.proposal_id||executed.has(state.routes[destination]?.status)||results.some(r=>r.review?.destination===destination||r.selection?.options?.find(o=>o.key===r.selection.selected)?.id===destination))continue;
     await run(destination);
   }
   const proposals=[];
-  for(const r of Object.values(state.routes)){if(r.proposal_id){const p=await store.get('publication_review:'+r.proposal_id);if(p&&!proposals.some(x=>x.proposal_id===p.proposal_id))proposals.push({...p,artifact_hash:p.review_hash,cost:await store.get('campaign_cost:'+p.cost_receipt_id)});}}
+  for(const r of Object.values(state.routes)){if(r.proposal_id){const p=await store.get('publication_review:'+r.proposal_id);if(p?.status==='AWAITING_REVIEW'&&!proposals.some(x=>x.proposal_id===p.proposal_id))proposals.push({...p,artifact_hash:p.review_hash,cost:await store.get('campaign_cost:'+p.cost_receipt_id)});}}
   const blockers=Object.entries(state.routes).filter(([,r])=>!r.proposal_id&&!executed.has(r.status)).map(([destination,r])=>({destination,reason:r.blocker||r.status}));
   const packageRecord={scan_date:scan.snapshot_date,source_sha256,source_receipt:product.source_receipt,campaign_id:state.campaign_id,
     formation:{id:state.signal_id,state:state.evidence_state},status:blockers.length?'BLOCKED':'AWAITING_REVIEW',proposals,blockers,
     external_actions:0,required_stop:'PUBLICATION_REVIEW',runtime_commit:runtime,updated_at:at(),handoff,capabilities:{editorial_harness_connected:!!engine.harness},x_evaluation:await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision)};
   if(!proposals.length&&!blockers.length){packageRecord.status='BLOCKED';blockers.push({reason:'NO_ELIGIBLE_REVIEW_ARTIFACT'});}
+  const x=proposals.find(p=>p.destination==='EMRADAR-X-OROKNOWS');
+  if(!x?.asset?.copy||!x?.asset?.base64||!x?.asset?.sha256||x?.asset?.combined_review_artifact!==true){packageRecord.status='BLOCKED';blockers.push({destination:'EMRADAR-X-OROKNOWS',reason:'MANDATORY_X_COPY_AND_VISUAL_REVIEW_REQUIRED'});}
+  if(x?.asset?.combined_review_artifact&&packageRecord.x_evaluation){packageRecord.x_evaluation={...packageRecord.x_evaluation,visual:'GENERATED_EVIDENCE_GRAPHIC',visual_sha256:x.asset.sha256,combined_review_artifact:x.proposal_id,content_review_state:'READY'};await store.put('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision,packageRecord.x_evaluation);}
+  packageRecord.review_contract_revision=reviewContractRevision;
+  state.review_contract_revision=reviewContractRevision;
   state.status=packageRecord.status;state.blocker=blockers[0]?.reason||null;state.next_due=new Date(Date.now()+300000).toISOString();
   await store.put('review_package:'+state.campaign_id,packageRecord);await store.put('review_package_latest:EMRADAR',packageRecord);await store.put(key,state);
   log('AUTONOMOUS_SCAN_REVIEW '+JSON.stringify({...packageRecord,proposals:proposals.map(p=>({proposal_id:p.proposal_id,destination:p.destination,status:p.status,artifact_hash:p.review_hash}))}));
   for(const p of proposals)log('AUTONOMOUS_REVIEW_ARTIFACT '+JSON.stringify({scan_date:scan.snapshot_date,campaign_id:state.campaign_id,proposal:p}));
   return {status:packageRecord.status,handoff,campaign_id:state.campaign_id,package:packageRecord,external_actions:0};
 }
+

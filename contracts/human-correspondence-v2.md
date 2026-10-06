@@ -44,3 +44,10 @@ never establishes a style rule or a causal claim; existing evidence thresholds r
 `correspondenceProbe` is a pure test-only historical Sierra Gorda regression. It calls
 the actual renderer/capability validator, logs a runtime artifact hash and does not
 fetch a scan, admit a campaign, write state or distribute anything.
+
+
+Recipient agency is required: correspondence.question asks whether or how the
+material, note, angle or contribution would help this recipient, letting them
+choose a useful destination-native form. A subject-matter question is insufficient.
+Generate destination-appropriate wording; never append a fixed closing sentence.
+The independent human_correspondence verifier must check this semantic function.

@@ -418,6 +418,80 @@
       "evidence_source_url": "https://join.hotcopper.com.au/contributor-guidelines/",
       "verified_at": "2026-10-05",
       "verification_state": "VERIFIED_DISCOVERY_ONLY"
+    },
+    {
+      "destination_class": "trade_publication",
+      "geography": [
+        "global"
+      ],
+      "access_method": "public editorial email",
+      "account_required": false,
+      "cost": "ZERO",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "submission_requirements": "Unsolicited source-bound editorial proposition only; acceptance and finished-article commissioning remain UNKNOWN. No paid placement. Exact owner review required.",
+      "destination_id": "HYDROCARBON-ENGINEERING-EDITORIAL",
+      "destination_name": "Hydrocarbon Engineering editorial",
+      "organisation": "Hydrocarbon Engineering",
+      "relevant_beat_topic": [
+        "refining",
+        "tanks and terminals",
+        "clean fuels"
+      ],
+      "industries": [
+        "Refining",
+        "Storage and strategic reserves",
+        "Diesel and jet fuel"
+      ],
+      "public_contact_point": "callum.oreilly@hydrocarbonengineering.com",
+      "public_submission_url": "https://www.hydrocarbonengineering.com/team/callum-oreilly/",
+      "evidence_source_url": "https://www.hydrocarbonengineering.com/team/callum-oreilly/",
+      "editorial_lane": "REFINING_AND_STORAGE",
+      "editorial_focus": "Distinguish recovered crude exports from usable refining capacity and accessible product inventories, retaining unresolved restoration schedules.",
+      "editorial_intent": "Propose a source-bound refining and storage analysis for downstream operators, without asserting a restoration schedule.",
+      "recipient_identity": {
+        "name": "Callum",
+        "address": "callum.oreilly@hydrocarbonengineering.com",
+        "state": "VERIFIED",
+        "evidence_source_url": "https://www.hydrocarbonengineering.com/team/callum-oreilly/",
+        "verified_at": "2026-10-07"
+      }
+    },
+    {
+      "destination_class": "trade_publication",
+      "geography": [
+        "global"
+      ],
+      "access_method": "public contact form",
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "accepted_formats": [
+        "contact_form"
+      ],
+      "submission_requirements": "Public general inquiry form routes messages to the appropriate department. Prepare an editorial inquiry only; acceptance, charges and execution capability remain UNKNOWN. Do not use advertising or press-release routes for unsolicited analysis.",
+      "destination_id": "MARINELINK-EDITORIAL-INQUIRY",
+      "destination_name": "MarineLink editorial inquiry",
+      "organisation": "MarineLink",
+      "relevant_beat_topic": [
+        "commercial maritime operations",
+        "shipping",
+        "marine logistics"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Marine insurance"
+      ],
+      "public_contact_point": "public contact form",
+      "public_submission_url": "https://www.marinelink.com/contactus",
+      "evidence_source_url": "https://ws15.marinelink.com/contactus",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Separate tanker transit risk, marine insurance and delivered freight costs from crude export volume recovery.",
+      "editorial_intent": "Prepare a maritime editorial inquiry asking whether a source-bound logistics analysis would help its commercial shipping audience."
     }
   ]
 }
