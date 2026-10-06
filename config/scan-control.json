@@ -1,5 +1,5 @@
 {
-  "hold_new_scans": true,
-  "reason": "Owner instructed: complete feedback loop without processing the next scan. Feedback-only scheduling remains enabled.",
+  "hold_new_scans": false,
+  "reason": "Normal operation admits signed published scans and stops at exact owner publication review. Set MARKETING_EMERGENCY_STOP=true to halt intake and external execution.",
   "feedback_interval_ms": 300000
 }

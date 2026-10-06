@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import scanControl from '../config/scan-control.json' with {type:'json'};
+import {intakeHeld} from './autonomous-source.js';
 import {normalizeOutcome,analyseOutcomes,learnRouting,historicalRoutingInput} from './outcomes.js';
 import {evaluateX} from './route-feedback.js';
 import {checkPublication} from './publication-outcomes.js';
@@ -139,7 +140,7 @@ export class GraphEngine {
     return {scheduler:plan,result,feedback};
   }
   async run(input) {
-    if(scanControl.hold_new_scans&&!input.revision_proposal_id&&!input.reviewed_proposal_id&&input.product==='EMRADAR')fail('NEXT_SCAN_HELD_BY_OWNER');
+    if(intakeHeld()&&!input.revision_proposal_id&&!input.reviewed_proposal_id&&input.product==='EMRADAR')fail('NEXT_SCAN_HELD_BY_OWNER');
     if(!input.product||!input.campaign_id)fail('PRODUCT_AND_CAMPAIGN_REQUIRED');
     if(input.revision_proposal_id&&input.stop_at!=='PUBLICATION_REVIEW')fail('REVISION_MUST_STOP_AT_PUBLICATION_REVIEW');
     return this.store.locked('engine',async()=>{
@@ -420,6 +421,8 @@ const workers={
     c.review_pending=true;c.status='AWAITING_REVIEW';c.blocker='PUBLICATION_REVIEW_REQUIRED';
   },
   async execute(c,e) {
+    if(intakeHeld())fail('MARKETING_EMERGENCY_STOP');
+    if(c.route.destination.platform!=='LOCAL'&&(c.input.stop_at==='PUBLICATION_REVIEW'||c.review?.decision!=='APPROVED'))fail('EXACT_PUBLICATION_APPROVAL_REQUIRED');
     if(c.route.destination.open_access_prepare_only)fail('OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
     c.publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const prior=await e.store.get('receipt:'+c.publication_key);

@@ -1,5 +1,6 @@
 import http from "node:http";
 import scanControl from "./config/scan-control.json" with {type:"json"};
+import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
 import {evaluateX} from "./runtime/route-feedback.js";
@@ -127,7 +128,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/"){const states=await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token]));return html(res,`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Marketing Engine</title><style>body{font-family:system-ui;margin:0;background:#0b0d10;color:#f4f4f4}main{max-width:760px;margin:auto;padding:40px 20px}h1{font-size:32px}.sub{color:#9aa3ad}.grid{display:grid;gap:16px;margin-top:32px}.card{border:1px solid #2b3037;border-radius:16px;padding:22px;background:#12161b}.row{display:flex;justify-content:space-between;align-items:center;gap:16px}.status{color:#9aa3ad}.on{color:#9fe3b1}a,button{display:inline-block;margin-top:18px;padding:11px 14px;border-radius:9px;border:1px solid #3b424c;background:#fff;color:#111;text-decoration:none;font-weight:650}.secondary{background:transparent;color:#fff}</style></head><body><main><h1>Marketing Engine</h1><div class="sub">Products, connections and execution.</div><div class="grid">${states.map(([p,on])=>`<section class="card"><div class="row"><div><h2>${p}</h2><div class="status">X <span class="${on?"on":""}">● ${on?"Connected":"Not connected"}</span></div></div><div>Adapter ● Ready</div></div><a href="/oauth/x/start?product=${encodeURIComponent(p)}">${on?"Reconnect X":"Connect X"}</a> <a class="secondary" href="/product?name=${encodeURIComponent(p)}">Open product</a></section>`).join("")}</div><a class="secondary" href="/onboarding">+ Add product</a></main></body></html>`);}
   if(req.method==="GET"&&u.pathname==="/onboarding") return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><h1>Add product</h1><p>The first onboarding contract captures identity, source of truth, channels, rules and goal. Atlasoquence is already registered through its adapter.</p><p><a href="/">Back to products</a></p></body></html>`);
   if(req.method==="GET"&&u.pathname==="/product"){const p=u.searchParams.get("name");if(!PRODUCTS.includes(p))return json(res,404,{ok:false,error:"unknown_product"});const auth=await currentAuth(p).catch(()=>null);return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><a href="/">← Products</a><h1>${p}</h1><p>Adapter: Ready</p><p>X: ${auth?.access_token?"Connected":"Not connected"}</p><p>Additional spend: owner approval required</p><p>Execution endpoint: POST /RUN_MARKETING</p></body></html>`);}
-  if(req.method==="GET"&&u.pathname==="/health"){const states=Object.fromEntries(await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token])));return json(res,200,{ok:true,service:"MARKETING_ENGINE_X_EXECUTOR_V0_2",runtime_commit:process.env.RENDER_GIT_COMMIT||"UNKNOWN",correspondence:{version:emailVersion,worker:"human_ready_email",identity:correspondentName,transport_identity:"oroknows@gmail.com",quality_verification_required:true},products:states,auth_store:KEY_VALUE_URL?"persistent":"memory_only",editorial_outreach_configured:!!process.env.MARKETING_EDITORIAL_OUTREACH_MODULE,cost_gate:{additional_spend_without_owner_approval:0,api_billing:"UNKNOWN"}});}
+  if(req.method==="GET"&&u.pathname==="/health"){const states=Object.fromEntries(await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token])));return json(res,200,{ok:true,service:"MARKETING_ENGINE_X_EXECUTOR_V0_2",runtime_commit:process.env.RENDER_GIT_COMMIT||"UNKNOWN",correspondence:{version:emailVersion,worker:"human_ready_email",identity:correspondentName,transport_identity:"oroknows@gmail.com",quality_verification_required:true},products:states,auth_store:KEY_VALUE_URL?"persistent":"memory_only",editorial_outreach_configured:!!process.env.MARKETING_EDITORIAL_OUTREACH_MODULE,autonomous:{enabled:!intakeHeld(),emergency_stop:intakeHeld(),source_path:'signed_native_published_scan',harness_configured:!!process.env.MARKETING_HARNESS_MODULE,harness_transport_configured:!!(process.env.MARKETING_HARNESS_EXECUTOR_URL&&process.env.MARKETING_HARNESS_EXECUTOR_TOKEN),required_stop:'PUBLICATION_REVIEW'},cost_gate:{additional_spend_without_owner_approval:0,api_billing:"UNKNOWN"}});}
   if(req.method==="GET"&&u.pathname==="/integrations/status"){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
     const xAuthorized=!!(await currentAuth('EMRADAR').catch(()=>null))?.access_token;
@@ -159,10 +160,10 @@ const server=http.createServer(async(req,res)=>{
     const result=await oauth.callback(Object.fromEntries(u.searchParams));if(result.location){res.writeHead(result.status,{location:result.location,"cache-control":"no-store"});return res.end();}return json(res,result.status,result.body);
   }
   if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
-    try{const envelope=JSON.parse(await readBody(req));if(scanControl.hold_new_scans&&envelope.product==='EMRADAR')return json(res,423,{reason:'NEXT_SCAN_HELD_BY_OWNER'});const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+    try{const envelope=JSON.parse(await readBody(req));if(intakeHeld()&&envelope.product==='EMRADAR')return json(res,423,{reason:'NEXT_SCAN_HELD_BY_OWNER'});const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
-    try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));const result=await (await marketingEngine()).tick();return json(res,200,result);}
+    try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));const result=await normalCycle();return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(u.pathname==='/OUTCOME_REVIEW'&&['GET','POST'].includes(req.method)){
@@ -253,6 +254,7 @@ const server=http.createServer(async(req,res)=>{
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
+        if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record||{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
         const id=u.searchParams.get('proposal_id');if(!id||!/^[a-f0-9]{64}$/.test(id))return json(res,400,{ok:false,reason:'PROPOSAL_ID_REQUIRED'});
         const proposal=await new RedisStore(await store()).get('publication_review:'+id);
         return json(res,proposal?200:404,proposal||{ok:false,reason:'PUBLICATION_REVIEW_NOT_FOUND'});
@@ -267,7 +269,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE","/CYCLE"].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
     let input;try{input=JSON.parse(await readBody(req));}catch{return json(res,400,{ok:false,error:"invalid JSON"});}
-    try{const engine=await marketingEngine();const result=u.pathname==='/CYCLE'?await engine.tick():u.pathname==="/RUN_MARKETING"?await engine.run(input):await engine.feedback(input.receipt_id);return json(res,200,result);}
+    try{const engine=await marketingEngine();const result=u.pathname==='/CYCLE'?await normalCycle():u.pathname==="/RUN_MARKETING"?await engine.run(input):await engine.feedback(input.receipt_id);return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:"BLOCKED",reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/cost-receipts'){
@@ -289,8 +291,7 @@ const server=http.createServer(async(req,res)=>{
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
   try{const probe=correspondenceProbe();console.log('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:probe.status,version:probe.version,worker:probe.worker,mode:probe.mode,external_actions:probe.external_actions,artifact_hash:probe.artifact_hash,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'}));}catch(e){console.error('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:'BLOCKED',reason:e.message}));}
-  if(!scanControl.hold_new_scans)runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
-  (scanControl.hold_new_scans?Promise.resolve():runPendingSourceRelease().then(()=>runPendingCampaign(kv))).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+  normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0})));
 });
 
 async function runPendingSourceRelease(){
@@ -358,10 +359,19 @@ async function runPendingCampaign(connectedClient=null){
   }
 }
 
-// No per-request polling loop. Every bounded tick loads the trusted current source
-// package, so new product revisions can enter without a human triggering each run.
-if(process.env.MARKETING_AUTONOMOUS==='true'||scanControl.hold_new_scans){
-  let ticking=false;
-  const interval=Math.max(60000,Number(process.env.MARKETING_CYCLE_INTERVAL_MS)||300000);
-  setInterval(async()=>{if(ticking)return;ticking=true;try{await (await marketingEngine()).tick();}catch(e){console.error('Marketing scheduler blocked:',e.message);}finally{ticking=false;}},interval).unref();
+// Runtime wake-up and existing OIDC scheduler share the same signed intake graph.
+// Legacy pending-env launches remain available for diagnosis but never run here.
+let normalCyclePromise=null;
+async function normalCycle(){
+  if(normalCyclePromise)return normalCyclePromise;
+  normalCyclePromise=(async()=>{
+    const s=new RedisStore(await store());
+    let preparation;
+    try{preparation=await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});}
+    catch(error){preparation={status:'BLOCKED',blocker:error.message,external_actions:0};console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify(preparation));await s.put('autonomous_scan_latest_blocker:EMRADAR',{...preparation,at:new Date().toISOString()});}
+    const feedback=await (await marketingEngine()).tick({feedbackOnly:true});
+    return {preparation,feedback};
+  })().finally(()=>{normalCyclePromise=null;});
+  return normalCyclePromise;
 }
+setInterval(()=>normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0}))),Math.max(60000,Number(process.env.MARKETING_CYCLE_INTERVAL_MS)||300000)).unref();
