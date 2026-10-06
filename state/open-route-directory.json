@@ -492,6 +492,150 @@
       "editorial_lane": "MARITIME_LOGISTICS",
       "editorial_focus": "Separate tanker transit risk, marine insurance and delivered freight costs from crude export volume recovery.",
       "editorial_intent": "Prepare a maritime editorial inquiry asking whether a source-bound logistics analysis would help its commercial shipping audience."
+    },
+    {
+      "destination_id": "TRADEWINDS-EDITORIAL",
+      "destination_name": "TradeWinds",
+      "destination_class": "trade_publication",
+      "organisation": "TradeWinds",
+      "relevant_beat_topic": [
+        "tankers",
+        "marine insurance",
+        "shipping markets"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Marine insurance"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "julian.bray@tradewindsnews.com",
+      "public_submission_url": "https://www.tradewindsnews.com/author/j_bray",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.tradewindsnews.com/author/j_bray",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Safe tanker capacity and insurance risk distinguish recovered crude flows from delivered fuel availability.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful.",
+      "recipient_identity": {
+        "state": "VERIFIED",
+        "name": "Julian",
+        "address": "julian.bray@tradewindsnews.com",
+        "evidence_source_url": "https://www.tradewindsnews.com/author/j_bray",
+        "verified_at": "2026-10-07"
+      }
+    },
+    {
+      "destination_id": "OIL-GAS-JOURNAL-EDITORIAL",
+      "destination_name": "Oil & Gas Journal",
+      "destination_class": "trade_publication",
+      "organisation": "Oil & Gas Journal",
+      "relevant_beat_topic": [
+        "refining and processing",
+        "pipelines and transportation"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Refining",
+        "Storage and strategic reserves",
+        "Diesel and jet fuel"
+      ],
+      "access_method": "public contact form",
+      "public_contact_point": "UNKNOWN",
+      "public_submission_url": "https://www.ogj.com/contact-us",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.ogj.com/contact-us",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "REFINING_AND_STORAGE",
+      "editorial_focus": "Refinery damage, medium-sour processing constraints and depleted inventories interrupt the conversion of crude into usable fuel.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful."
+    },
+    {
+      "destination_id": "SHIP-ENERGY-EDITORIAL",
+      "destination_name": "ship.energy",
+      "destination_class": "trade_publication",
+      "organisation": "ship.energy",
+      "relevant_beat_topic": [
+        "marine fuels",
+        "bunker markets"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Diesel and jet fuel"
+      ],
+      "access_method": "public contact form",
+      "public_contact_point": "UNKNOWN",
+      "public_submission_url": "https://www.bunkerspot.com/contact/",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.bunkerspot.com/contact/",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Fuel availability and logistics constraints matter to marine fuel buyers even when crude export volumes recover.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful."
+    },
+    {
+      "destination_id": "RIVIERA-TANKER-EDITORIAL",
+      "destination_name": "Riviera Maritime Media / Tanker Shipping & Trade",
+      "destination_class": "trade_publication",
+      "organisation": "Riviera Maritime Media / Tanker Shipping & Trade",
+      "relevant_beat_topic": [
+        "tanker operations",
+        "maritime logistics"
+      ],
+      "geography": [
+        "global"
+      ],
+      "industries": [
+        "Oil shipping",
+        "Marine insurance"
+      ],
+      "access_method": "public editorial email",
+      "public_contact_point": "john.snyder@rivieramm.com",
+      "public_submission_url": "https://www.rivieramm.com/our-team",
+      "submission_requirements": "Destination-specific editorial inquiry; preview only. Acceptance and distribution permission UNKNOWN.",
+      "accepted_formats": [
+        "editorial_pitch"
+      ],
+      "account_required": false,
+      "cost": "UNKNOWN",
+      "evidence_source_url": "https://www.rivieramm.com/our-team",
+      "verified_at": "2026-10-07",
+      "verification_state": "VERIFIED",
+      "editorial_lane": "MARITIME_LOGISTICS",
+      "editorial_focus": "Longer routes and ship-to-ship transfers affect operational tanker availability separately from crude production.",
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful.",
+      "recipient_identity": {
+        "state": "VERIFIED",
+        "name": "John",
+        "address": "john.snyder@rivieramm.com",
+        "evidence_source_url": "https://www.rivieramm.com/our-team",
+        "verified_at": "2026-10-07"
+      }
     }
   ]
 }

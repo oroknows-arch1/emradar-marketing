@@ -15,11 +15,12 @@ import {formationFromSignal,openRouteScout,prepareRouteAssets} from '../../runti
 import {validateCorrespondenceProposition} from '../../runtime/editorial-email.js';
 import {correspondenceProbe} from '../../runtime/correspondence-probe.js';
 import {editorialContext} from '../../runtime/editorial-copy.js';
+import {calendarMonth} from '../../runtime/spending.js';
 const hash=v=>crypto.createHash('sha256').update(v).digest('hex');
-async function setup(transform){
+async function setup(transform,preview=false){
  const f=await fixture(),bytes=Buffer.from(JSON.stringify(scan));
- const attestation={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-'+scan.snapshot_date+'.json',source_sha256:hash(bytes),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(g=>[g,'PASS'])),campaign_authority:{campaign_id:'EMRADAR_2026_10_06_LAUNCH',required_stop:'PUBLICATION_REVIEW',external_publication_allowed:false}};
- const policy={...f.p,product_identity:'EMRADAR',destinations:[],uncertainty_state_model:['CONFIRMED','FORMING','INVESTIGATE','UNKNOWN'],source_release_authority:{automatic_after_native_gates:true,required_gates:['evidence','editorial','brand','risk','publication']},budget:{...editorialBudget,max_worker_calls:20}};
+ const attestation={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-'+scan.snapshot_date+'.json',source_sha256:hash(bytes),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(g=>[g,'PASS'])),campaign_authority:{campaign_id:preview?'EMRADAR_2026_10_06_LAUNCH':'EMRADAR_REGRESSION_LEGACY',required_stop:'PUBLICATION_REVIEW',external_publication_allowed:false}};
+ const policy={...f.p,product_identity:'EMRADAR',destinations:[],uncertainty_state_model:['CONFIRMED','FORMING','INVESTIGATE','UNKNOWN'],source_release_authority:{automatic_after_native_gates:true,required_gates:['evidence','editorial','brand','risk','publication']},budget:{...editorialBudget,max_worker_calls:20},provider_authority:{automatic_connected_approved_only:true},spending_envelope:{currency:'AUD',campaign_limit:5,calendar_month_limit:50}};
  const intake=new ProductIntake({store:f.store,policies:{EMRADAR:policy},sourceKeys:{EMRADAR:'REGRESSION_ONLY'}});
  let actions=0;const noSend=()=>{actions++;throw Error('EXTERNAL_ACTION_FORBIDDEN');};
  const outreach=editorialOutreachAdapter({senderIdentity:()=>({name:'Sean Walker',address:'oroknows@gmail.com',approved:true}),sendEmail:noSend});
@@ -131,7 +132,7 @@ test('OPTIONAL_ROUTE_ISOLATION_AND_EXISTING_VALID_ARTIFACT_PRESERVATION',async()
  assert(first.package.proposals.some(p=>p.destination==='REUTERS-BREAKINGVIEWS-GUEST'));const x=first.package.proposals.find(p=>p.destination==='EMRADAR-X-OROKNOWS');assert(x.asset.combined_review_artifact);assert.equal(x.distribution_cost_state,'UNKNOWN');
  for(const key of await f.store.keys('run:')){const run=await f.store.get(key);assert(!run.nodes.some(n=>n.node==='execute'));}
  const source=(await f.intake.products()).EMRADAR;await f.store.put('receipt_index',first.package.proposals.map(p=>({product:'EMRADAR',campaign_id:first.campaign_id,signal_id:first.package.formation.id,signal_revision:p.signal_revision,destination:p.destination,proposal_id:p.proposal_id,execution_status:'AWAITING_REVIEW'})));
- const key='autonomous_scan:'+scan.snapshot_date+':'+first.package.source_sha256,state=await f.store.get(key);await f.store.put(key,{...state,status:'BLOCKED',runtime_commit:'previous-runtime'});
+ const key='autonomous_scan:'+scan.snapshot_date+':'+first.package.source_sha256,state=await f.store.get(key);await f.store.put(key,{...state,status:'BLOCKED',runtime_commit:'previous-runtime'});await f.store.put('worker_cost:EMRADAR:'+new Date().toISOString().slice(0,10),{calls:0,reserved_aud:0});
  const callsBefore=(await f.store.keys('run:')).length,second=await autonomousScanCycle(f.args);assert.equal(second.status,'AWAITING_REVIEW');assert.deepEqual(second.package.proposals.map(p=>p.proposal_id),first.package.proposals.map(p=>p.proposal_id));assert.equal((await f.store.keys('run:')).length,callsBefore+2);assert.equal(f.actions(),0);
  assert.deepEqual((await f.store.get('review_package:'+first.campaign_id)).rejected_routes,second.package.rejected_routes);
 });
@@ -152,4 +153,29 @@ test('ALL_OPTIONAL_ROUTES_RECEIVE_STRICT_CURRENT_CAPABILITY_SCHEMA',async()=>{
  const context=editorialContext({signal,product,route:{id:route.destination_id,destination:{route_record:route}},route_plan:{proposed_assets:[{destination_id:route.destination_id}]}});
  assert(context.response_schema);assert.deepEqual(context.response_schema.properties.language.enum,['en']);assert.deepEqual(context.response_schema.properties.signal_state.enum,[signal.state]);assert(context.response_schema.required.includes('subject'));assert(context.response_schema.required.includes('body'));assert(context.response_schema.required.includes('correspondence'));
  assert.deepEqual(context.response_schema.properties.capability_claims.items.properties.text.enum,['I’m sharing the source-linked note below.']);assert(context.response_schema.properties.correspondence.properties.next_step.enum.includes(null));
+});
+
+
+test('OWNER_PREVIEW_ALL_CREDIBLE_DESTINATIONS_WITHOUT_COUNT_CEILING',async()=>{
+ const f=await setup(undefined,true),out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));
+ const external=out.package.proposals.filter(p=>p.platform!=='X'),plan=await f.store.get('route_plan:EMRADAR:'+out.package.formation.id+':'+external[0].signal_revision);
+ assert.equal(external.length,plan.candidates.filter(d=>d.destination_id!=='EMRADAR-X-OROKNOWS').length);assert(external.length>=7);assert.equal(new Set(external.map(p=>p.copy)).size,external.length);
+ for(const p of external){assert(p.asset.email.body.startsWith('Hello,')||p.asset.email.body.startsWith('Hi '));assert(p.asset.email.body.includes('Sean Walker'));assert.match(p.asset.email.body,/Would this analysis be useful for your readers\?/);assert(p.asset.email.body.endsWith('Sean Walker\nEMRADAR'));assert(p.evidence_refs.length);}
+ const x=out.package.proposals.find(p=>p.platform==='X');assert(x.asset.combined_review_artifact);assert(x.asset.base64);assert.equal(f.actions(),0);assert.equal(out.external_actions,0);
+ const second=await autonomousScanCycle(f.args);assert.deepEqual(second.package.proposals.map(p=>p.proposal_id),out.package.proposals.map(p=>p.proposal_id));
+});
+test('OWNER_PREVIEW_WARNING_RETAINS_EXACT_GENERATED_CONTENT_WITHOUT_DISTRIBUTION',async()=>{
+ const f=await setup((r,c)=>{if(c.destination.organisation==='Hydrocarbon Engineering')r.result.body+='\n\nWe will provide ongoing monitoring.';return r;},true);
+ const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));const p=out.package.proposals.find(p=>p.destination==='HYDROCARBON-ENGINEERING-EDITORIAL');assert(p.asset.email.body.includes('We will provide ongoing monitoring.'));assert.equal(p.review_state,'PREVIEW_WITH_WARNING');assert(p.preview_warnings.some(w=>w.reason==='UNVERIFIED_CAPABILITY_CLAIM'));assert(p.preview_only);
+ const engine=await f.args.engineFactory();await assert.rejects(engine.approvePublication({proposal_id:p.proposal_id,review_hash:p.review_hash}),/PREVIEW_WARNINGS/);assert.equal(f.actions(),0);
+});
+test('OWNER_AUTHORIZED_PREVIEW_USES_AUD_ENVELOPE_INSTEAD_OF_EXHAUSTED_WORKER_COUNT',async()=>{
+ const f=await setup(undefined,true);await f.store.put('worker_cost:EMRADAR:'+new Date().toISOString().slice(0,10),{calls:100,reserved_aud:8});const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));assert.equal(f.actions(),0);
+});
+
+test('OWNER_PREVIEW_STILL_ENFORCES_CAMPAIGN_AUD_5',async()=>{
+ const f=await setup(undefined,true),month=calendarMonth(),make=f.args.engineFactory;
+ await f.store.put('spend:'+month,{month,actual_aud:4.9,unresolved:{},campaigns:{EMRADAR_2026_10_06_LAUNCH:4.9},receipts:{},historical_billing:'RECONCILED'});
+ f.args.engineFactory=async()=>{const engine=await make();engine.harness.quote=async()=>({currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:.2,receipt_id:'TEST_ONLY_COST_QUOTE'});return engine;};
+ const out=await autonomousScanCycle(f.args);assert.equal(out.status,'BLOCKED');assert(out.package.blockers.some(b=>b.reason==='OWNER_EXCEPTION_CAMPAIGN_AUD_5'));assert.equal(f.actions(),0);
 });

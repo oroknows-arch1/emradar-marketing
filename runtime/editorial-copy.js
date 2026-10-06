@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {validateCapabilityInventory,validateCorrespondenceProposition,isEmail} from './editorial-email.js';
+import {ownerPreview,previewWarning} from './owner-preview.js';
 
 export const editorialContract=await fs.readFile(new URL('../contracts/editorial-copy-system-v1.md',import.meta.url),'utf8');
 export const correspondenceContract=await fs.readFile(new URL('../contracts/human-correspondence-v2.md',import.meta.url),'utf8');
@@ -31,6 +32,7 @@ export function editorialContext(c){
   if(!facts.length||facts.length!==(c.signal.source_facts||[]).length||facts.some(f=>!f.text||!f.url))throw new Error('SOURCE_FACT_BINDING_REQUIRED');
   return {
     editorial_contract:editorialContract,contract_revision:editorialVersion,
+    owner_preview:ownerPreview(c.input),
     ...{
       human_correspondence_contract:correspondenceContract,
       response_schema:editorialResponseSchema(c.signal,c.route.destination.route_record,c.route.destination.route_record.destination_class==='latam_trade_publication'?'es-CL':'en'),
@@ -76,6 +78,6 @@ export async function produceEditorial(context,work,record=async()=>{}){
     const request=correction?{...context,editorial_correction:{attempt,failed_gate:correction,instructions:'Write a new destination-specific result using the exact response_schema. Preserve all source facts and uncertainty. Remove unverified future/ongoing service promises; offer only the currently included note. Copy all correspondence excerpts exactly from body.'}}:context;
     const output=await work(request,attempt);
     try{validateEditorial(output.result,output.proof,context);await record({attempt,status:'PASS'});return output;}
-    catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID'].includes(error.message))throw error;correction=error.message;}
+    catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(context.owner_preview&&previewWarning(error.message)&&output.result?.subject?.trim()&&output.result?.body?.trim()){return {...output,preview_warnings:[{gate:'editorial_intelligence',reason:error.message}],preview_only:true};}if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID'].includes(error.message))throw error;correction=error.message;}
   }
 }

@@ -15,6 +15,7 @@ import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFrom
 import {editorialContext,validateEditorial,produceEditorial,externalSchemaLeak,editorialVersion} from './editorial-copy.js';
 import {humanReadyEmail,validateHumanEmail,reuseProposition,isEmail,emailVersion} from './editorial-email.js';
 import {beginCosts,finishCosts,costCall,costKey} from './campaign-costs.js';
+import {ownerPreview,previewWarning,previewCorrespondence} from './owner-preview.js';
 
 export const digest=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const graph=JSON.parse(await fs.readFile(new URL('../graph/marketing-graph-v1.json',import.meta.url),'utf8'));
@@ -60,6 +61,7 @@ export class GraphEngine {
     const proposal=await this.store.locked('engine',async()=>{
       const p=await this.store.get('publication_review:'+proposal_id);
       if(!p||['REJECTED','SUPERSEDED'].includes(p.status)||p.review_hash!==review_hash||Date.parse(p.expires_at)<=Date.now())fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
+      if(p.preview_only)fail('PREVIEW_WARNINGS_REQUIRE_VERIFIED_REVISION_BEFORE_DISTRIBUTION');
       if(isEmail(p.asset?.delivery)){
         if(!p.asset.email||!p.review_binding)fail('HUMAN_READY_EMAIL_REFRESH_REQUIRED');
         const computed=digest({product_truth:p.review_binding.product_truth,signal_revision:p.signal_revision,asset:p.asset,destination:p.review_binding.destination,source_receipt:p.source_receipt||null});
@@ -101,9 +103,9 @@ export class GraphEngine {
     if(!audAuthority&&(!b[approvalKey]||!Number.isFinite(b.max_worker_usd)||b.max_worker_usd<=0||!Number.isFinite(b.max_worker_daily_usd)||!Number.isSafeInteger(b.max_worker_calls)||b.max_worker_calls<1))fail('WORKER_COST_APPROVAL_REQUIRED');
     if(!this.harness.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
     const ledgerKey='worker_cost:'+c.input.product+':'+now().slice(0,10);const ledger=await this.store.get(ledgerKey)||{calls:0,reserved_usd:0};
-    if(ledger.calls+2>(audAuthority?Math.min(20,b.max_worker_calls>0?b.max_worker_calls:20):b.max_worker_calls)||(!audAuthority&&ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd))fail('WORKER_DAILY_BOUND');
+    if(!(audAuthority&&ownerPreview(c.input))&&(ledger.calls+2>(audAuthority?Math.min(20,b.max_worker_calls>0?b.max_worker_calls:20):b.max_worker_calls)||(!audAuthority&&ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd)))fail('WORKER_DAILY_BOUND');
     const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
-    if(audAuthority&&(costQuote.max_cost_aud>.25||(ledger.reserved_aud||0)+costQuote.max_cost_aud>5))fail('WORKER_DAILY_BOUND');
+    if(audAuthority&&!ownerPreview(c.input)&&(costQuote.max_cost_aud>.25||(ledger.reserved_aud||0)+costQuote.max_cost_aud>5))fail('WORKER_DAILY_BOUND');
     const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node+(productionAttempt>1?':correction:'+productionAttempt:''),run_id:c.run_id,category:node==='scout'?'research_search_api':'generation'});
     ledger.calls+=2;
     if(audAuthority){ledger.reserved_aud=(ledger.reserved_aud||0)+costQuote.max_cost_aud;c.worker_reserved_aud=(c.worker_reserved_aud||0)+costQuote.max_cost_aud;c.worker_reserved_usd='UNKNOWN';}
@@ -167,7 +169,7 @@ export class GraphEngine {
         const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
         const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:c.input.product,campaign:c.input.campaign_id,learning:c.state.version})};
         if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:'RUNNING'}));
-        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}
+        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){if(ownerPreview(c.input)&&c.route?.destination?.platform==='OPEN_ROUTE'&&c.editorial?.result?.body&&previewWarning(e.message)){c.preview_warnings||=[];c.preview_warnings.push({gate:id,reason:e.message});entry.status='PASS';entry.warning=e.message;}else{entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}}
         entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
         if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:entry.status,reason:entry.reason||null}));
         const edges=graph.edges.filter(e=>e.from===id);
@@ -220,7 +222,7 @@ const workers={
     const hold=await e.store.get('pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision);if(hold)fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     c.candidates=c.relevant;
     if(c.input.product==='EMRADAR')c.x_evaluation=await evaluateX({store:e.store,product:c.product,signal:c.signal,adapter:e.adapters.X,accountStatus:e.xAccountStatus,campaign_id:c.input.campaign_id});
-    if(c.reused_proposal&&!c.input.refresh_editorial){
+    if(c.reused_proposal&&!c.input.refresh_editorial&&!c.input.refresh_discovery){
       const p=c.reused_proposal,d=p.asset.delivery;
       if(!isEmail(d)||d.verification_state!=='VERIFIED'||d.destination_id!==p.destination)fail('REVISION_VERIFIED_EMAIL_ROUTE_REQUIRED');
       const valid_until=p.review_binding?.destination.permission.valid_until||p.expires_at;
@@ -285,11 +287,12 @@ const workers={
     const options=[];
     for(const d of c.candidates)for(const f of d.formats){const key=keyOf(c.input.product,c.signal.id,d.id,f);const l=c.state.routes[key];const health=c.state.platforms?.[c.input.product+':'+d.platform];const feedback=historicalRoutingInput(c.routing_memory,{destination:d.id,platform:d.platform,evidence_state:c.signal.state});options.push({id:d.id,destination:d,format:f,key,score:(d.relevance||0)+score(c.state,key)+feedback.adjustment,learned:score(c.state,key),historical_evidence:feedback,breaker:l?.failures>=3||health?.failures>=3,cooldown:Date.parse(l?.retry_at||0)>Date.now()||Date.parse(health?.retry_at||0)>Date.now()});}
     options.sort((a,b)=>Number(a.destination.open_access_prepare_only)-Number(b.destination.open_access_prepare_only)||b.score-a.score||a.id.localeCompare(b.id)||a.format.localeCompare(b.format));
-    const available=options.filter(o=>!o.breaker&&!o.cooldown);
+    const available=ownerPreview(c.input)?options:options.filter(o=>!o.breaker&&!o.cooldown);
     c.route=c.input.destination_id?available.find(o=>o.id===c.input.destination_id):(available.find(o=>o.destination.platform!=='X')||available[0]);
     if(c.input.destination_id&&!c.route)fail('REQUESTED_DESTINATION_NOT_AVAILABLE');
     c.selection={learning_version:c.state.version,options:options.map(({destination,...o})=>o),selected:c.route?.key||null};
     if(!c.route)fail('CIRCUIT_OPEN_OR_RATE_LIMITED');
+    if(ownerPreview(c.input)&&(c.route.breaker||c.route.cooldown))c.preview_warnings=[{gate:'route',reason:'DISTRIBUTION_CIRCUIT_OR_COOLDOWN_REQUIRES_RESOLUTION'}];
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
@@ -302,8 +305,9 @@ const workers={
       }
       const context=editorialContext(c),key='editorial_copy:'+digest(context);
       let editorial=await e.store.get(key);
-      if(!editorial){const work=await produceEditorial(context,(request,attempt)=>e.modelWork(c,'editorial_intelligence',request,'creation_approved',attempt),record=>e.store.put('editorial_attempt:'+c.run_id+':'+record.attempt,{...record,campaign_id:c.input.campaign_id,destination:c.route.id}));editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id};await e.store.put(key,editorial);}
-      c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];c.copy_method='editorial_copy_system_v1';c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};
+      if(!editorial){const work=await produceEditorial(context,(request,attempt)=>e.modelWork(c,'editorial_intelligence',request,'creation_approved',attempt),record=>e.store.put('editorial_attempt:'+c.run_id+':'+record.attempt,{...record,campaign_id:c.input.campaign_id,destination:c.route.id}));editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id,preview_warnings:work.preview_warnings||[]};await e.store.put(key,editorial);}
+      c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};c.preview_warnings=[...(c.preview_warnings||[]),...(editorial.preview_warnings||[])];
+      try{c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];}catch(error){if(!ownerPreview(c.input)||!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'editorial_intelligence',reason:error.message});c.allowed_copy=['Subject: '+editorial.result.subject+'\n\n'+editorial.result.body];}c.copy_method='editorial_copy_system_v1';
       c.copy=c.allowed_copy[0];return;
     }
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
@@ -347,12 +351,12 @@ const workers={
     c.allowed_copy=[localized.copy];c.copy=localized.copy;c.localization={language:'es-CL',source_hash:digest(source_copy),copy_hash:digest(c.copy),evidence_refs:[...localized.evidence_refs],status:'VERIFIED'};
   },
   async human_ready_email(c,e) {
-    const route=c.route?.destination?.route_record;if(!isEmail(route))return;
+    const route=c.route?.destination?.route_record;if(!isEmail(route)&&!(ownerPreview(c.input)&&c.route?.destination?.platform==='OPEN_ROUTE'))return;
     const identity=e.adapters.OPEN_ROUTE?.senderIdentity?.();
     const proposition=c.email_proposition||c.editorial?.result;
     if(!proposition)fail('EDITORIAL_TRANSFORMATION_REQUIRED');
     if(c.input.reviewed_proposal_id){c.email=structuredClone(c.reused_proposal.asset.email);return;}
-    c.email=humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product});
+    if(ownerPreview(c.input)){try{c.email=isEmail(route)&&!c.preview_warnings?.length?humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product}):previewCorrespondence(proposition,c.signal,route);}catch(error){if(!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'human_ready_email',reason:error.message});c.email=previewCorrespondence(proposition,c.signal,route);}}else c.email=humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product});
     c.copy='Subject: '+c.email.subject+'\n\n'+c.email.body;c.allowed_copy=[c.copy];
     c.localization={...c.localization,copy_hash:digest(c.copy),language:c.email.language};
   },
@@ -407,7 +411,7 @@ const workers={
   async publication_review(c,e) {
     if(c.route.destination.platform==='LOCAL')return;
     if(c.input.product==='EMRADAR'&&c.route.destination.platform==='X')validateCombinedX(c.asset,c.signal,c.product.source_receipt);
-    if(isEmail(c.route.destination.route_record)&&(!c.email||c.capability_claim_gate?.status!=='PASS'))fail('HUMAN_EMAIL_AND_CAPABILITY_GATE_REQUIRED');
+    if(!ownerPreview(c.input)&&isEmail(c.route.destination.route_record)&&(!c.email||c.capability_claim_gate?.status!=='PASS'))fail('HUMAN_EMAIL_AND_CAPABILITY_GATE_REQUIRED');
     const publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const destination_binding={id:c.route.destination.id,platform:c.route.destination.platform,format:c.route.format,permission:c.route.destination.permission,route_record:c.route.destination.route_record||null};
     const review_hash=digest({product_truth:c.truth_hash,signal_revision:c.signal.revision,asset:c.asset,destination:destination_binding,source_receipt:c.product.source_receipt||null});
@@ -421,6 +425,7 @@ const workers={
     }
     const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id,destination_id:c.route.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
     proposal.review_contract_revision='mandatory-x-human-agency-v1';
+    if(ownerPreview(c.input)){proposal.preview_warnings=[...new Map((c.preview_warnings||[]).map(w=>[w.gate+':'+w.reason,w])).values()];proposal.review_state=proposal.preview_warnings.length?'PREVIEW_WITH_WARNING':'READY';proposal.preview_only=proposal.preview_warnings.length>0||c.email?.preview_only===true;proposal.permission_state='EXACT_OWNER_REVIEW_REQUIRED';}
     if(c.route.destination.platform==='X'){proposal.content_review_state='READY';proposal.distribution_cost_state=c.adapter.cost;proposal.distribution_state=c.adapter.cost==='ZERO'?'EXACT_OWNER_REVIEW_REQUIRED':'BLOCKED_PENDING_COST_RESOLUTION';}
     proposal.review_binding={product_truth:c.truth_hash,destination:destination_binding};
     proposal.capability_claim_gate=c.capability_claim_gate||null;proposal.email_version=c.email?emailVersion:null;proposal.correspondence_features=c.email?.features||null;

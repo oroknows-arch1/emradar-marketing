@@ -81,14 +81,15 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const reuse=destination=>existingProposals.find(p=>p.destination===destination);
   const external=destination=>matching.find(r=>r.destination===destination&&executed.has(r.execution_status));
   const results=[];
-  const run=async destination=>{
+  const preview=state.campaign_id==='EMRADAR_2026_10_06_LAUNCH';
+  const run=async(destination,refreshDiscovery=false)=>{
     const saved=reuse(destination);
-    if(saved&&saved.review_contract_revision===reviewContractRevision&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
+    if(!refreshDiscovery&&saved&&saved.review_contract_revision===reviewContractRevision&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
     if(saved&&await store.get('publication_approval:'+saved.proposal_id))throw Error('APPROVED_REVIEW_ARTIFACT_CANNOT_AUTO_SUPERSEDE');
     const sent=external(destination);
     if(sent){state.routes[destination]={status:sent.execution_status,receipt_id:sent.id,reused:true};return;}
     const result=await engine.run({product:'EMRADAR',campaign_id:state.campaign_id,signal_id:state.signal_id,
-      ...(destination?{destination_id:destination}:{}),...(saved?{revision_proposal_id:saved.proposal_id,expected_review_hash:saved.review_hash,refresh_editorial:true}:{}),stop_at:'PUBLICATION_REVIEW'});
+      ...(destination?{destination_id:destination}:{}),...(preview?{owner_preview:true}:{}),...(refreshDiscovery?{refresh_discovery:true}:{}),...(saved?{revision_proposal_id:saved.proposal_id,expected_review_hash:saved.review_hash,refresh_editorial:!refreshDiscovery}:{}),stop_at:'PUBLICATION_REVIEW'});
     if(result.nodes?.some(n=>n.node==='execute'))throw new Error('AUTONOMOUS_REVIEW_STOP_VIOLATION');
     results.push(result);
     const route=result.review?.destination||destination||result.selection?.options?.find(o=>o.key===result.selection.selected)?.id||'UNSELECTED';
@@ -103,10 +104,11 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   // Reuse the graph's own persisted route decisions, never a second routing system.
   const planKey='route_plan:EMRADAR:'+state.signal_id+':'+state.signal_revision;
   let routePlan=await store.get(planKey);
-  if(!routePlan||runtimeChanged){first=await run('EMRADAR-X-OROKNOWS');routePlan=first?.route_plan||routePlan;}
+  if(!routePlan||runtimeChanged){first=await run('EMRADAR-X-OROKNOWS',preview&&runtimeChanged);routePlan=first?.route_plan||routePlan;}
   const selected=[...(routePlan?.candidates?.map(d=>d.destination_id)||[]),...(first?.selection?.options?.map(o=>o.id)||[])];
   const xEvaluation=await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision);
-  for(const destination of ['EMRADAR-X-OROKNOWS',...[...new Set(selected)].filter(id=>id!=='EMRADAR-X-OROKNOWS').slice(0,5)]){
+  const optional=[...new Set(selected)].filter(id=>id!=='EMRADAR-X-OROKNOWS');
+  for(const destination of ['EMRADAR-X-OROKNOWS',...(preview?optional:optional.slice(0,5))]){
     if(state.routes[destination]?.proposal_id||state.routes[destination]?.status==='OPTIONAL_REJECTED'||executed.has(state.routes[destination]?.status)||results.some(r=>r.review?.destination===destination||r.selection?.options?.find(o=>o.key===r.selection.selected)?.id===destination))continue;
     await run(destination);
   }
@@ -129,5 +131,8 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   await store.put('review_package:'+state.campaign_id,packageRecord);await store.put('review_package_latest:EMRADAR',packageRecord);await store.put(key,state);
   log('AUTONOMOUS_SCAN_REVIEW '+JSON.stringify({...packageRecord,proposals:proposals.map(p=>({proposal_id:p.proposal_id,destination:p.destination,status:p.status,artifact_hash:p.review_hash}))}));
   for(const p of proposals)log('AUTONOMOUS_REVIEW_ARTIFACT '+JSON.stringify({scan_date:scan.snapshot_date,campaign_id:state.campaign_id,proposal:p}));
+  // Small complete preview records avoid truncating human-readable content
+  // behind a large PNG. The canonical asset and its hashes stay in Redis.
+  for(const p of proposals)log('AUTONOMOUS_OWNER_PREVIEW '+JSON.stringify({campaign_id:state.campaign_id,destination:p.destination,proposal_id:p.proposal_id,subject:p.asset?.email?.subject||null,body:p.asset?.email?.body||p.copy,copy:p.platform==='X'?p.asset.copy:null,svg:p.platform==='X'?p.asset.svg:null,visual_sha256:p.asset?.sha256||null,route:p.asset?.delivery||null,evidence_state:p.signal_state,evidence_refs:p.evidence_refs,warnings:p.preview_warnings||[],review_state:p.review_state||'READY',permission_state:p.permission_state||'EXACT_OWNER_REVIEW_REQUIRED',cost_state:p.distribution_cost_state||p.cost_state,cost:p.cost,preview_only:p.preview_only||false}));
   return {status:packageRecord.status,handoff,campaign_id:state.campaign_id,package:packageRecord,external_actions:0};
 }

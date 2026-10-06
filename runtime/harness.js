@@ -20,6 +20,7 @@ export class HarnessBridge {
         const result=await this.execute({unit,decision,context,attempt});
         const proof=await this.verify({unit,decision,context,result});
         billings.push(proof?.billing);
+        if(context.owner_preview&&proof?.status!=='VERIFIED'&&proof?.input_hash===context.input_hash&&proof?.output_hash===hash(result)&&proof?.evidence_refs?.length)return {result,proof:{...proof,billing:aggregate()},decision,attempts:attempt,preview_warnings:[{gate:'worker_verification',reason:'HARNESS_OUTPUT_NOT_VERIFIED'}],preview_only:true};
         if(proof?.status!=='VERIFIED'||proof.input_hash!==context.input_hash||proof.output_hash!==hash(result)||!proof.evidence_refs?.length)throw new Error('HARNESS_OUTPUT_NOT_VERIFIED');
         return {result,proof:{...proof,billing:aggregate()},decision,attempts:attempt};
       }catch(e){const retry=e.safe_retry&&e.billing?.actual;if(billings.length<attempt)billings.push(e.billing||null);e.billing=aggregate();last=e;if(!retry)throw e;}

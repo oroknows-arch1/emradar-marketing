@@ -10,7 +10,7 @@ import {nativeXCopy} from '../../runtime/x-copy.js';
 
 const scan={snapshot_date:'2026-10-06',publication_state:'PUBLISHED',records:[{id:'strongest',status:'CONFIRMED',theme:'Current source',evidence:[{fact:'An operating asset exists.',url:'https://source.test'}],chain_evolution:{unresolved_evidence:['Output remains uncertain.']}}]};
 const bytes=Buffer.from(JSON.stringify(scan));
-const manifest={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-2026-10-06.json',source_sha256:crypto.createHash('sha256').update(bytes).digest('hex'),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(k=>[k,'PASS'])),campaign_authority:{campaign_id:'EMRADAR_2026_10_06_LAUNCH',external_publication_allowed:false,required_stop:'PUBLICATION_REVIEW'}};
+const manifest={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-2026-10-06.json',source_sha256:crypto.createHash('sha256').update(bytes).digest('hex'),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(k=>[k,'PASS'])),campaign_authority:{campaign_id:'EMRADAR_REGRESSION_LEGACY',external_publication_allowed:false,required_stop:'PUBLICATION_REVIEW'}};
 const fetcher=(attestation=manifest)=>async url=>({ok:true,arrayBuffer:async()=>url.includes('/verification/')?Buffer.from(JSON.stringify(attestation)):bytes});
 async function setup(){
   const f=await fixture(),policy={...f.p,product_identity:'EMRADAR',source_release_authority:{automatic_after_native_gates:true,required_gates:['evidence','editorial','brand','risk','publication']}};
