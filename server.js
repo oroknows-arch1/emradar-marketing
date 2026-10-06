@@ -256,7 +256,17 @@ const server=http.createServer(async(req,res)=>{
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
-        if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record||{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
+        if(u.searchParams.get('package')==='EMRADAR'){
+          const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');
+          if(record?.status==='BLOCKED'&&u.searchParams.get('worker_artifacts')==='true'){
+            record.worker_artifacts=[];
+            for(const run of (await s.get('campaign_cost_index:'+record.campaign_id)||[]).slice(-3)){
+              const cost=await s.get('campaign_cost:'+run);if(cost?.campaign_id!==record.campaign_id)continue;
+              record.worker_artifacts.push({run_id:run,cost,execution:await s.get('harness_stage:'+run+':editorial_intelligence:execute'),verification:await s.get('harness_stage:'+run+':editorial_intelligence:verify')});
+            }
+          }
+          return json(res,record?200:404,record||{reason:'REVIEW_PACKAGE_NOT_FOUND'});
+        }
         const id=u.searchParams.get('proposal_id');if(!id||!/^[a-f0-9]{64}$/.test(id))return json(res,400,{ok:false,reason:'PROPOSAL_ID_REQUIRED'});
         const proposal=await new RedisStore(await store()).get('publication_review:'+id);
         return json(res,proposal?200:404,proposal||{ok:false,reason:'PUBLICATION_REVIEW_NOT_FOUND'});
