@@ -1,10 +1,11 @@
 import crypto from 'node:crypto';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
-export const emailVersion='human-ready-email-v1';
+export const emailVersion='human-correspondence-v2';
+export const correspondentName='Sean Walker';
 const fail=s=>{throw new Error(s);};
 const isEmail=route=>/email/i.test(route?.access_method||'');
 export {isEmail};
-const claims=/(?:\b(?:EMRADAR|we|our|I)\b[^.!?\n]{0,100}\b(?:can|will|would|provide|monitor|follow|update|track|investigate|continu\w*|coverage|service)|\b(?:we propose|we would|we offer)\b|\b(?:EMRADAR|proponemos|ofrecemos|podemos|seguiremos|monitoreamos)\b[^.!?\n]{0,100}\b(?:seguir|mantendr\w*|ofrecer|proporcion\w*|cobertura|contin\w*|actualiz\w*|investig\w*))/iu;
+const claims=/(?:\b(?:EMRADAR|we|our|I)\b[^.!?\n]{0,100}\b(?:can|will|would|provide|monitor|follow|update|track|investigate|continu\w*)|\b(?:EMRADAR|we|our)\b[^.!?\n]{0,100}\b(?:coverage|service)\b|\b(?:we propose|we would|we offer)\b|\b(?:EMRADAR|proponemos|ofrecemos|podemos|seguiremos|monitoreamos)\b[^.!?\n]{0,100}\b(?:seguir|mantendr\w*|ofrecer|proporcion\w*|cobertura|contin\w*|actualiz\w*|investig\w*))/iu;
 const sentences=text=>text.split(/(?<=[.!?])\s+(?=[A-ZÁÉÍÓÚ¿])/u);
 export function removeUnverifiedOffers(text){return text.split(/\n\n+/).map(p=>sentences(p).filter(s=>!claims.test(s)).join(' ')).filter(Boolean).join('\n\n');}
 const angles={
@@ -55,7 +56,7 @@ export function reuseProposition(proposal,signal){
     const full=qualifications.filter(q=>/[.!?]$/.test(q.text)),fragments=qualifications.filter(q=>!/[.!?]$/.test(q.text));
     for(let i=0;i<fragments.length;i++)if(i>0)fragments[i].text=fragments[i].text[0].toLowerCase()+fragments[i].text.slice(1);
     const items=fragments.map(q=>q.text),pending=items.length?items.slice(0,-1).join(', ')+(items.length>1?', and ':'')+items.at(-1)+' remain unconfirmed.':'';
-    const facts=signal.source_facts,chosen=proposal.format==='financial_guest_view_pitch'?facts.slice(0,1):facts;
+    const facts=signal.source_facts,chosen=facts.slice(0,1);
     body=chosen.map(f=>f.text).join(' ')+'\n\n'+full.map(q=>q.text).join(' ')+(pending?' '+pending:'');
   }
   if(language==='es-CL'){
@@ -70,30 +71,71 @@ export function reuseProposition(proposal,signal){
   return {subject,body:body.trim(),language,signal_state:signal.state,evidence_refs:[...signal.evidence],qualifications,provenance:{method:'native_gated_source_and_existing_unsent_proposition',proposal_id:proposal.proposal_id,source_revision:signal.revision}};
 }
 
+// One bounded graph responsibility: render a source-qualified proposition into
+// the exact review artifact. It never fetches sources, dispatches models or sends.
+export function recipientGreeting(route,language){
+  const recipient=route.recipient_identity;
+  const verified=recipient?.state==='VERIFIED'&&recipient.address===route.public_contact_point&&recipient.evidence_source_url===route.evidence_source_url&&route.verification_state==='VERIFIED'&&recipient.verified_at===route.verified_at;
+  if(verified&&recipient.name&&/^[\p{L} .'-]{1,60}$/u.test(recipient.name))return {text:language==='es-CL'?`Hola ${recipient.name},`:`Hi ${recipient.name},`,type:'verified_named',name:recipient.name};
+  return {text:language==='es-CL'?'Hola,':'Hello,',type:'neutral',name:null};
+}
 export function humanReadyEmail({proposition,signal,route,identity,product}){
   if(!isEmail(route))return null;
   if(product!=='EMRADAR')fail('EMAIL_PRODUCT_PROFILE_REQUIRED');
-  if(!identity?.approved||!identity.name||!identity.address||/[\r\n]/.test(identity.name+identity.address))fail('APPROVED_EMAIL_SENDER_REQUIRED');
+  if(!identity?.approved||identity.name!==correspondentName||identity.address!=='oroknows@gmail.com')fail('APPROVED_EMAIL_SENDER_REQUIRED');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(route.public_contact_point||''))fail('EDITORIAL_EMAIL_CONTACT_INVALID');
   if(proposition.signal_state!==signal.state||hash(proposition.evidence_refs)!==hash(signal.evidence))fail('EMAIL_SOURCE_BINDING_REQUIRED');
-  const es=proposition.language==='es-CL';
-  let angle=angles[route.accepted_formats[0]]?.[es?1:0];if(!angle)fail('EMAIL_DESTINATION_ANGLE_REQUIRED');
-  const publication=route.organisation||route.destination_name;if(!publication||/[\r\n]/.test(publication))fail('EMAIL_DESTINATION_BINDING_REQUIRED');
-  angle=angle.replace(/Breakingviews|International Mining|Australian Mining Review|REDIMIN/,publication);
-  const context=es?'Le escribo desde EMRADAR, que conecta cambios documentados con sus consecuencias para las industrias y los mercados.':'I’m writing from EMRADAR, which connects documented developments with their implications for industries and markets.';
-  const clean=removeUnverifiedOffers(proposition.body);
+  if(!['en','es-CL'].includes(proposition.language))fail('EMAIL_LANGUAGE_PROFILE_REQUIRED');
+  const es=proposition.language==='es-CL',publication=route.organisation||route.destination_name;
+  if(!publication||/[\r\n]/.test(publication))fail('EMAIL_DESTINATION_BINDING_REQUIRED');
+  const greeting=recipientGreeting(route,proposition.language);
+  const introductions=es?[
+    'Soy Sean Walker y trabajo en EMRADAR, donde seguimos cambios en la economía real y sus efectos en las industrias.',
+    'Me llamo Sean Walker. Trabajo en EMRADAR conectando cambios en la economía real con sus efectos en las industrias y los mercados.',
+    'Soy Sean Walker, de EMRADAR. Nuestro trabajo conecta cambios en la economía real con sus consecuencias para las industrias.'
+  ]:[
+    "I'm Sean Walker, working on EMRADAR, where we look at changes in the real economy and what they mean for industries.",
+    "My name is Sean Walker. I work on EMRADAR, connecting changes in the real economy with their effects on industries and markets.",
+    "I'm Sean Walker. At EMRADAR we look at how changes in the real economy connect with industries and markets."
+  ];
+  const introIndex=parseInt(hash([signal.revision,proposition.subject,route.destination_id]).slice(0,8),16)%introductions.length;
+  const context=route.accepted_formats.includes('financial_guest_view_pitch')?(es?'Soy Sean Walker, de EMRADAR.':"I'm Sean Walker, working on EMRADAR."):introductions[introIndex];
+  let clean=removeUnverifiedOffers(proposition.body);
   if(!clean.trim())fail('EMAIL_EDITORIAL_PROPOSITION_REQUIRED');
   if(!(signal.source_uncertainty||[]).every((_,i)=>proposition.qualifications?.some(q=>q.source_index===i&&clean.includes(q.text))))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
-  const compact=route.accepted_formats.includes('financial_guest_view_pitch');
+  let reason,angle,question;
+  if(proposition.correspondence){
+    validateCorrespondenceProposition(proposition,route);
+    ({reason,insight:angle,question}=proposition.correspondence);
+  }else if(proposition.provenance?.method==='native_gated_source_and_existing_unsent_proposition'){
+    // Historical unsent regression/revision only. No campaign-specific facts are
+    // invented: retain bound facts/uncertainty and frame the verified route beat.
+    const beat=route.relevant_beat_topic?.slice(0,2).join(es?' y ':' and ');
+    angle=angles[route.accepted_formats[0]]?.[es?1:0]?.replace(/Breakingviews|International Mining|Australian Mining Review|REDIMIN/,publication);
+    if(!beat||!angle)fail('EMAIL_DESTINATION_ANGLE_REQUIRED');
+    reason=es?`Les escribo porque ${publication} cubre ${beat}.`:`I'm contacting ${publication} because you cover ${beat}.`;
+    const contribution=es?`El enfoque que propongo es este: ${angle}`:`The angle I'd suggest is this: ${angle}`;
+    question=es?`¿Les serviría esta nota para evaluar una posible contribución a ${publication}?`:`Would this note be useful when considering a contribution to ${publication}?`;
+    clean=[reason,clean,contribution,question].join('\n\n');
+  }else fail('HUMAN_PROPOSITION_QUALITIES_REQUIRED');
   const refs=(signal.source_facts||[]).filter(f=>signal.evidence.includes(f.id));
-  const sourceText=(compact?refs.slice(0,1):refs).map(f=>f.url).join('\n');
-  if(!sourceText)fail('EMAIL_SOURCE_LINK_REQUIRED');
-  const intro=context+' '+angle;
-  const offer=compact?'':es?'Comparto a continuación una nota basada en las fuentes indicadas; las cifras previstas y los resultados efectivos se mantienen separados.':'I’m sharing a note drawn from the sources below, keeping expected outcomes separate from results already delivered.';
-  const body=[es?'Hola,':'Hello,',intro,offer,clean,(es?'Fuentes: ':'Source'+(compact?'': 's')+': ')+sourceText,es?'¿Les interesaría este enfoque para su cobertura editorial?':'Would this sourced note interest your editors?',(es?'Saludos,':'Regards,')+'\n'+identity.name].filter(Boolean).join('\n\n');
-  const email={version:emailVersion,to:route.public_contact_point,from:{name:identity.name,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,visual:'NONE'};
-  validateHumanEmail(email,signal,route,identity);
-  return email;
+  const sourceText=refs.slice(0,1).map(f=>f.url).join('');if(!sourceText)fail('EMAIL_SOURCE_LINK_REQUIRED');
+  const body=[greeting.text,context,clean,(es?'Fuente de apoyo: ':'Supporting source: ')+sourceText,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
+  const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:route.accepted_formats.includes('financial_guest_view_pitch')?'compact':introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'destination_specific_editorial_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
+  const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE'};
+  validateHumanEmail(email,signal,route,identity);return email;
+}
+export function validateCorrespondenceProposition(proposition,route){
+  const parts=proposition.correspondence;
+  for(const key of ['reason','development','insight','proposition','question'])if(!parts?.[key]?.trim()||!proposition.body.includes(parts[key]))fail('HUMAN_PROPOSITION_QUALITIES_REQUIRED');
+  const name=route.organisation||route.destination_name;
+  if(!parts.reason.includes(name)||!/[?？]/u.test(parts.question))fail('HUMAN_DESTINATION_REASON_OR_QUESTION_REQUIRED');
+  if(proposition.body.trim().split(/\s+/u).length>180||/(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|(?:I'm|I’m) writing from EMRADAR|Le escribo desde EMRADAR|relevant to your audience/imu.test(proposition.body)||/https?:\/\//i.test(proposition.body))fail('HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE');
+  // Only the presently included, verified note can be offered. Future capability
+  // expansion must pass the existing independently verified capability inventory.
+  if(parts.next_step&&!['I’m sharing the source-linked note below.','Comparto la nota basada en fuentes a continuación.'].includes(parts.next_step))fail('UNVERIFIED_CAPABILITY_CLAIM');
+  if(parts.next_step&&!proposition.body.includes(parts.next_step))fail('UNVERIFIED_CAPABILITY_CLAIM');
+  if(parts.next_step&&!proposition.capability_claims?.some(c=>c.text===parts.next_step&&c.capability==='source_linked_note'))fail('UNVERIFIED_CAPABILITY_CLAIM');
 }
 export function validateCapabilityInventory(result,proof){
   if(proof?.editorial_checks?.capability_inventory!=='PASS'||!Array.isArray(result?.capability_claims))fail('CAPABILITY_INVENTORY_VERIFICATION_REQUIRED');
@@ -110,9 +152,13 @@ export function validateCapabilityInventory(result,proof){
 }
 export function validateHumanEmail(email,signal,route,identity){
   if(!email?.subject?.trim()||/[\r\n]/.test(email.subject)||!email.body?.trim()||email.to!==route.public_contact_point||hash(email.from)!==hash({name:identity.name,address:identity.address})||email.version!==emailVersion)fail('HUMAN_READY_EMAIL_REQUIRED');
-  if(!email.body.startsWith(email.language==='es-CL'?'Hola,':'Hello,')||!email.body.endsWith('\n'+identity.name))fail('EMAIL_CORRESPONDENCE_REQUIRED');
+  const greeting=recipientGreeting(route,email.language);
+  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!email.body.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
+  if(email.proposition.correspondence)validateCorrespondenceProposition(email.proposition,route);
+  if(email.features?.version!==emailVersion||email.features.greeting_type!==greeting.type||email.features.email_length_words!==email.body.trim().split(/\s+/).length)fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
   if(/(?:^|\n)Subject:/.test(email.body)||claims.test(email.body))fail('UNVERIFIED_CAPABILITY_CLAIM');
   if(!(signal.source_uncertainty||[]).every((_,i)=>email.proposition.qualifications?.some(q=>q.source_index===i&&email.body.includes(q.text))))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
+  if(email.features.source_revision!==signal.revision||email.features.named_recipient!==(greeting.name!==null)||email.features.localisation!==email.language||email.features.causal_effect!=='UNKNOWN'||!['destination_specific_reason','angle','question'].every(k=>email.features[k]&&email.body.includes(email.features[k])))fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
   const limit=route.submission_requirements?.match(/(\d+) words or less/i);
   if(limit&&email.body.trim().split(/\s+/).length>Number(limit[1]))fail('EDITORIAL_DESTINATION_LENGTH_EXCEEDED');
   return {status:'PASS',version:emailVersion,claims:[{capability:'current_evidence_mapping',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence]}},{capability:'source_linked_note',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence],artifact_hash:hash({subject:email.subject,body:email.body})}}],excluded_capabilities:[{capability:'ongoing_monitoring_or_continuous_coverage',state:'UNVERIFIED',authorized:false,reason:'No current campaign-scoped production proof; no ongoing service promised.'}]};

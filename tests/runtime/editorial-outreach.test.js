@@ -13,7 +13,7 @@ async function editorialFixture(){
   f.p.signals[0]={id:'sierra-gorda-fourth-grinding-line',revision:'r1',state:'FORMING',evidence:['E1'],source_title:'Sierra Gorda copper expansion',location:'Antofagasta Region, Chile',new_to_radar:true,source_facts:[{id:'E1',text:'Construction of a fourth grinding line has started.',url:'https://example.test/evidence'}],source_uncertainty:['Forecast output is not realised output.'],causal_chain:{industries:['Copper mining','Grinding equipment','Mine construction']}};
   let sends=0;
   const outreach=editorialOutreachAdapter({
-    senderIdentity:()=>({name:'EMRADAR',address:'sender@example.test',approved:true}),
+    senderIdentity:()=>({name:'Sean Walker',address:'oroknows@gmail.com',approved:true}),
     routeSupported:route=>route.destination_id==='REDIMIN-EDITORIAL',
     sendEmail:async request=>{sends++;return {id:'mail-1',status:'DELIVERED',receipt:{idempotency_key:request.idempotency_key}};},
     collectOutcome:async()=>({source:'mailbox_followup',metrics:{response_received:1,publication_confirmed:0}})

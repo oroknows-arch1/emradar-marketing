@@ -1,0 +1,126 @@
+{
+  "id": "sierra-gorda-fourth-grinding-line",
+  "theme": "Sierra Gorda has begun a US$725 million brownfield copper expansion",
+  "status": "FORMING",
+  "new_to_radar": true,
+  "location": "Antofagasta Region, Chile",
+  "why_surfaced": "A ceremonial construction start on 2 October adds physical execution to a previously approved project, while owner disclosures quantify capex, capacity and output effects.",
+  "causal_chain": {
+    "world_change": [
+      "A producing Chilean copper-molybdenum mine has begun a major brownfield processing expansion."
+    ],
+    "pressure": [
+      "Electrification and grid buildout increase long-run copper demand while new mine supply remains slow and capital intensive."
+    ],
+    "bottleneck_or_scarcity": [
+      "Ore-processing capacity, project delivery, water and power availability."
+    ],
+    "formation": [
+      "KGHM and South32 approved and started a fourth grinding line expected to lift processing capacity about 25-26% and copper-equivalent production about 30% from FY31."
+    ],
+    "industries": [
+      "Copper mining",
+      "Molybdenum",
+      "Grinding equipment",
+      "Mine construction",
+      "Grid and electrification materials"
+    ],
+    "connected_companies_and_tickers": [
+      "KGHM Polska Miedź (WSE:KGH)",
+      "South32 (ASX/LSE/JSE:S32)"
+    ],
+    "consequences": [
+      "Higher mine throughput from existing infrastructure",
+      "Potential demand for mining equipment and contractors",
+      "Execution exposure through FY30"
+    ],
+    "evidence": [
+      "KGHM construction-launch release",
+      "South32 final investment approval and FY26 results",
+      "Chile mining ministry ceremony record"
+    ]
+  },
+  "chain_evolution": {
+    "previous_scan_state": null,
+    "current_scan_state": "FORMING",
+    "what_changed": "New stable formation ID in the blank 5 October scan; it was absent from the 3 October reading layer.",
+    "why_state_changed": "Final investment approval, owner funding, quantified capacity gains and a physical construction start establish a coherent mechanism, while delivery is not yet complete.",
+    "strengthening_evidence": [
+      "KGHM announced the construction launch on 2 October.",
+      "South32 confirms execution approval, capex timing and expected output effects."
+    ],
+    "weakening_evidence": [],
+    "break_conditions": [
+      "Project cancellation or material deferral",
+      "Capex escalation destroys expected returns",
+      "Water, power or permitting constrains the new line"
+    ],
+    "actual_breaks": [],
+    "unresolved_evidence": [
+      "Construction milestones",
+      "Final cost",
+      "Commissioning and ramp",
+      "Realised copper-equivalent output"
+    ],
+    "new_links": [
+      "The July investment decision is now linked to an October construction start."
+    ],
+    "removed_links": []
+  },
+  "listed_players": [
+    {
+      "name": "KGHM Polska Miedź",
+      "ticker": "KGH",
+      "exchange": "WSE",
+      "role": "55% joint-venture owner and project sponsor"
+    },
+    {
+      "name": "South32",
+      "ticker": "S32",
+      "exchange": "ASX / LSE / JSE",
+      "role": "45% joint-venture owner and project sponsor"
+    }
+  ],
+  "valuation": null,
+  "valuation_research": "The project is disclosed at roughly US$21,000 per tonne of incremental copper-equivalent capacity using FY25 realised prices. A current security-level valuation and entry range were not established in this scan; future work should separate Sierra Gorda value from each owner's broader commodity portfolio and capital-allocation changes.",
+  "evidence": [
+    {
+      "fact": "KGHM says construction of the fourth grinding line has started and values the project at about US$725 million.",
+      "source": "KGHM Polska Miedź",
+      "url": "https://media.kghm.com/en/news-and-press-releases/kghm-polska-miedz-s-a-is-launching-an-expansion-of-the-sierra-gorda-mine-worth-usd-725-million",
+      "date": "2026-10-02",
+      "language": "English"
+    },
+    {
+      "fact": "South32 says the joint venture approved execution, expects about US$725 million of capex over FY27-FY30 and about 30% higher copper-equivalent production from FY31.",
+      "source": "South32 market announcement",
+      "url": "https://www.investegate.info/announcement/rns/south32-limited-di---s32/financial-results-outlook-year-ended-30-06-2026/9742139",
+      "date": "2026-08-27",
+      "language": "English"
+    },
+    {
+      "fact": "Chile's mining ministry records the cornerstone ceremony, a 26% capacity increase and works beginning in early 2027.",
+      "source": "Ministry of Mining, Chile",
+      "url": "https://www.minmineria.gob.cl/?noticia=biministro-daniel-mas-tenemos-buenos-augurios-para-la-produccion-minera-del-proximo-ano",
+      "date": "2026-10-01",
+      "language": "Spanish",
+      "english_summary": "The ministry describes the fourth-line ceremony, US$725 million investment, expected 26% capacity increase, employment and mine-life context."
+    }
+  ],
+  "contradictions": [
+    "The ceremonial start precedes the main works scheduled for early 2027.",
+    "Expected output is forecast rather than realised, and returns remain exposed to copper and molybdenum prices."
+  ],
+  "missing_evidence": [
+    "Detailed construction schedule",
+    "Major equipment and contractor awards",
+    "Updated reserve and cost sensitivities",
+    "Commissioning evidence"
+  ],
+  "what_to_check_next": [
+    "FY27 capex and procurement",
+    "Main works commencement",
+    "Water and power performance",
+    "Cost and schedule variance"
+  ]
+}

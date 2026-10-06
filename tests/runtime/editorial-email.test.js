@@ -8,7 +8,7 @@ import {humanReadyEmail,reuseProposition,validateHumanEmail,validateCapabilityIn
 import {reviewedMail} from '../../runtime/editorial-outreach-gmail.js';
 import directory from '../../state/open-route-directory.json' with {type:'json'};
 
-const identity={name:'EMRADAR',address:'oroknows@gmail.com',approved:true};
+const identity={name:'Sean Walker',address:'oroknows@gmail.com',approved:true};
 const route=id=>directory.destinations.find(d=>d.destination_id===id);
 const signal={id:'copper-project',revision:'r1',state:'FORMING',evidence:['E1'],source_title:'Copper project expansion',source_facts:[{id:'E1',text:'The operator announced a copper processing expansion.',url:'https://example.test/source'}],source_uncertainty:['Forecast output is not realised output.','Final cost','Commissioning and ramp'],causal_chain:{industries:['Copper mining','Grinding equipment','Mine construction']}};
 async function legacy(id='INTERNATIONAL-MINING-EDITORIAL'){
@@ -29,7 +29,7 @@ test('bounded revision refreshes only same unsent route, preserves source and co
  const p=await f.store.get('publication_review:'+result.proposal_id);
  assert.notEqual(p.proposal_id,f.p.proposal_id);assert.deepEqual(p.evidence_refs,signal.evidence);assert.equal(p.signal_state,'FORMING');assert.equal(p.cost_state,'ZERO');assert.equal(result.cost_receipt.total,0);assert.deepEqual(f.product,truth);
  assert.equal(p.capability_claim_gate.status,'PASS');assert.equal(p.asset.email.visual,'NONE');assert.equal(p.asset.delivery.public_contact_point,f.p.asset.delivery.public_contact_point);
- assert(p.asset.email.body.startsWith('Hello,'));assert(p.asset.email.body.endsWith('Regards,\nEMRADAR'));assert.match(p.asset.email.body,/Forecast output is not realised output/);assert.doesNotMatch(p.asset.email.body,/continuing account|can provide/);
+ assert(p.asset.email.body.startsWith('Hi Paul,'));assert(p.asset.email.body.endsWith('Regards,\nSean Walker\nEMRADAR'));assert.match(p.asset.email.body,/Forecast output is not realised output/);assert.doesNotMatch(p.asset.email.body,/continuing account|can provide/);
  assert.equal(f.delivered.length,0);assert.equal((await f.store.get('publication_review:'+f.p.proposal_id)).status,'SUPERSEDED');
  await assert.rejects(f.engine.approvePublication(f.p),/EXPIRED_OR_CHANGED/);
  const repeat=await f.engine.revisePublication(f.p);assert.equal(repeat.proposal_id,p.proposal_id);assert.equal(f.delivered.length,0);
@@ -76,6 +76,6 @@ test('verified Spanish proposition remains Spanish, unverified promise is remove
  const copy='Subject: Propuesta editorial: una expansión minera\n\nEl operador anunció una expansión minera. La ceremonia antecede a las obras principales previstas para comienzos de 2027. EMRADAR mantendría una cobertura continua del proyecto.';
  const p={signal_revision:s.revision,signal_state:s.state,evidence_refs:s.evidence,copy,format:'latam_editor_pitch',proposal_id:'old',asset:{copy,delivery:route('REDIMIN-EDITORIAL'),localization:{language:'es-CL',status:'VERIFIED',copy_hash:digest(copy)}}};
  const proposition=reuseProposition(p,s),email=humanReadyEmail({proposition,signal:s,route:p.asset.delivery,identity,product:'EMRADAR'});
- assert(email.body.startsWith('Hola,'));assert(email.body.endsWith('Saludos,\nEMRADAR'));assert.match(email.body,/comienzos de 2027/);assert.match(email.body,/costo final/);assert.match(email.body,/puesta en marcha/);assert.doesNotMatch(email.body,/cobertura continua/);assert.equal(validateHumanEmail(email,s,p.asset.delivery,identity).status,'PASS');
+ assert(email.body.startsWith('Hola,'));assert(email.body.endsWith('Saludos,\nSean Walker\nEMRADAR'));assert.match(email.body,/comienzos de 2027/);assert.match(email.body,/costo final/);assert.match(email.body,/puesta en marcha/);assert.doesNotMatch(email.body,/cobertura continua/);assert.equal(validateHumanEmail(email,s,p.asset.delivery,identity).status,'PASS');
  p.asset.localization.copy_hash='changed';assert.throws(()=>reuseProposition(p,s),/LOCALIZATION_NOT_VERIFIED/);
 });

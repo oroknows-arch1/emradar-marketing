@@ -101,7 +101,15 @@
       "cost": "ZERO",
       "evidence_source_url": "https://im-mining.com/site/wp-content/uploads/2025/08/2025-IM-Mediapack.pdf",
       "verified_at": "2026-10-05",
-      "verification_state": "VERIFIED"
+      "verification_state": "VERIFIED",
+      "recipient_identity": {
+        "name": "Paul",
+        "full_name": "Paul Moore",
+        "address": "paul@im-mining.com",
+        "state": "VERIFIED",
+        "evidence_source_url": "https://im-mining.com/site/wp-content/uploads/2025/08/2025-IM-Mediapack.pdf",
+        "verified_at": "2026-10-05"
+      }
     },
     {
       "destination_id": "GLOBAL-MINING-REVIEW-EDITORIAL",

@@ -13,7 +13,9 @@ export const editorialHarness=()=>({
   work:async(_unit,context)=>{
     const facts=context.source.source_facts,uncertainty=context.source.source_uncertainty||[];
     const subject=context.target_language==='es-CL'?'Propuesta editorial':'Editorial proposal';
-    const body=[context.destination.destination_class,...facts.map(f=>f.text),...uncertainty].join('. ');
-    return {result:{subject,body,language:context.target_language,signal_state:context.source.state,evidence_refs:context.source.evidence,claims:facts.map(f=>({text:f.text,evidence_refs:[f.id]})),qualifications:uncertainty.map((text,source_index)=>({text,source_index})),capability_claims:[]},proof:{billing:{currency:'AUD',actual:true,amount:0,receipt_id:'test-editorial-billing',provider:'TEST'},evidence_refs:context.source.evidence,editorial_checks:{factual_entailment:'PASS',uncertainty_preserved:'PASS',destination_fit:'PASS',originality:'PASS',capability_inventory:'PASS'}},decision:{lane:'model'},attempts:1};
+    const es=context.target_language==='es-CL',name=context.destination.organisation;
+    const correspondence={reason:es?`Les escribo por la cobertura minera de ${name}.`:`I'm contacting ${name} about your mining coverage.`,development:facts.map(f=>f.text).join(' '),insight:es?'La pregunta es cómo se ejecutará la expansión.':'What stands out is how the expansion will be delivered.',proposition:es?'Propongo una nota sobre esa ejecución.':'I suggest a note about that execution.',question:es?'¿Les serviría esta nota?':'Would this note be useful?'};
+    const body=[...Object.values(correspondence),...uncertainty].join('\n\n');
+    return {result:{subject,body,correspondence,language:context.target_language,signal_state:context.source.state,evidence_refs:context.source.evidence,claims:facts.map(f=>({text:f.text,evidence_refs:[f.id]})),qualifications:uncertainty.map((text,source_index)=>({text,source_index})),capability_claims:[]},proof:{billing:{currency:'AUD',actual:true,amount:0,receipt_id:'test-editorial-billing',provider:'TEST'},evidence_refs:context.source.evidence,editorial_checks:{factual_entailment:'PASS',uncertainty_preserved:'PASS',destination_fit:'PASS',originality:'PASS',capability_inventory:'PASS',human_correspondence:'PASS'}},decision:{lane:'model'},attempts:1};
   }
 });

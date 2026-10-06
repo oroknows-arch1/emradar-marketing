@@ -10,7 +10,7 @@ import {HarnessBridge} from '../../runtime/harness.js';
 async function setup(){
   const f=await fixture();f.p.product_identity='EMRADAR';f.p.destinations=[];f.p.budget=editorialBudget;
   f.p.signals=[{id:'another-copper-project',revision:'r1',state:'FORMING',source_snapshot:'2026-10-05',evidence:['E1'],source_title:'A new copper project',location:'Chile',source_facts:[{id:'E1',text:'The operator announced a processing expansion.',url:'https://example.test/source'}],source_uncertainty:['Commissioning has not been confirmed.'],causal_chain:{industries:['Copper mining','Mine construction','Grinding equipment']}}];
-  f.engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{OPEN_ROUTE:editorialOutreachAdapter({senderIdentity:()=>({name:'EMRADAR',address:'sender@example.test',approved:true}),sendEmail:async()=>{throw new Error('TEST_MUST_NOT_SEND');}})},harness:editorialHarness()});
+  f.engine=new GraphEngine({store:f.store,products:{EMRADAR:f.p},adapters:{OPEN_ROUTE:editorialOutreachAdapter({senderIdentity:()=>({name:'Sean Walker',address:'oroknows@gmail.com',approved:true}),sendEmail:async()=>{throw new Error('TEST_MUST_NOT_SEND');}})},harness:editorialHarness()});
   f.input={product:'EMRADAR',campaign_id:'EDITORIAL_COSTS',signal_id:f.p.signals[0].id,destination_id:'INTERNATIONAL-MINING-EDITORIAL',stop_at:'PUBLICATION_REVIEW'};return f;
 }
 

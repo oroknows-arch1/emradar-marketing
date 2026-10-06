@@ -836,14 +836,16 @@
     },
     {
       "id": "human_ready_email",
-      "worker": "human_ready_email",
+      "worker": "human_correspondence_worker",
       "inputs": [
-        "evidence_qualified_proposition",
-        "verified_destination",
-        "approved_sender"
+        "evidence_qualified_destination_proposition",
+        "verified_sender_identity",
+        "verified_route_identity",
+        "source_uncertainties"
       ],
       "outputs": [
-        "exact_email"
+        "exact_human_correspondence",
+        "review_bound_communication_features"
       ],
       "authority": "bounded_transformation",
       "failure_state": "BLOCKED",
@@ -852,7 +854,8 @@
         "receipt"
       ],
       "max_attempts": 1,
-      "execution_lane": "deterministic"
+      "execution_lane": "deterministic",
+      "contract_version": "human-correspondence-v2"
     },
     {
       "id": "capability_claim_gate",

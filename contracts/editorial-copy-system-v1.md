@@ -84,3 +84,14 @@ Email routes add a complete, destination-specific correspondence layer after ver
 Every model-generated service claim must be inventoried by a separate verifier. A planned service is not a production capability. The current approved capability is the included source-linked note, not ongoing monitoring, investigation, updates or continuous coverage. Unknown or unimplemented promises block before review. An unknown Spanish source qualification blocks reuse rather than receiving an invented translation.
 
 Approval binds the complete email and source/route context. Gmail sends its stored subject and body unchanged. Approved replay validates the artifact without rewriting, relocalizing or inserting greetings/signatures. An authenticated revision operation accepts only an existing unapproved, unsent proposal/hash, traverses the same bounded graph with a mandatory review stop and retains a supersession link. The previous artifact cannot authorize delivery. No visual is required for these text-only routes.
+
+## Editorial email correspondence
+
+Evidence supports a conversation led by Sean Walker. For email destinations the
+evidence-qualified proposition must also satisfy `human-correspondence-v2.md`: a
+concrete recipient reason, plain-language development, causal insight, useful
+proposition and natural question. An independent communication-quality check is
+required in addition to factual, uncertainty, destination and capability checks.
+The bounded `human_ready_email` graph worker adds identity, greeting, supporting
+source and sign-off before exact publication review. Do not promise a finished
+article or future service without production capability evidence.
