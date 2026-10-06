@@ -12,7 +12,7 @@ import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
 import {organicWorkers,discoveryTestId} from './organic-discovery.js';
 import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
 import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFromSignal} from './open-route-scout.js';
-import {editorialContext,validateEditorial,externalSchemaLeak,editorialVersion} from './editorial-copy.js';
+import {editorialContext,validateEditorial,produceEditorial,externalSchemaLeak,editorialVersion} from './editorial-copy.js';
 import {humanReadyEmail,validateHumanEmail,reuseProposition,isEmail,emailVersion} from './editorial-email.js';
 import {beginCosts,finishCosts,costCall,costKey} from './campaign-costs.js';
 
@@ -94,7 +94,7 @@ export class GraphEngine {
       return {proposal_id,status:'REJECTED',reason,external_actions:0};
     });
   }
-  async modelWork(c,node,context,approvalKey) {
+  async modelWork(c,node,context,approvalKey,productionAttempt=1) {
     if(!this.harness)fail('HARNESS_DISPATCH_NOT_CONNECTED');
     const b=c.product.budget||{};
     const audAuthority=c.input.product==='EMRADAR'&&approvalKey==='creation_approved'&&c.product.provider_authority?.automatic_connected_approved_only===true&&c.product.spending_envelope?.currency==='AUD'&&c.product.spending_envelope.campaign_limit===5&&c.product.spending_envelope.calendar_month_limit===50;
@@ -104,7 +104,7 @@ export class GraphEngine {
     if(ledger.calls+2>(audAuthority?Math.min(20,b.max_worker_calls>0?b.max_worker_calls:20):b.max_worker_calls)||(!audAuthority&&ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd))fail('WORKER_DAILY_BOUND');
     const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
     if(audAuthority&&(costQuote.max_cost_aud>.25||(ledger.reserved_aud||0)+costQuote.max_cost_aud>5))fail('WORKER_DAILY_BOUND');
-    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node,run_id:c.run_id,category:node==='scout'?'research_search_api':'generation'});
+    const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node+(productionAttempt>1?':correction:'+productionAttempt:''),run_id:c.run_id,category:node==='scout'?'research_search_api':'generation'});
     ledger.calls+=2;
     if(audAuthority){ledger.reserved_aud=(ledger.reserved_aud||0)+costQuote.max_cost_aud;c.worker_reserved_aud=(c.worker_reserved_aud||0)+costQuote.max_cost_aud;c.worker_reserved_usd='UNKNOWN';}
     else{ledger.reserved_usd+=b.max_worker_usd*2;c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;}
@@ -302,7 +302,7 @@ const workers={
       }
       const context=editorialContext(c),key='editorial_copy:'+digest(context);
       let editorial=await e.store.get(key);
-      if(!editorial){const work=await e.modelWork(c,'editorial_intelligence',context,'creation_approved');validateEditorial(work.result,work.proof,context);editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id};await e.store.put(key,editorial);}
+      if(!editorial){const work=await produceEditorial(context,(request,attempt)=>e.modelWork(c,'editorial_intelligence',request,'creation_approved',attempt),record=>e.store.put('editorial_attempt:'+c.run_id+':'+record.attempt,{...record,campaign_id:c.input.campaign_id,destination:c.route.id}));editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id};await e.store.put(key,editorial);}
       c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];c.copy_method='editorial_copy_system_v1';c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};
       c.copy=c.allowed_copy[0];return;
     }
@@ -532,4 +532,3 @@ const workers={
   },
   async distribution_map(c,e) {if(c.product&&digest(c.product)!==c.truth_hash)fail('LEARNING_CANNOT_CHANGE_PRODUCT_TRUTH');await e.store.put('learning',c.state);},
 };
-

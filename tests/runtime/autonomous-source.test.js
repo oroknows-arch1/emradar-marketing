@@ -5,6 +5,8 @@ import {FileStore} from '../../runtime/store.js';
 import {ProductIntake} from '../../runtime/intake.js';
 import {autonomousScanCycle,publishedSource,intakeHeld,reviewContractRevision} from '../../runtime/autonomous-source.js';
 import {fixture} from './fixture.js';
+import {evidenceVisual} from '../../runtime/x-visual.js';
+import {nativeXCopy} from '../../runtime/x-copy.js';
 
 const scan={snapshot_date:'2026-10-06',publication_state:'PUBLISHED',records:[{id:'strongest',status:'CONFIRMED',theme:'Current source',evidence:[{fact:'An operating asset exists.',url:'https://source.test'}],chain_evolution:{unresolved_evidence:['Output remains uncertain.']}}]};
 const bytes=Buffer.from(JSON.stringify(scan));
@@ -17,7 +19,7 @@ async function setup(){
   const engineFactory=async()=>({products:await intake.products(),run:async input=>{
     calls++;assert.equal(input.stop_at,'PUBLICATION_REVIEW');assert.equal(input.signal_id,'strongest');
     const products=await intake.products();const signal=products.EMRADAR.signals[0],destination=input.destination_id||'TEST_EXTERNAL',id=destination==='EMRADAR-X-OROKNOWS'?'x-test-proposal':'test-proposal';
-    await f.store.put('publication_review:'+id,{proposal_id:id,review_hash:'exact-hash',signal_revision:signal.revision,source_receipt:products.EMRADAR.source_receipt,destination,review_contract_revision:reviewContractRevision,expires_at:'2099-01-01',asset:destination==='EMRADAR-X-OROKNOWS'?{copy:'Bound test copy',base64:'TEST_ONLY',sha256:'TEST_HASH',combined_review_artifact:true}:null,status:'AWAITING_REVIEW',cost_receipt_id:'test-run',input});
+    await f.store.put('publication_review:'+id,{proposal_id:id,review_hash:'exact-hash',signal_revision:signal.revision,source_receipt:products.EMRADAR.source_receipt,destination,review_contract_revision:reviewContractRevision,expires_at:'2099-01-01',asset:destination==='EMRADAR-X-OROKNOWS'?{...await evidenceVisual(signal,products.EMRADAR.source_receipt),copy:nativeXCopy(signal).copy,combined_review_artifact:true}:null,status:'AWAITING_REVIEW',cost_receipt_id:'test-run',input});
     return {status:'AWAITING_REVIEW',review:{proposal_id:id,destination},nodes:[{node:'publication_review'}],selection:{selected:destination,options:[{id:'TEST_EXTERNAL',key:'TEST_EXTERNAL'},{id:'EMRADAR-X-OROKNOWS',key:'EMRADAR-X-OROKNOWS'}]},route_plan:{candidates:[{destination_id:'TEST_EXTERNAL'}]}};
   }});
   return {...f,args:{intake,store:f.store,engineFactory,sourceKeys:{EMRADAR:'TEST_SIGNING_KEY'},fetcher:fetcher(),env:{RENDER_GIT_COMMIT:'test-runtime'},log:()=>{}},calls:()=>calls};

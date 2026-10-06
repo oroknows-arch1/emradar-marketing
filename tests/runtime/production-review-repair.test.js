@@ -14,8 +14,9 @@ import {evidenceVisual,validateCombinedX} from '../../runtime/x-visual.js';
 import {formationFromSignal,openRouteScout,prepareRouteAssets} from '../../runtime/open-route-scout.js';
 import {validateCorrespondenceProposition} from '../../runtime/editorial-email.js';
 import {correspondenceProbe} from '../../runtime/correspondence-probe.js';
+import {editorialContext} from '../../runtime/editorial-copy.js';
 const hash=v=>crypto.createHash('sha256').update(v).digest('hex');
-async function setup(){
+async function setup(transform){
  const f=await fixture(),bytes=Buffer.from(JSON.stringify(scan));
  const attestation={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-'+scan.snapshot_date+'.json',source_sha256:hash(bytes),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(g=>[g,'PASS'])),campaign_authority:{campaign_id:'EMRADAR_2026_10_06_LAUNCH',required_stop:'PUBLICATION_REVIEW',external_publication_allowed:false}};
  const policy={...f.p,product_identity:'EMRADAR',destinations:[],uncertainty_state_model:['CONFIRMED','FORMING','INVESTIGATE','UNKNOWN'],source_release_authority:{automatic_after_native_gates:true,required_gates:['evidence','editorial','brand','risk','publication']},budget:{...editorialBudget,max_worker_calls:20}};
@@ -39,7 +40,7 @@ async function setup(){
     const concise=['Crude recovery could ease upstream tightness.','Executives have scarcity incentives.','War risk changes rapidly; disabled tracking obscures movements.'];
     for(let i=0;i<3;i++){r.result.body=r.result.body.replace(r.result.qualifications[i].text,concise[i]);r.result.qualifications[i].text=concise[i];}
    }
-   return r;
+   return transform?transform(r,context):r;
  };
  const engineFactory=async()=>new GraphEngine({store:f.store,products:await intake.products(),adapters:{OPEN_ROUTE:outreach,X:xAdapter({publish:noSend,authorized:async()=>true,fetchMetrics:noSend})},harness});
  const args={intake,store:f.store,engineFactory,sourceKeys:{EMRADAR:'REGRESSION_ONLY'},env:{RENDER_GIT_COMMIT:'repair-test'},fetcher:async url=>({ok:true,arrayBuffer:async()=>url.includes('/verification/')?Buffer.from(JSON.stringify(attestation)):bytes}),log:()=>{}};
@@ -108,4 +109,47 @@ test('PRODUCTION_SHAPED_PATH_STOPS_AT_PUBLICATION_REVIEW',async()=>{
  await f.store.put('receipt_index',first.package.proposals.map(p=>({product:'EMRADAR',campaign_id:first.campaign_id,signal_id:first.package.formation.id,signal_revision:p.signal_revision,destination:p.destination,proposal_id:p.destination===legacy.destination?legacy.proposal_id:p.proposal_id,execution_status:'AWAITING_REVIEW'})));
  await f.store.put(key,{...state,review_contract_revision:'old',routes:{},status:'AWAITING_REVIEW'});
  const resumed=await autonomousScanCycle(f.args);assert.equal(resumed.campaign_id,first.campaign_id);assert.equal(resumed.status,'AWAITING_REVIEW');assert.equal(resumed.package.review_contract_revision,reviewContractRevision);assert.equal(f.actions(),0);const superseded=await f.store.get('publication_review:'+legacy.proposal_id);assert.equal(superseded.status,'SUPERSEDED');assert(resumed.package.proposals.some(p=>p.replaces_proposal_id===legacy.proposal_id));
+});
+
+
+test('UNVERIFIED_CAPABILITY_PRODUCER_ROBUSTNESS',async()=>{
+ let hydroCalls=0;const f=await setup((r,c)=>{if(c.destination.organisation==='Hydrocarbon Engineering'&&++hydroCalls===1){r.result.body+='\n\nWe will provide ongoing monitoring.';}return r;});
+ const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));assert.equal(hydroCalls,2);
+ const hydro=out.package.proposals.find(p=>p.destination==='HYDROCARBON-ENGINEERING-EDITORIAL');assert(hydro);assert(!hydro.copy.includes('ongoing monitoring'));
+ const attempts=await f.store.keys('editorial_attempt:');const records=await Promise.all(attempts.map(k=>f.store.get(k)));assert(records.some(r=>r.reason==='UNVERIFIED_CAPABILITY_CLAIM'));assert.equal(f.actions(),0);
+});
+test('MARINELINK_STRUCTURED_RESULT_ROBUSTNESS',async()=>{
+ for(const [field,value] of [['subject',''],['body',''],['signal_state','UNKNOWN'],['language','es-CL']]){
+  let calls=0;const f=await setup((r,c)=>{if(c.destination.organisation==='MarineLink'&&++calls===1)r.result[field]=value;return r;});
+  const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));assert.equal(calls,2);const marine=out.package.proposals.find(p=>p.destination==='MARINELINK-EDITORIAL-INQUIRY');assert(marine);assert.match(marine.copy,/Tanker risk/);assert.equal(f.actions(),0);
+ }
+});
+test('OPTIONAL_ROUTE_ISOLATION_AND_EXISTING_VALID_ARTIFACT_PRESERVATION',async()=>{
+ const f=await setup((r,c)=>{if(c.destination.organisation==='Hydrocarbon Engineering')r.result.body+='\n\nWe will provide ongoing monitoring.';if(c.destination.organisation==='MarineLink')r.result.language='invalid';return r;});
+ const first=await autonomousScanCycle(f.args);assert.equal(first.status,'AWAITING_REVIEW');assert.deepEqual(first.package.blockers,[]);assert.equal(first.package.required_stop,'PUBLICATION_REVIEW');assert.equal(first.external_actions,0);assert.equal(f.actions(),0);
+ assert.deepEqual(first.package.rejected_routes.map(r=>r.reason).sort(),['EDITORIAL_RESULT_INVALID','UNVERIFIED_CAPABILITY_CLAIM']);assert(first.package.rejected_routes.every(r=>r.terminal&&r.run_id));
+ assert(first.package.proposals.some(p=>p.destination==='REUTERS-BREAKINGVIEWS-GUEST'));const x=first.package.proposals.find(p=>p.destination==='EMRADAR-X-OROKNOWS');assert(x.asset.combined_review_artifact);assert.equal(x.distribution_cost_state,'UNKNOWN');
+ for(const key of await f.store.keys('run:')){const run=await f.store.get(key);assert(!run.nodes.some(n=>n.node==='execute'));}
+ const source=(await f.intake.products()).EMRADAR;await f.store.put('receipt_index',first.package.proposals.map(p=>({product:'EMRADAR',campaign_id:first.campaign_id,signal_id:first.package.formation.id,signal_revision:p.signal_revision,destination:p.destination,proposal_id:p.proposal_id,execution_status:'AWAITING_REVIEW'})));
+ const key='autonomous_scan:'+scan.snapshot_date+':'+first.package.source_sha256,state=await f.store.get(key);await f.store.put(key,{...state,status:'BLOCKED',runtime_commit:'previous-runtime'});
+ const callsBefore=(await f.store.keys('run:')).length,second=await autonomousScanCycle(f.args);assert.equal(second.status,'AWAITING_REVIEW');assert.deepEqual(second.package.proposals.map(p=>p.proposal_id),first.package.proposals.map(p=>p.proposal_id));assert.equal((await f.store.keys('run:')).length,callsBefore+2);assert.equal(f.actions(),0);
+ assert.deepEqual((await f.store.get('review_package:'+first.campaign_id)).rejected_routes,second.package.rejected_routes);
+});
+test('MANDATORY_X_INVALID_ARTIFACT_REMAINS_CAMPAIGN_BLOCKER',async()=>{
+ for(const field of ['copy','base64','combined_review_artifact']){
+  const f=await setup(),first=await autonomousScanCycle(f.args),x=first.package.proposals.find(p=>p.destination==='EMRADAR-X-OROKNOWS');delete x.asset[field];await f.store.put('publication_review:'+x.proposal_id,x);
+  const key='autonomous_scan:'+scan.snapshot_date+':'+first.package.source_sha256,state=await f.store.get(key);await f.store.put(key,{...state,status:'BLOCKED',runtime_commit:'old'});
+  const out=await autonomousScanCycle(f.args);assert.equal(out.status,'BLOCKED');assert(out.package.blockers.some(b=>b.reason==='MANDATORY_X_COPY_AND_VISUAL_REVIEW_REQUIRED'));assert.equal(f.actions(),0);
+ }
+});
+test('SYSTEMIC_OPTIONAL_WORKER_FAILURE_IS_NOT_HIDDEN_AS_REJECTION',async()=>{
+ const f=await setup((r,c)=>{if(c.destination.organisation==='MarineLink'){const e=Error('HARNESS_STAGE_AMBIGUOUS_REQUIRES_RECONCILIATION');e.billing=r.proof.billing;throw e;}return r;});
+ const out=await autonomousScanCycle(f.args);assert.equal(out.status,'BLOCKED');assert(out.package.blockers.some(b=>b.reason==='HARNESS_STAGE_AMBIGUOUS_REQUIRES_RECONCILIATION'));assert(!out.package.rejected_routes.some(r=>r.destination==='MARINELINK-EDITORIAL-INQUIRY'));assert.equal(f.actions(),0);
+});
+
+test('ALL_OPTIONAL_ROUTES_RECEIVE_STRICT_CURRENT_CAPABILITY_SCHEMA',async()=>{
+ const f=await setup();await autonomousScanCycle(f.args);const product=(await f.intake.products()).EMRADAR,signal=product.signals[0],route=directory.destinations.find(d=>d.destination_id==='MARINELINK-EDITORIAL-INQUIRY');
+ const context=editorialContext({signal,product,route:{id:route.destination_id,destination:{route_record:route}},route_plan:{proposed_assets:[{destination_id:route.destination_id}]}});
+ assert(context.response_schema);assert.deepEqual(context.response_schema.properties.language.enum,['en']);assert.deepEqual(context.response_schema.properties.signal_state.enum,[signal.state]);assert(context.response_schema.required.includes('subject'));assert(context.response_schema.required.includes('body'));assert(context.response_schema.required.includes('correspondence'));
+ assert.deepEqual(context.response_schema.properties.capability_claims.items.properties.text.enum,['I’m sharing the source-linked note below.']);assert(context.response_schema.properties.correspondence.properties.next_step.enum.includes(null));
 });
