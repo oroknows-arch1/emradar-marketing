@@ -48,3 +48,10 @@ test('interrupted preparation resumes and never repeats completed artifacts',asy
   await assert.rejects(autonomousScanCycle(f.args),/TEMPORARY_FAILURE/);
   const result=await autonomousScanCycle(f.args);assert.equal(result.status,'AWAITING_REVIEW');assert.equal(f.calls(),1);
 });
+test('runtime repair refreshes blocked route decisions without changing campaign or source identity',async()=>{
+  const f=await setup();await autonomousScanCycle(f.args);
+  const key='autonomous_scan:'+scan.snapshot_date+':'+manifest.source_sha256,state=await f.store.get(key);
+  await f.store.put(key,{...state,status:'BLOCKED',runtime_commit:'old-runtime',attempts:3,next_due:new Date(Date.now()+300000).toISOString(),routes:{UNSELECTED:{status:'BLOCKED',blocker:'OLD_ROUTE_BLOCKER'}}});
+  const result=await autonomousScanCycle(f.args);
+  assert.equal(result.status,'AWAITING_REVIEW');assert.equal(result.campaign_id,state.campaign_id);assert.equal(result.handoff.status,'DUPLICATE_INPUT');assert.equal(f.calls(),2);assert.deepEqual(result.package.blockers,[]);
+});

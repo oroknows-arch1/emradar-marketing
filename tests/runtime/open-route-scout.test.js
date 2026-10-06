@@ -2,6 +2,12 @@ import {editorialOutreachAdapter} from '../../runtime/adapters.js';
 import test from 'node:test';import assert from 'node:assert/strict';import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets} from '../../runtime/open-route-scout.js';import directory from '../../state/open-route-directory.json' with {type:'json'};
 const formation={id:'sierra-gorda-fourth-grinding-line',theme:'Sierra Gorda has begun a US$725 million brownfield copper expansion',status:'FORMING',new_to_radar:true,location:'Antofagasta Region, Chile',why_surfaced:'Physical execution added to an approved project.',causal_chain:{industries:['Copper mining','Molybdenum','Grinding equipment','Mine construction','Grid and electrification materials']},evidence:[{fact:'KGHM says construction of the fourth grinding line has started and values the project at about US$725 million.',url:'https://media.kghm.com/example'}],contradictions:['Expected output is forecast rather than realised.'],missing_evidence:['Detailed construction schedule']};
 test('Sierra Gorda discovers multiple verified formation-specific routes',()=>{const r=openRouteScout({formation,directory});assert.ok(r.candidates.length>=4);assert.ok(r.candidates.some(x=>x.destination_id==='MINING-WEEKLY-TIP'));assert.ok(r.candidates.every(x=>x.evidence_source_url));});
+test('energy logistics retains the verified global financial GuestViews route',()=>{
+  const energy={...formation,id:'global-energy-logistics-refining-bottleneck',status:'CONFIRMED',causal_chain:{industries:['Oil shipping','Refining','Diesel and jet fuel','Storage and strategic reserves']}};
+  const r=openRouteScout({formation:energy,directory});
+  assert.ok(r.candidates.some(d=>d.destination_id==='REUTERS-BREAKINGVIEWS-GUEST'));
+  assert.ok(!r.candidates.some(d=>d.destination_id==='MINING-WEEKLY-TIP'));
+});
 test('assets differ by destination class and require editorial transformation',()=>{const r=openRouteScout({formation,directory});const a=prepareRouteAssets({formation,candidates:r.candidates});assert.ok(new Set(a.map(x=>x.format)).size>1);assert.ok(a.every(x=>x.state==='INTERNAL_BRIEF_REQUIRES_EDITORIAL_TRANSFORMATION'));});
 test('commercial hypotheses remain hypotheses and preserve formation state',()=>{const c=commercialEvidenceBranch(formation);assert.equal(c.does_not_modify_formation_state,true);assert.ok(c.hypotheses.every(h=>h.result==='UNKNOWN'&&h.unknowns.includes('willingness_to_pay')));});
 

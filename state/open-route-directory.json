@@ -164,7 +164,11 @@
       "industries": [
         "Copper mining",
         "Mine construction",
-        "Grid and electrification materials"
+        "Grid and electrification materials",
+        "Oil shipping",
+        "Refining",
+        "Diesel and jet fuel",
+        "Storage and strategic reserves"
       ],
       "access_method": "public guest-view pitch email",
       "public_contact_point": "breakingviews.guest@thomsonreuters.com",
@@ -176,8 +180,9 @@
       "account_required": false,
       "cost": "ZERO",
       "evidence_source_url": "https://www.breakingviews.com/about-us/press-contacts/",
-      "verified_at": "2026-10-05",
-      "verification_state": "VERIFIED"
+      "verified_at": "2026-10-06",
+      "verification_state": "VERIFIED",
+      "scope_basis": "Official Guest Views route accepts fresh arguments for its global financial audience. Energy freight, refining and inventory financing are financial-market consequences; the previous mining-only tags were campaign-specific, not a submission restriction."
     },
     {
       "destination_id": "INVESTING-COM-AU-CONTRIBUTOR",

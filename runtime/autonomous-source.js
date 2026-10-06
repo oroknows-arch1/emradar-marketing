@@ -62,10 +62,11 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
     await store.put(key,state);
   }
   if(state.status==='AWAITING_REVIEW')return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:await store.get('review_package:'+state.campaign_id),external_actions:0};
-  if(state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
+  if(state.runtime_commit===(env.RENDER_GIT_COMMIT||'UNKNOWN')&&state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
   const runtime=env.RENDER_GIT_COMMIT||'UNKNOWN';
   // Bounded failures retry after a runtime repair, or at most three times per runtime.
-  if(state.runtime_commit!==runtime){state.attempts=0;state.runtime_commit=runtime;}
+  const runtimeChanged=state.runtime_commit!==runtime;
+  if(runtimeChanged){state.attempts=0;state.runtime_commit=runtime;state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>r.proposal_id||executed.has(r.status)));}
   if(state.attempts>=3)return {status:'BLOCKED',blocker:state.blocker,handoff,campaign_id:state.campaign_id,external_actions:0};
   state.attempts++;state.status='PREPARING';await store.put(key,state);
   const existingProposals=[];
@@ -92,7 +93,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   // Reuse the graph's own persisted route decisions, never a second routing system.
   const planKey='route_plan:EMRADAR:'+state.signal_id+':'+state.signal_revision;
   let routePlan=await store.get(planKey);
-  if(!routePlan){first=await run();routePlan=first?.route_plan;}
+  if(!routePlan||(runtimeChanged&&!existingProposals.length)){first=await run();routePlan=first?.route_plan;}
   const selected=first?.selection?.options?.map(o=>o.id)||routePlan?.candidates?.map(d=>d.destination_id)||[];
   for(const destination of [...new Set(selected)].slice(0,5)){
     if(state.routes[destination]?.proposal_id||executed.has(state.routes[destination]?.status)||results.some(r=>r.review?.destination===destination))continue;
@@ -103,7 +104,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const blockers=Object.entries(state.routes).filter(([,r])=>!r.proposal_id&&!executed.has(r.status)).map(([destination,r])=>({destination,reason:r.blocker||r.status}));
   const packageRecord={scan_date:scan.snapshot_date,source_sha256,source_receipt:product.source_receipt,campaign_id:state.campaign_id,
     formation:{id:state.signal_id,state:state.evidence_state},status:blockers.length?'BLOCKED':'AWAITING_REVIEW',proposals,blockers,
-    external_actions:0,required_stop:'PUBLICATION_REVIEW',runtime_commit:runtime,updated_at:at(),handoff};
+    external_actions:0,required_stop:'PUBLICATION_REVIEW',runtime_commit:runtime,updated_at:at(),handoff,capabilities:{editorial_harness_connected:!!engine.harness},x_evaluation:await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision)};
   if(!proposals.length&&!blockers.length){packageRecord.status='BLOCKED';blockers.push({reason:'NO_ELIGIBLE_REVIEW_ARTIFACT'});}
   state.status=packageRecord.status;state.blocker=blockers[0]?.reason||null;state.next_due=new Date(Date.now()+300000).toISOString();
   await store.put('review_package:'+state.campaign_id,packageRecord);await store.put('review_package_latest:EMRADAR',packageRecord);await store.put(key,state);
