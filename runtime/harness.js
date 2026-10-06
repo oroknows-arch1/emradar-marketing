@@ -1,6 +1,7 @@
 import {pathToFileURL} from 'node:url';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import {billingDetail} from './campaign-costs.js';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 
 // This bridge calls the canonical Harness router/registry, not a competing router.
@@ -13,7 +14,7 @@ export class HarnessBridge {
     if(decision.contractVersion!=='elastic-routing-v0.1'||decision.workUnitId!==unit.workUnitId||decision.humanApprovalRequired||decision.lane==='human-gate')throw new Error('HARNESS_REQUIRED_APPROVAL_OR_CAPABILITY');
     const ceiling=Math.min(2,Math.max(1,decision.attemptCeiling));
     let last;const billings=[];
-    const aggregate=()=>billings.every(b=>b?.actual===true&&b.currency==='AUD'&&Number.isFinite(b.amount)&&b.amount>=0&&b.receipt_id)?{actual:true,currency:'AUD',amount:billings.reduce((n,b)=>n+b.amount,0),receipt_id:hash(billings),provider:billings[0]?.provider,service:'verified_marketing_work',calls:billings}:{actual:false,currency:'AUD',calls:billings};
+    const aggregate=()=>{const d=billingDetail({calls:billings});return {actual:d.state==='ACTUAL'||d.state==='ZERO',currency:'AUD',amount:d.amount_aud,receipt_id:hash(billings),provider:billings[0]?.provider||'openai',service:'verified_marketing_work',calls:billings};};
     for(let attempt=1;attempt<=ceiling;attempt++){
       try{
         const result=await this.execute({unit,decision,context,attempt});

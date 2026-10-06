@@ -95,8 +95,10 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   let routePlan=await store.get(planKey);
   if(!routePlan||(runtimeChanged&&!existingProposals.length)){first=await run();routePlan=first?.route_plan;}
   const selected=first?.selection?.options?.map(o=>o.id)||routePlan?.candidates?.map(d=>d.destination_id)||[];
+  const xEvaluation=await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision);
   for(const destination of [...new Set(selected)].slice(0,5)){
-    if(state.routes[destination]?.proposal_id||executed.has(state.routes[destination]?.status)||results.some(r=>r.review?.destination===destination))continue;
+    if(destination==='EMRADAR-X-OROKNOWS'&&xEvaluation?.state!=='X_SELECTED')continue;
+    if(state.routes[destination]?.proposal_id||executed.has(state.routes[destination]?.status)||results.some(r=>r.review?.destination===destination||r.selection?.options?.find(o=>o.key===r.selection.selected)?.id===destination))continue;
     await run(destination);
   }
   const proposals=[];

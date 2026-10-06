@@ -23,12 +23,19 @@ export async function costCall(store,run_id,call){
 
 export function billingDetail(billing){
   const detail={provider:billing?.provider||'UNKNOWN',service:billing?.service||billing?.model||'UNKNOWN',model:billing?.model||'UNKNOWN',request_id:billing?.request_id||'UNKNOWN',receipt_id:billing?.receipt_id||'UNKNOWN',usage:billing?.usage||'UNKNOWN',currency:billing?.currency||'UNKNOWN',provider_reported_amount:valid(billing?.amount)?billing.amount:'UNKNOWN',calls:billing?.calls?.map(billingDetail)||[]};
+  if(detail.calls.length){
+    const known=detail.calls.every(c=>valid(c.amount_aud)&&['ZERO','ACTUAL','CALCULATED'].includes(c.state));
+    if(known)return {...detail,currency:'AUD',amount_aud:detail.calls.reduce((n,c)=>n+c.amount_aud,0),state:detail.calls.some(c=>c.state==='CALCULATED')?'CALCULATED':detail.calls.every(c=>c.state==='ZERO')?'ZERO':'ACTUAL',reason:'ALL_PROVIDER_CALL_RECEIPTS_ACCOUNTED'};
+    return {...detail,amount_aud:'UNKNOWN',state:'UNKNOWN',reason:'ONE_OR_MORE_PROVIDER_CALLS_UNDETERMINED'};
+  }
   if(billing?.actual===true&&valid(billing.amount)&&billing.currency==='AUD'&&billing.receipt_id)return {...detail,amount_aud:billing.amount,state:billing.amount===0?'ZERO':'ACTUAL',reason:'PROVIDER_BILLING_RECEIPT'};
   // Calculation is permitted only with attested pricing and an attested AUD
   // conversion, never with an estimated reservation or an assumed exchange rate.
   const p=billing?.pricing,u=billing?.usage;
   if(p?.verified===true&&p.receipt_id&&p.currency&&valid(p.input_per_million)&&valid(p.output_per_million)&&valid(u?.input_tokens)&&valid(u?.output_tokens)){
-    const amount=(u.input_tokens*p.input_per_million+u.output_tokens*p.output_per_million)/1e6;
+    const cached=u.cached_input_tokens||0;
+    if(!valid(cached)||cached>u.input_tokens||(cached>0&&!valid(p.cached_input_per_million)))return {...detail,amount_aud:'UNKNOWN',state:'UNKNOWN',reason:'CACHED_TOKEN_PRICING_UNVERIFIED'};
+    const amount=((u.input_tokens-cached)*p.input_per_million+cached*(p.cached_input_per_million||0)+u.output_tokens*p.output_per_million)/1e6;
     const fx=p.currency==='AUD'?1:p.fx?.verified===true&&p.fx.receipt_id&&valid(p.fx.aud_per_unit)?p.fx.aud_per_unit:null;
     if(fx!==null)return {...detail,currency:p.currency,calculated_amount:amount,pricing:p,amount_aud:amount*fx,state:amount===0?'ZERO':'CALCULATED',reason:'VERIFIED_TOKEN_PRICING'};
   }
