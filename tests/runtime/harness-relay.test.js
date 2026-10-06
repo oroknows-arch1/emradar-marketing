@@ -24,3 +24,12 @@ test('durable ambiguous generation is blocked instead of repeating a paid call',
  await assert.rejects(harness.work(marketingWorkUnit('editorial_intelligence','EMRADAR'),context),/CONNECTION_LOST/);
  await assert.rejects(harness.work(marketingWorkUnit('editorial_intelligence','EMRADAR'),context),/AMBIGUOUS/);assert.equal(paid,1);
 });
+test('persisted AUD owner authority enables bounded writing; missing authority and excessive quote still block',async()=>{
+ const f=await fixture();await beginCosts(f.store,{run_id:'aud-work',input:{...f.input,product:'EMRADAR'}});
+ const {GraphEngine}=await import('../../runtime/graph.js');let dispatched=0,amount=.1;
+ const engine=new GraphEngine({store:f.store,products:{},adapters:{},harness:{quote:async()=>({currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:amount,receipt_id:'approved-quote'}),work:async()=>{dispatched++;return {result:{},proof:{billing:{actual:true,currency:'AUD',amount:.03,receipt_id:'request-bill'}},decision:{lane:'standard'},attempts:1};}}});
+ const c={input:{product:'EMRADAR',campaign_id:'AUD_TEST'},run_id:'aud-work',product:{budget:{creation_approved:false},provider_authority:{automatic_connected_approved_only:true},spending_envelope:{currency:'AUD',campaign_limit:5,calendar_month_limit:50}}};
+ await engine.modelWork(c,'editorial_intelligence',{},'creation_approved');assert.equal(dispatched,1);assert.equal(c.node_work.authority,'PERSISTED_OWNER_AUD_ENVELOPE');
+ amount=.3;await assert.rejects(engine.modelWork(c,'editorial_intelligence',{},'creation_approved'),/WORKER_DAILY_BOUND/);assert.equal(dispatched,1);
+ delete c.product.provider_authority;await assert.rejects(engine.modelWork(c,'editorial_intelligence',{},'creation_approved'),/WORKER_COST_APPROVAL_REQUIRED/);assert.equal(dispatched,1);
+});

@@ -95,19 +95,24 @@ export class GraphEngine {
   }
   async modelWork(c,node,context,approvalKey) {
     if(!this.harness)fail('HARNESS_DISPATCH_NOT_CONNECTED');
-    const b=c.product.budget;
-    if(!b?.[approvalKey]||!Number.isFinite(b.max_worker_usd)||b.max_worker_usd<=0||!Number.isFinite(b.max_worker_daily_usd)||!Number.isSafeInteger(b.max_worker_calls)||b.max_worker_calls<1)fail('WORKER_COST_APPROVAL_REQUIRED');
+    const b=c.product.budget||{};
+    const audAuthority=c.input.product==='EMRADAR'&&approvalKey==='creation_approved'&&c.product.provider_authority?.automatic_connected_approved_only===true&&c.product.spending_envelope?.currency==='AUD'&&c.product.spending_envelope.campaign_limit===5&&c.product.spending_envelope.calendar_month_limit===50;
+    if(!audAuthority&&(!b[approvalKey]||!Number.isFinite(b.max_worker_usd)||b.max_worker_usd<=0||!Number.isFinite(b.max_worker_daily_usd)||!Number.isSafeInteger(b.max_worker_calls)||b.max_worker_calls<1))fail('WORKER_COST_APPROVAL_REQUIRED');
     if(!this.harness.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
     const ledgerKey='worker_cost:'+c.input.product+':'+now().slice(0,10);const ledger=await this.store.get(ledgerKey)||{calls:0,reserved_usd:0};
-    if(ledger.calls+2>b.max_worker_calls||ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd)fail('WORKER_DAILY_BOUND');
+    if(ledger.calls+2>(audAuthority?Math.min(20,b.max_worker_calls>0?b.max_worker_calls:20):b.max_worker_calls)||(!audAuthority&&ledger.reserved_usd+b.max_worker_usd*2>b.max_worker_daily_usd))fail('WORKER_DAILY_BOUND');
     const costQuote=await this.harness.quote(marketingWorkUnit(node,c.input.product),context);
+    if(audAuthority&&(costQuote.max_cost_aud>.25||(ledger.reserved_aud||0)+costQuote.max_cost_aud>5))fail('WORKER_DAILY_BOUND');
     const costReservation=await this.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':'+node,run_id:c.run_id,category:node==='scout'?'research_search_api':'generation'});
-    ledger.calls+=2;ledger.reserved_usd+=b.max_worker_usd*2;await this.store.put(ledgerKey,ledger);c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;
+    ledger.calls+=2;
+    if(audAuthority){ledger.reserved_aud=(ledger.reserved_aud||0)+costQuote.max_cost_aud;c.worker_reserved_aud=(c.worker_reserved_aud||0)+costQuote.max_cost_aud;c.worker_reserved_usd='UNKNOWN';}
+    else{ledger.reserved_usd+=b.max_worker_usd*2;c.worker_reserved_usd=(c.worker_reserved_usd||0)+b.max_worker_usd*2;}
+    await this.store.put(ledgerKey,ledger);
     const input={...context,learning_routes:Object.fromEntries(Object.entries(c.state.routes).filter(([key])=>key.startsWith(encodeURIComponent(c.input.product)+':')))};input.input_hash=digest(input);
     let work;try{work=await this.harness.work(marketingWorkUnit(node,c.input.product),{...input,cost_reservation:costReservation});}catch(error){await this.spend.settle(costReservation,error.billing);throw error;}
     const provider_cost=await this.spend.settle(costReservation,work.proof.billing);
     c.provider_costs||=[];c.provider_costs.push(provider_cost);
-    c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',provider_cost,reserved_usd:b.max_worker_usd*2};
+    c.node_work={node,decision:work.decision,attempts:work.attempts,proof:work.proof,cost_usd:'UNKNOWN',provider_cost,reserved_usd:audAuthority?'UNKNOWN':b.max_worker_usd*2,...(audAuthority?{reserved_aud:costQuote.max_cost_aud,authority:'PERSISTED_OWNER_AUD_ENVELOPE'}:{})};
     await this.store.put('work:'+c.run_id+':'+node,c.node_work);return work;
   }
   async tick({feedbackOnly=scanControl.hold_new_scans&&!!this.products.EMRADAR}={}) {
