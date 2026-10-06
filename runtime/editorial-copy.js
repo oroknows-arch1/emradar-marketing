@@ -6,6 +6,20 @@ export const editorialContract=await fs.readFile(new URL('../contracts/editorial
 export const correspondenceContract=await fs.readFile(new URL('../contracts/human-correspondence-v2.md',import.meta.url),'utf8');
 export const correspondenceFields=Object.freeze(['reason','development','insight','proposition','question']);
 export const editorialVersion=crypto.createHash('sha256').update(editorialContract+correspondenceContract).digest('hex');
+export function editorialResponseSchema(signal,route,language){
+  const string={type:'string'},refs={type:'array',items:{type:'string',enum:signal.evidence},minItems:1};
+  const object=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)});
+  const limit=Number(route.submission_requirements?.match(/(\d+) words or less/i)?.[1]||205);
+  return object({
+    subject:{...string,description:'A short natural email subject, without labels.'},
+    body:{...string,description:`Natural email proposition, at most ${Math.min(180,limit-25)} words. No labels or headings (including Reason, Development, Insight, Proposition or Question), greeting, sender, signature or URLs. Preserve ALL source uncertainties and counterevidence. Multiple correspondence roles may share the same sentence to fit the limit.`},
+    language:{type:'string',enum:[language]},signal_state:{type:'string',enum:[signal.state]},evidence_refs:refs,
+    claims:{type:'array',minItems:1,items:object({text:{...string,description:'Exact excerpt from body, not a paraphrase.'},evidence_refs:refs})},
+    qualifications:{type:'array',minItems:signal.source_uncertainty.length,items:object({source_index:{type:'integer',enum:signal.source_uncertainty.map((_,i)=>i)},text:{...string,description:'Exact excerpt from body preserving the indexed uncertainty. Include a record for EVERY source index; shared sentences are allowed.'}})},
+    capability_claims:{type:'array',items:object({text:string,capability:{type:'string',enum:['source_linked_note']}})},
+    correspondence:object({...Object.fromEntries(correspondenceFields.map(key=>[key,{...string,description:'Exact, contiguous excerpt copied from body, not a paraphrase. Nonempty; excerpts may overlap.'}])),next_step:{type:['string','null'],description:'Null unless the currently included source-linked note is explicitly and truthfully offered with a capability claim.'}})
+  });
+}
 export const externalSchemaLeak=copy=>/\b(FORMING|INVESTIGATE|WATCH\/NO SIGNAL)\b|(?:^|\n)\s*(?:Evidence|Unresolved|EMRADAR contribution|Reader action|Causal chain)\s*:|→/im.test(copy);
 
 // A brief is internal routing data. Only verified editorial work can turn it
@@ -17,6 +31,7 @@ export function editorialContext(c){
     editorial_contract:editorialContract,contract_revision:editorialVersion,
     ...(isEmail(c.route.destination.route_record)?{
       human_correspondence_contract:correspondenceContract,
+      response_schema:editorialResponseSchema(c.signal,c.route.destination.route_record,c.route.destination.route_record.destination_class==='latam_trade_publication'?'es-CL':'en'),
       response_contract:{
         type:'object',required:['subject','body','language','signal_state','evidence_refs','claims','qualifications','capability_claims','correspondence'],
         correspondence:{type:'object',required:correspondenceFields,properties:Object.fromEntries(correspondenceFields.map(key=>[key,{type:'string',minLength:1,description:'Copy an exact, contiguous excerpt from body; do not paraphrase or summarise it.'}]))},

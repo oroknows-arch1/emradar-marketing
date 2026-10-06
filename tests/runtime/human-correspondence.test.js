@@ -15,6 +15,10 @@ test('email producer receives the actual v2 contract and exact consumer field na
  assert.match(c.human_correspondence_contract,/human_ready_email/);
  assert.deepEqual(c.response_contract.correspondence.required,['reason','development','insight','proposition','question']);
  assert(c.response_contract.required.includes('correspondence'));assert.match(c.response_contract.body_rule,/extract.*verbatim/);
+ assert.equal(c.response_schema.additionalProperties,false);assert.deepEqual(c.response_schema.required,Object.keys(c.response_schema.properties));
+ assert.deepEqual(c.response_schema.properties.correspondence.required,['reason','development','insight','proposition','question','next_step']);
+ assert(c.response_schema.properties.claims.items.required.includes('text'));assert(c.response_schema.properties.qualifications.items.required.includes('text'));
+ assert.equal(c.response_schema.properties.qualifications.minItems,p.signal.source_uncertainty.length);assert.deepEqual(c.response_schema.properties.qualifications.items.properties.source_index.enum,p.signal.source_uncertainty.map((_,i)=>i));
  for(const key of c.response_contract.correspondence.required){assert.match(c.response_contract.correspondence.properties[key].description,/exact, contiguous excerpt/);const draft=structuredClone(p.email.proposition);draft.correspondence[key]='A paraphrase absent from the body.';assert.throws(()=>validateEditorial(draft,proof,context(p)),/HUMAN_PROPOSITION_QUALITIES_REQUIRED/);}
  assert.deepEqual(p.signal,before);assert.doesNotThrow(()=>validateEditorial(p.email.proposition,proof,context(p)));
 });
