@@ -37,7 +37,7 @@ Existing Redis prefix: `marketing:graph:`. No TTL is applied to these records.
 | `routing_memory:<hash>` / `routing_memory` | Versioned learning provenance and current routing input |
 | `route_evaluation:<product>:<formation>:<revision>` / `:history` | Explicit X decision and history |
 | `publication_candidates:<id>` / `publication_check:<id>:<hash>` | Candidate queue and page-check evidence |
-| `campaign_cost_index:<campaign>` / `cost_receipt:<run>` | Existing cost ledger references |
+| `campaign_cost_index:<campaign>` / `campaign_cost:<run>` | Existing cost ledger references |
 
 Records/history are queryable through authenticated `GET /OUTCOME_REVIEW` using
 the existing publication-review Bearer authority. Optional `receipt_id` selects

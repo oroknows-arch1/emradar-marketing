@@ -6,6 +6,7 @@ export async function evaluateX({store,product,signal,adapter,accountStatus,camp
   const checks={integration_available:!!adapter,runtime_authorized:false,evidence:false,relevance:false,format_suitability:!!adapter?.formats?.includes('text'),permission:false,cost:false};
   let authorization={status:'UNAVAILABLE'};
   try{authorization=accountStatus?await accountStatus():{status:await adapter?.authorized?.('EMRADAR')?'CURRENT_RUNTIME_AUTHORIZATION':'UNAVAILABLE'};checks.runtime_authorized=['CURRENT_RUNTIME_AUTHORIZATION','REFRESHED_RUNTIME_AUTHORIZATION'].includes(authorization.status);}catch(e){authorization={status:'OWNER_REAUTHORIZATION_REQUIRED',reason:e.message};}
+  if(accountStatus&&checks.runtime_authorized)checks.runtime_authorized=String(authorization.scope||'').split(' ').includes('tweet.write');
   checks.evidence=product?.release_approved===true&&['evidence','editorial','brand','risk'].every(k=>product.review?.[k]===true)&&signal?.evidence?.length>0&&product.uncertainty_state_model?.includes(signal.state);
   const formation=formationFromSignal(signal),memory=await store.get('routing_memory');
   const history=historicalRoutingInput(memory,{destination:'EMRADAR-X-OROKNOWS',platform:'X',evidence_state:signal.state});

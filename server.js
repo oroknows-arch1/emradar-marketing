@@ -173,7 +173,7 @@ const server=http.createServer(async(req,res)=>{
         const ids=receiptId?[receiptId]:await s.get('outcome_index')||[];
         const memory=await s.get('routing_memory');
         const records=[];
-        for(const id of ids){const receipt=await s.get('receipt:'+id);if(receipt)records.push({receipt,outcome:await s.get('outcome:'+id),history:await outcomeHistory(s,id),attempt_history:await s.get('receipt_history:'+id)||[],recovery:await s.get('delivery_recovery:'+id),cost_receipts:await s.get('campaign_cost_index:'+receipt.campaign_id)||[]});}
+        for(const id of ids){const receipt=await s.get('receipt:'+id);if(receipt)records.push({receipt,outcome:await s.get('outcome:'+id),history:await outcomeHistory(s,id),attempt_history:await s.get('receipt_history:'+id)||[],recovery:await s.get('delivery_recovery:'+id),cost_receipts:await Promise.all((await s.get('campaign_cost_index:'+receipt.campaign_id)||[]).map(run=>s.get('campaign_cost:'+run)))});}
         return json(res,200,{records,performance_analysis:await s.get('performance_analysis'),routing_memory:memory,hypothetical_next_routing_input:historicalRoutingInput(memory,{destination:u.searchParams.get('destination')||'REUTERS-BREAKINGVIEWS-GUEST',platform:'OPEN_ROUTE',evidence_state:'FORMING'}),scan_control:scanControl,source_receipt:await s.get('source_receipt:EMRADAR'),closed_loop_proof:await s.get('closed_loop_proof')});
       }
       const input=JSON.parse(await readBody(req));
@@ -190,7 +190,7 @@ const server=http.createServer(async(req,res)=>{
         const signal=product?.signals.find(v=>v.id===p.signal_id&&v.revision===p.signal_revision);
         if(!signal||JSON.stringify(product.source_receipt)!==JSON.stringify(p.source_receipt))throw new Error('SAVED_APPROVED_SOURCE_UNAVAILABLE');
         const result=await s.locked('engine',()=>evaluateX({store:s,product,signal,adapter:engine.adapters.X,accountStatus:engine.xAccountStatus,campaign_id:p.input.campaign_id}));
-        return json(res,200,{result,previous_route_plan:await s.get('route_plan:'+p.product+':'+signal.id+':'+signal.revision),external_publications:0,scan_processed:false});
+        return json(res,200,{result,previous_route_plan:await s.get('route_plan:'+p.product+':'+signal.id+':'+signal.revision),existing_x_receipts:(await s.get('receipt_index')||[]).filter(r=>r.platform==='X'&&r.signal_id===signal.id&&r.signal_revision===signal.revision),external_publications:0,scan_processed:false});
       }
       if(input.action==='PUBLICATION_CANDIDATE'){
         const r=await s.get('receipt:'+input.receipt_id);if(!r?.proposal_id||typeof input.url!=='string')throw new Error('RECEIPT_AND_CANDIDATE_REQUIRED');
