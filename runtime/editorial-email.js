@@ -89,68 +89,48 @@ export function humanReadyEmail({proposition,signal,route,identity,product}){
   const es=proposition.language==='es-CL',publication=route.organisation||route.destination_name;
   if(!publication||/[\r\n]/.test(publication))fail('EMAIL_DESTINATION_BINDING_REQUIRED');
   const greeting=recipientGreeting(route,proposition.language);
-  const introductions=es?[
-    'Soy Sean Walker y trabajo en EMRADAR, donde seguimos cambios en la economía real y sus efectos en las industrias.',
-    'Me llamo Sean Walker. Trabajo en EMRADAR conectando cambios en la economía real con sus efectos en las industrias y los mercados.',
-    'Soy Sean Walker, de EMRADAR. Nuestro trabajo conecta cambios en la economía real con sus consecuencias para las industrias.'
-  ]:[
-    "I'm Sean Walker, working on EMRADAR, where we look at changes in the real economy and what they mean for industries.",
-    "My name is Sean Walker. I work on EMRADAR, connecting changes in the real economy with their effects on industries and markets.",
-    "I'm Sean Walker. At EMRADAR we look at how changes in the real economy connect with industries and markets."
-  ];
-  const introIndex=parseInt(hash([signal.revision,proposition.subject,route.destination_id]).slice(0,8),16)%introductions.length;
-  const context=route.accepted_formats.includes('financial_guest_view_pitch')?(es?'Soy Sean Walker, de EMRADAR.':"I'm Sean Walker, working on EMRADAR."):introductions[introIndex];
-  let clean=removeUnverifiedOffers(proposition.body);
-  if(!clean.trim())fail('EMAIL_EDITORIAL_PROPOSITION_REQUIRED');
-  if(!(signal.source_uncertainty||[]).every((_,i)=>proposition.qualifications?.some(q=>q.source_index===i&&clean.includes(q.text))))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
-  let reason,angle,question;
-  if(proposition.correspondence){
-    validateCorrespondenceProposition(proposition,route);
-    ({reason,insight:angle,question}=proposition.correspondence);
-  }else if(proposition.provenance?.method==='native_gated_source_and_existing_unsent_proposition'){
-    // Historical unsent regression/revision only. No campaign-specific facts are
-    // invented: retain bound facts/uncertainty and frame the verified route beat.
-    const beat=route.relevant_beat_topic?.slice(0,2).join(es?' y ':' and ');
-    angle=angles[route.accepted_formats[0]]?.[es?1:0]?.replace(/Breakingviews|International Mining|Australian Mining Review|REDIMIN/,publication);
-    if(!beat||!angle)fail('EMAIL_DESTINATION_ANGLE_REQUIRED');
-    reason=es?`Les escribo porque ${publication} cubre ${beat}.`:`I'm contacting ${publication} because you cover ${beat}.`;
-    const contribution=es?`El enfoque que propongo es este: ${angle}`:`The angle I'd suggest is this: ${angle}`;
-    question=es?`¿Les serviría esta nota para evaluar una posible contribución a ${publication}?`:`Would this note be useful when considering a contribution to ${publication}?`;
-    clean=[reason,clean,contribution,question].join('\n\n');
-  }else fail('HUMAN_PROPOSITION_QUALITIES_REQUIRED');
-  const refs=(signal.source_facts||[]).filter(f=>signal.evidence.includes(f.id));
-  const sourceText=refs.slice(0,1).map(f=>f.url).join('');if(!sourceText)fail('EMAIL_SOURCE_LINK_REQUIRED');
-  const body=[greeting.text,context,clean,(es?'Fuente de apoyo: ':'Supporting source: ')+sourceText,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
-  const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:route.accepted_formats.includes('financial_guest_view_pitch')?'compact':introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'recipient_agency_contribution_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
-  const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE'};
+  const context=es?'Soy Sean Walker y trabajo en EMRADAR, un sistema que sigue formaciones de mercado emergentes a partir de evidencia de la economía real.':"I’m Sean Walker, working on EMRADAR, a system that tracks emerging market formations from evidence in the real economy.";
+  validateCorrespondenceProposition(proposition,route);
+  validateInternalUncertainty(proposition,signal);
+  const clean=proposition.body.trim();
+  const {reason,insight:angle,question}=proposition.correspondence;
+  const introIndex=0;
+  const body=[greeting.text,context,clean,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
+  const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'recipient_agency_contribution_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
+  const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE',evidence_binding:evidenceBinding(signal)};
   validateHumanEmail(email,signal,route,identity);return email;
 }
 export function recipientAgency(question){
   const q=String(question||'');
-  return /[?？]/u.test(q)&&(/(?:you|your|les|le|su|ustedes)/iu.test(q)||/would.*(?:this|the).*useful/iu.test(q))&&/(?:useful|suit|interest|help|welcome|consider|prefer|fit|servir|interes|util|útil|prefer|encajar)/iu.test(q)&&/(?:note|angle|material|analysis|article|research|contribut|commentary|brief|evidence|enfoque|nota|análisis|artículo|aporte|investigación)/iu.test(q);
+  return /[?？]/u.test(q)&&(/(?:you|your|les|le|su|ustedes)/iu.test(q)||/would.*(?:this|the).*(?:useful|suitable)/iu.test(q))&&/(?:useful|suit|interest|help|welcome|consider|prefer|fit|servir|interes|util|útil|prefer|encajar)/iu.test(q)&&/(?:note|angle|material|analysis|article|research|contribut|commentary|brief|evidence|enfoque|nota|análisis|artículo|aporte|investigación)/iu.test(q);
+}
+export const draftCapability='campaign_specific_finished_sourced_draft';
+export const draftOffer=language=>language==='es-CL'?'Si les resulta útil, puedo enviar un borrador terminado y conciso con fuentes para su revisión.':'If useful, I can send a concise finished draft with sources for review.';
+export const evidenceBinding=signal=>({source_revision:signal.revision,signal_state:signal.state,evidence_refs:[...signal.evidence],source_facts:structuredClone(signal.source_facts||[]),source_uncertainty:[...(signal.source_uncertainty||[])]});
+export function validateInternalUncertainty(result,signal){
+  if(!(signal.source_uncertainty||[]).every((text,i)=>result.qualifications?.some(q=>q.source_index===i&&q.text===text)))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
+}
+export function correspondenceDensity(body,language='en'){
+  const words=body.trim().split(/\s+/u).length;
+  if(words>165||/https?:\/\/|www\.|(?:^|\n)(?:Supporting sources?|Sources?|Evidence|Unresolved|Causal chain)\s*:/imu.test(body))fail('HUMAN_CORRESPONDENCE_DENSITY_REQUIRED');
+  return words;
 }
 export function validateCorrespondenceProposition(proposition,route){
   const parts=proposition.correspondence;
   for(const key of ['reason','development','insight','proposition','question'])if(!parts?.[key]?.trim()||!proposition.body.includes(parts[key]))fail('HUMAN_PROPOSITION_QUALITIES_REQUIRED');
   const name=route.organisation||route.destination_name;
-  if(!parts.reason.includes(name)||!/[?？]/u.test(parts.question))fail('HUMAN_DESTINATION_REASON_OR_QUESTION_REQUIRED');
-  if(!recipientAgency(parts.question))fail('HUMAN_RECIPIENT_AGENCY_REQUIRED');
-  if(proposition.body.trim().split(/\s+/u).length>180||/(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|(?:I'm|I’m) writing from EMRADAR|Le escribo desde EMRADAR|relevant to your audience/imu.test(proposition.body)||/https?:\/\//i.test(proposition.body))fail('HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE');
-  // Only the presently included, verified note can be offered. Future capability
-  // expansion must pass the existing independently verified capability inventory.
-  if(parts.next_step&&!['I’m sharing the source-linked note below.','Comparto la nota basada en fuentes a continuación.'].includes(parts.next_step))fail('UNVERIFIED_CAPABILITY_CLAIM');
-  if(parts.next_step&&!proposition.body.includes(parts.next_step))fail('UNVERIFIED_CAPABILITY_CLAIM');
-  if(parts.next_step&&!proposition.capability_claims?.some(c=>c.text===parts.next_step&&c.capability==='source_linked_note'))fail('UNVERIFIED_CAPABILITY_CLAIM');
+  if(!parts.reason.includes(name)||!parts.question.includes(name)||!recipientAgency(parts.question))fail('HUMAN_RECIPIENT_AGENCY_REQUIRED');
+  if(!/(?:what stood out|lo que destac[oó]|lo que llam[oó].*atenci[oó])/iu.test(parts.insight)||!/(?:evidence.backed contribution|contribuci[oó]n.*(?:evidencia|fuentes))/iu.test(parts.proposition)||!/(?:unresolved|unconfirmed|uncertain|unknown|pending|remain.*open|sin resolver|incertidumbre|pendiente)/iu.test(parts.proposition))fail('HUMAN_CORRESPONDENCE_STRUCTURE_REQUIRED');
+  if(!parts.development.includes(proposition.signal_state))fail('EMAIL_SOURCE_STATE_REQUIRED');
+  if(proposition.body.trim().split(/\s+/u).length>137||/(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|(?:I'm|I’m) writing from EMRADAR|relevant to your audience/imu.test(proposition.body)||/https?:\/\//i.test(proposition.body))fail('HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE');
+  const offer=draftOffer(proposition.language);
+  if(parts.next_step!==offer||!proposition.body.includes(offer)||!proposition.capability_claims?.some(c=>c.text===offer&&c.capability===draftCapability))fail('UNVERIFIED_CAPABILITY_CLAIM');
 }
 export function validateCapabilityInventory(result,proof){
   if(proof?.editorial_checks?.capability_inventory!=='PASS'||!Array.isArray(result?.capability_claims))fail('CAPABILITY_INVENTORY_VERIFICATION_REQUIRED');
-  for(const claim of result.capability_claims){
-    if(!claim.text||!result.body.includes(claim.text)||claim.capability!=='source_linked_note')fail('UNVERIFIED_CAPABILITY_CLAIM');
-  }
   let factualBody=result.body;
   for(const claim of result.capability_claims){
-    const permitted=['I’m sharing the source-linked note below.','Comparto la nota basada en fuentes a continuación.'];
-    if(!permitted.includes(claim.text))fail('UNVERIFIED_CAPABILITY_CLAIM');
+    if(claim.text!==draftOffer(result.language)||!result.body.includes(claim.text)||claim.capability!==draftCapability)fail('UNVERIFIED_CAPABILITY_CLAIM');
     factualBody=factualBody.replace(claim.text,'');
   }
   if(claims.test(factualBody))fail('UNVERIFIED_CAPABILITY_CLAIM');
@@ -158,14 +138,16 @@ export function validateCapabilityInventory(result,proof){
 export function validateHumanEmail(email,signal,route,identity){
   if(!email?.subject?.trim()||/[\r\n]/.test(email.subject)||!email.body?.trim()||email.to!==route.public_contact_point||hash(email.from)!==hash({name:identity.name,address:identity.address})||email.version!==emailVersion)fail('HUMAN_READY_EMAIL_REQUIRED');
   const greeting=recipientGreeting(route,email.language);
-  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!email.body.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
-  if(email.proposition.correspondence)validateCorrespondenceProposition(email.proposition,route);
+  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|I’m|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!email.body.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
+  validateCorrespondenceProposition(email.proposition,route);
+  validateCapabilityInventory(email.proposition,{editorial_checks:{capability_inventory:'PASS'}});
+  validateInternalUncertainty(email.proposition,signal);
+  if(hash(email.evidence_binding)!==hash(evidenceBinding(signal)))fail('EMAIL_SOURCE_BINDING_REQUIRED');
   if(email.features?.version!==emailVersion||email.features.greeting_type!==greeting.type||email.features.email_length_words!==email.body.trim().split(/\s+/).length)fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
-  if(/(?:^|\n)Subject:/.test(email.body)||claims.test(email.body))fail('UNVERIFIED_CAPABILITY_CLAIM');
-  if(!(signal.source_uncertainty||[]).every((_,i)=>email.proposition.qualifications?.some(q=>q.source_index===i&&email.body.includes(q.text))))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
+  if(/(?:^|\n)Subject:/.test(email.body)||claims.test(email.proposition.body.replace(draftOffer(email.language),'')))fail('UNVERIFIED_CAPABILITY_CLAIM');
   if(email.features.source_revision!==signal.revision||email.features.named_recipient!==(greeting.name!==null)||email.features.localisation!==email.language||email.features.causal_effect!=='UNKNOWN'||!['destination_specific_reason','angle','question'].every(k=>email.features[k]&&email.body.includes(email.features[k])))fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
+  correspondenceDensity(email.body,email.language);
   const limit=route.submission_requirements?.match(/(\d+) words or less/i);
   if(limit&&email.body.trim().split(/\s+/).length>Number(limit[1]))fail('EDITORIAL_DESTINATION_LENGTH_EXCEEDED');
-  return {status:'PASS',version:emailVersion,claims:[{capability:'current_evidence_mapping',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence]}},{capability:'source_linked_note',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence],artifact_hash:hash({subject:email.subject,body:email.body})}}],excluded_capabilities:[{capability:'ongoing_monitoring_or_continuous_coverage',state:'UNVERIFIED',authorized:false,reason:'No current campaign-scoped production proof; no ongoing service promised.'}]};
+  return {status:'PASS',version:emailVersion,claims:[{capability:'current_evidence_mapping',state:'VERIFIED',authorized:true,evidence:email.evidence_binding},{capability:draftCapability,state:'VERIFIED',authorized:true,scope:'One finished sourced draft for this campaign and destination, on request',evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence],artifact_hash:hash({subject:email.subject,body:email.body})}}],excluded_capabilities:[{capability:'ongoing_monitoring_or_continuous_coverage',state:'UNVERIFIED',authorized:false,reason:'No ongoing service authorized.'}]};
 }
-

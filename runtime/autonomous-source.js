@@ -6,7 +6,7 @@ import {validateCombinedX} from './x-visual.js';
 const origin='https://emerging-markets-radar.onrender.com';
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const at=()=>new Date().toISOString();
-export const reviewContractRevision='mandatory-x-human-agency-v1';
+export const reviewContractRevision='sfy-bounded-draft-correspondence-v1';
 const executed=new Set(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS']);
 // Terminal optional content/qualification failures are retained for review.
 // Infrastructure, ambiguous execution, source truth and cost authority failures
@@ -84,7 +84,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const preview=state.campaign_id==='EMRADAR_2026_10_06_LAUNCH';
   const run=async(destination,refreshDiscovery=false)=>{
     const saved=reuse(destination);
-    if(!refreshDiscovery&&saved&&saved.review_contract_revision===reviewContractRevision&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
+    if(!refreshDiscovery&&saved&&(saved.review_contract_revision===reviewContractRevision||destination==='EMRADAR-X-OROKNOWS')&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
     if(saved&&await store.get('publication_approval:'+saved.proposal_id))throw Error('APPROVED_REVIEW_ARTIFACT_CANNOT_AUTO_SUPERSEDE');
     const sent=external(destination);
     if(sent){state.routes[destination]={status:sent.execution_status,receipt_id:sent.id,reused:true};return;}
@@ -100,11 +100,11 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   };
   let first;
   if(contractChanged)state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>executed.has(r.status)));
-  if(existingProposals.length){for(const p of existingProposals.filter(p=>p.review_contract_revision===reviewContractRevision))state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
+  if(existingProposals.length){for(const p of existingProposals.filter(p=>p.review_contract_revision===reviewContractRevision||p.destination==='EMRADAR-X-OROKNOWS'))state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
   // Reuse the graph's own persisted route decisions, never a second routing system.
   const planKey='route_plan:EMRADAR:'+state.signal_id+':'+state.signal_revision;
   let routePlan=await store.get(planKey);
-  if(!routePlan||runtimeChanged){first=await run('EMRADAR-X-OROKNOWS',preview&&runtimeChanged);routePlan=first?.route_plan||routePlan;}
+  if(!routePlan){first=await run('EMRADAR-X-OROKNOWS');routePlan=first?.route_plan||routePlan;}
   const selected=[...(routePlan?.candidates?.map(d=>d.destination_id)||[]),...(first?.selection?.options?.map(o=>o.id)||[])];
   const xEvaluation=await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision);
   const optional=[...new Set(selected)].filter(id=>id!=='EMRADAR-X-OROKNOWS');
