@@ -9,6 +9,7 @@ export const editorialVersion=crypto.createHash('sha256').update(editorialContra
 export function editorialResponseSchema(signal,route,language){
   const string={type:'string'},refs={type:'array',items:{type:'string',enum:signal.evidence},minItems:1};
   const object=properties=>({type:'object',additionalProperties:false,properties,required:Object.keys(properties)});
+  const roles={reason:`Why ${route.organisation||route.destination_name}, naming it using its verified beat.`,development:'One concise attributed source-supported development.',insight:'What stands out in the causal reasoning, in plain language.',proposition:'A concrete editorial angle for this recipient.',question:'A natural editorial question to this recipient, containing a question mark.'};
   const limit=Number(route.submission_requirements?.match(/(\d+) words or less/i)?.[1]||205);
   return object({
     subject:{...string,description:'A short natural email subject, without labels.'},
@@ -17,7 +18,7 @@ export function editorialResponseSchema(signal,route,language){
     claims:{type:'array',minItems:1,items:object({text:{...string,description:'Exact excerpt from body, not a paraphrase.'},evidence_refs:refs})},
     qualifications:{type:'array',minItems:signal.source_uncertainty.length,items:object({source_index:{type:'integer',enum:signal.source_uncertainty.map((_,i)=>i)},text:{...string,description:'Exact excerpt from body preserving the indexed uncertainty. Include a record for EVERY source index; shared sentences are allowed.'}})},
     capability_claims:{type:'array',items:object({text:string,capability:{type:'string',enum:['source_linked_note']}})},
-    correspondence:object({...Object.fromEntries(correspondenceFields.map(key=>[key,{...string,description:'Exact, contiguous excerpt copied from body, not a paraphrase. Nonempty; excerpts may overlap.'}])),next_step:{type:['string','null'],description:'Null unless the currently included source-linked note is explicitly and truthfully offered with a capability claim.'}})
+    correspondence:object({...Object.fromEntries(correspondenceFields.map(key=>[key,{...string,description:roles[key]+' Exact, contiguous excerpt copied from body, not a paraphrase. Nonempty; excerpts may overlap.'}])),next_step:{type:['string','null'],description:'Null unless the currently included source-linked note is explicitly and truthfully offered with a capability claim.'}})
   });
 }
 export const externalSchemaLeak=copy=>/\b(FORMING|INVESTIGATE|WATCH\/NO SIGNAL)\b|(?:^|\n)\s*(?:Evidence|Unresolved|EMRADAR contribution|Reader action|Causal chain)\s*:|→/im.test(copy);
