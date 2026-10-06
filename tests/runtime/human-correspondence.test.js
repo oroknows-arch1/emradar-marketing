@@ -9,6 +9,16 @@ const proof={evidence_refs:['SG0','SG1'],editorial_checks:{factual_entailment:'P
 const render=p=>humanReadyEmail({proposition:p.email.proposition,signal:p.signal,route:p.route,identity:p.identity,product:'EMRADAR'});
 const context=p=>({source:p.signal,target_language:'en',destination:p.route});
 
+test('email producer receives the actual v2 contract and exact consumer field names',()=>{
+ const p=correspondenceProbe(),before=structuredClone(p.signal);
+ const c=editorialContext({signal:p.signal,product:{},route:{id:p.route.destination_id,destination:{route_record:p.route}},route_plan:{proposed_assets:[{destination_id:p.route.destination_id}]}});
+ assert.match(c.human_correspondence_contract,/human_ready_email/);
+ assert.deepEqual(c.response_contract.correspondence.required,['reason','development','insight','proposition','question']);
+ assert(c.response_contract.required.includes('correspondence'));assert.match(c.response_contract.body_rule,/extract.*verbatim/);
+ for(const key of c.response_contract.correspondence.required){assert.match(c.response_contract.correspondence.properties[key].description,/exact, contiguous excerpt/);const draft=structuredClone(p.email.proposition);draft.correspondence[key]='A paraphrase absent from the body.';assert.throws(()=>validateEditorial(draft,proof,context(p)),/HUMAN_PROPOSITION_QUALITIES_REQUIRED/);}
+ assert.deepEqual(p.signal,before);assert.doesNotThrow(()=>validateEditorial(p.email.proposition,proof,context(p)));
+});
+
 // Owner-provided SFY reference describes communication qualities, not authority
 // to promise a finished article. Tests intentionally allow different wording.
 const semiconductorReference={origin:'OWNER_SUPPLIED_SUCCESSFUL_SEMICONDUCTOR_FOR_YOU_COMMUNICATION',qualities:['human_person','greeting','brief_context','recipient_reason','development','insight','proposition','question','truthful_next_step_or_omission','sign_off']};

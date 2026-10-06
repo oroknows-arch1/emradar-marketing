@@ -3,7 +3,9 @@ import crypto from 'node:crypto';
 import {validateCapabilityInventory,validateCorrespondenceProposition,isEmail} from './editorial-email.js';
 
 export const editorialContract=await fs.readFile(new URL('../contracts/editorial-copy-system-v1.md',import.meta.url),'utf8');
-export const editorialVersion=crypto.createHash('sha256').update(editorialContract).digest('hex');
+export const correspondenceContract=await fs.readFile(new URL('../contracts/human-correspondence-v2.md',import.meta.url),'utf8');
+export const correspondenceFields=Object.freeze(['reason','development','insight','proposition','question']);
+export const editorialVersion=crypto.createHash('sha256').update(editorialContract+correspondenceContract).digest('hex');
 export const externalSchemaLeak=copy=>/\b(FORMING|INVESTIGATE|WATCH\/NO SIGNAL)\b|(?:^|\n)\s*(?:Evidence|Unresolved|EMRADAR contribution|Reader action|Causal chain)\s*:|→/im.test(copy);
 
 // A brief is internal routing data. Only verified editorial work can turn it
@@ -13,6 +15,14 @@ export function editorialContext(c){
   if(!facts.length||facts.length!==(c.signal.source_facts||[]).length||facts.some(f=>!f.text||!f.url))throw new Error('SOURCE_FACT_BINDING_REQUIRED');
   return {
     editorial_contract:editorialContract,contract_revision:editorialVersion,
+    ...(isEmail(c.route.destination.route_record)?{
+      human_correspondence_contract:correspondenceContract,
+      response_contract:{
+        type:'object',required:['subject','body','language','signal_state','evidence_refs','claims','qualifications','capability_claims','correspondence'],
+        correspondence:{type:'object',required:correspondenceFields,properties:Object.fromEntries(correspondenceFields.map(key=>[key,{type:'string',minLength:1,description:'Copy an exact, contiguous excerpt from body; do not paraphrase or summarise it.'}]))},
+        body_rule:'Write body once, then extract the five correspondence values from it verbatim. Values may overlap or share a sentence when it performs multiple roles. Do not return correspondence as a list, renamed keys, or a separate paraphrased draft. Preserve every qualification in body. Return all fields at the top level of the JSON result.'
+      }
+    }:{}),
     source:{...c.signal,source_facts:facts},
     product_copy_profile:c.product.copy_profile||c.product.product_copy_profile||null,
     brand_system:c.product.brand_system||'UNDEFINED',
