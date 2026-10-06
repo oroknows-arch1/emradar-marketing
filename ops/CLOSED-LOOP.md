@@ -60,7 +60,7 @@ Matched reply links may queue up to three verified-domain publication candidates
 The page worker uses HTTPS, no redirects, a 256 KiB cap, and a ten-second timeout.
 It conservatively leaves modified/unattributed articles UNKNOWN.
 
-Existing signed GitHub OIDC `/SCHEDULED_CYCLE` wake-ups and live-process timer
+Signed GitHub OIDC `/SCHEDULED_CYCLE` wake-ups now pin the immutable GitHub owner/repository IDs (273911094/1399375858), exact main-branch subject, repository, workflow, event, issuer, audience and expiry. The old name-only subject rejected this newly created repository. Existing wake-ups and live-process timer
 collect at most one due receipt per cycle. Render Free sleep is handled by the
 existing GitHub wake-up workflow. No new cron service or paid datastore is used.
 
