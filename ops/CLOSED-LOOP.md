@@ -45,7 +45,7 @@ one history; `destination` selects a hypothetical routing-memory read. No scan
 is processed by this read. POST accepts only COLLECT (one to four existing receipt
 IDs), X_EVALUATE (an existing proposal with unchanged saved source), and
 PUBLICATION_CANDIDATE (an existing receipt plus HTTPS URL on its verified domain).
-These operations do not approve or send. Existing approval/auth/hash/idempotency
+REPLY_CLASSIFICATION may refine a previously matched response only when the owner provides an explicit reviewed statement and its existing reply message ID. No classifier infers sentiment from arbitrary mail. These operations do not approve or send. Existing approval/auth/hash/idempotency
 checks remain responsible for publication.
 
 ## Collectors and automation
@@ -78,7 +78,7 @@ delivery reliability remains separate from editorial success.
 Every EMRADAR scout explicitly records X_SELECTED or X_NOT_SELECTED, including
 authorization, source, relevance, format, permission and cost checks. Unknown X
 billing is ACTUAL_COST_BOUND_UNKNOWN; it cannot disappear silently or become zero.
-Selected X artifacts still require exact owner review under the current register.
+Native X formatting reuses a whole approved fact and the first source qualification clauses within 280 characters; an oversized fact blocks explicitly rather than being truncated. Selected X artifacts still require exact owner review under the current register.
 The OAuth refresh/expiry check does not claim to prove API access or revocation
 without an actual provider call. Paid metrics remain gated by verified quotes and
 existing budgets; absent metrics are UNKNOWN, not zero. Real X post receipts use

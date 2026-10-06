@@ -65,7 +65,7 @@ export async function learnRouting(store,analysis){
   for(const g of Object.values(analysis.groups)){
     const n=g.positive_evidence.length+g.negative_evidence.length;
     // A minimum of three distinct formations prevents one campaign becoming a rule.
-    const independent=new Set(g.supporting_observations.map(o=>o.source_scan_id+':'+o.formation_id)).size;
+    const independent=new Set(g.supporting_observations.map(o=>o.formation_id)).size;
     const adjustment=independent>=3&&n>=3?Math.max(-0.15,Math.min(0.15,(g.positive_evidence.length-g.negative_evidence.length)/(n+5)*0.15)):0;
     signals[g.key]={kind:adjustment?'LEARNED_ROUTING_SIGNAL':'INSUFFICIENT_EVIDENCE',destination:g.destination,platform:g.platform,evidence_state:g.evidence_state,format:g.format,language:g.language,sample_size:g.sample_size,independent_formations:independent,confidence:independent>=3?Math.min(0.8,n/(n+10)):0,adjustment,positive_evidence:g.positive_evidence,negative_evidence:g.negative_evidence,neutral_evidence:g.neutral_evidence,supporting_observations:g.supporting_observations,provenance:analysis.reference,uncertainty:'Correlation is not causation. Novel destinations retain neutral historical weight.',at:now()};
   }

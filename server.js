@@ -1,7 +1,7 @@
 import http from "node:http";
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {evaluateX} from "./runtime/route-feedback.js";
-import {historicalRoutingInput,outcomeHistory} from "./runtime/outcomes.js";
+import {historicalRoutingInput,outcomeHistory,appendOutcome} from "./runtime/outcomes.js";
 import crypto from "node:crypto";
 import { URL, URLSearchParams } from "node:url";
 import { createClient } from "redis";
@@ -157,8 +157,7 @@ const server=http.createServer(async(req,res)=>{
     const result=await oauth.callback(Object.fromEntries(u.searchParams));if(result.location){res.writeHead(result.status,{location:result.location,"cache-control":"no-store"});return res.end();}return json(res,result.status,result.body);
   }
   if(req.method==='POST'&&u.pathname==='/PRODUCT_INPUT'){
-    if(scanControl.hold_new_scans)return json(res,423,{reason:'NEXT_SCAN_HELD_BY_OWNER'});
-    try{const envelope=JSON.parse(await readBody(req));const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+    try{const envelope=JSON.parse(await readBody(req));if(scanControl.hold_new_scans&&envelope.product==='EMRADAR')return json(res,423,{reason:'NEXT_SCAN_HELD_BY_OWNER'});const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
     try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));const result=await (await marketingEngine()).tick();return json(res,200,result);}
@@ -199,6 +198,14 @@ const server=http.createServer(async(req,res)=>{
         const target=new URL(input.url);if(target.protocol!=='https:'||target.hostname.replace(/^www\./,'')!==host||target.port||target.username||target.password)throw new Error('VERIFIED_PUBLICATION_DOMAIN_REQUIRED');
         await s.locked('engine',async()=>{const key='publication_candidates:'+r.id,candidates=await s.get(key)||[];if(!candidates.some(c=>c.url===input.url)){if(candidates.length>=3)throw new Error('PUBLICATION_CANDIDATE_BOUND');candidates.push({url:input.url,at:new Date().toISOString(),origin:'OWNER_CANDIDATE_NOT_PUBLICATION_PROOF'});await s.put(key,candidates);}});
         return json(res,200,{status:'CANDIDATE_QUEUED',external_publications:0});
+      }
+      if(input.action==='REPLY_CLASSIFICATION'){
+        if(!['EDITOR_INTEREST','MORE_INFORMATION_REQUESTED','REJECTED'].includes(input.state)||typeof input.explicit_statement!=='string'||!input.explicit_statement.trim()||input.explicit_statement.length>1000)throw new Error('EXPLICIT_REVIEWED_STATEMENT_REQUIRED');
+        const history=await outcomeHistory(s,input.receipt_id),reply=history.find(e=>e.state==='RESPONSE_RECEIVED'&&e.evidence.reply_message_id===input.reply_message_id);
+        if(!reply)throw new Error('MATCHED_REPLY_REQUIRED');
+        const event={state:input.state,at:reply.at,evidence:{...reply.evidence,type:'OWNER_REVIEWED_EXPLICIT_REPLY_STATEMENT',classification:'EXPLICIT_REVIEWED_STATEMENT',explicit_statement:input.explicit_statement,reviewed_by:'OWNER',reviewed_at:new Date().toISOString()}};
+        await s.locked('engine',()=>appendOutcome(s,input.receipt_id,event));
+        return json(res,200,{status:'EVIDENCE_RECORDED',result:await engine.feedback(input.receipt_id),external_publications:0});
       }
       throw new Error('OUTCOME_ACTION_NOT_ALLOWED');
     }catch(e){return json(res,409,{reason:e.message});}
@@ -279,7 +286,7 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
-  runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
+  if(!scanControl.hold_new_scans)runDiscoveryPreview({port:PORT,token:process.env.MARKETING_ENGINE_TOKEN}).catch(e=>console.error('X_DISCOVERY_PREVIEW '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
   (scanControl.hold_new_scans?Promise.resolve():runPendingSourceRelease().then(()=>runPendingCampaign(kv))).catch(e=>console.error('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify({status:'BLOCKED',blocker:e.message})));
 });
 

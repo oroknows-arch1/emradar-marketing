@@ -4,6 +4,7 @@ import {fixture} from './fixture.js';
 import {FileStore} from '../../runtime/store.js';
 import {appendOutcome,normalizeOutcome,outcomeHistory,analyseOutcomes,learnRouting,historicalRoutingInput} from '../../runtime/outcomes.js';
 import {evaluateX} from '../../runtime/route-feedback.js';
+import {nativeXCopy} from '../../runtime/x-copy.js';
 import {checkPublication} from '../../runtime/publication-outcomes.js';
 const receipt=()=>({id:'a'.repeat(64),product:'EMRADAR',campaign_id:'SG',signal_id:'SG',signal_revision:'R',signal_state:'FORMING',destination:'editor',platform:'OPEN_ROUTE',route_key:'EMRADAR:SG:editor:text',timestamp:'2026-10-05T22:26:18.251Z',execution_status:'SUBMITTED',delivery_status:'ACCEPTED',recipient:'editor@example.com',external_id:'<original@gmail.com>',provider_receipt:{message_id:'<original@gmail.com>',accepted:['editor@example.com']},delivery_hash:'unchanged',provider_cost:{currency:'AUD',amount:0}});
 test('receipt anchors survive restart; acceptance never becomes interest or publication; history appends idempotently',async()=>{
@@ -43,4 +44,10 @@ test('publication discovery requires verified domain, exact artifact attribution
  assert.equal((await checkPublication({proposal,receipt:r,url:'https://example.com/article',fetchPage})).state,'UNKNOWN');
  await assert.rejects(checkPublication({proposal,receipt:r,url:'https://localhost/private',fetchPage}),/DOMAIN/);
  const actual=await checkPublication({proposal,receipt:r,url:'https://example.com/article',fetchPage:async()=>new Response(`<article>${body}</article><script type="application/ld+json">{"datePublished":"2026-10-06T00:00:00Z"}</script>`,{headers:{'content-type':'text/html'}})});assert.equal(actual.state,'PUBLISHED');assert(actual.evidence.page_hash);
+});
+
+test('native X copy preserves a whole fact and forecast/ceremonial uncertainty without a capability promise',()=>{
+ const signal={state:'FORMING',evidence:['e'],source_facts:[{id:'e',text:'KGHM says construction of the fourth grinding line has started and values the project at about US$725 million.'}],source_uncertainty:['The ceremonial start precedes the main works scheduled for early 2027.','Expected output is forecast rather than realised, and returns remain exposed to copper and molybdenum prices.']};
+ const result=nativeXCopy(signal);assert(result.copy.length<=280);assert(result.copy.includes(signal.source_facts[0].text));assert(result.copy.includes('FORMING'));assert(result.copy.includes('ceremonial'));assert(result.copy.includes('forecast rather than realised'));assert.deepEqual(result.qualification_indexes,[0,1]);assert(!result.copy.includes('can provide'));
+ assert.throws(()=>nativeXCopy({...signal,source_facts:[{id:'e',text:'Whole source fact '.repeat(100)}]}),/SHORTER_APPROVED_FACT/);
 });

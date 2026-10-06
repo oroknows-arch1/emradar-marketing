@@ -3,6 +3,7 @@ import scanControl from '../config/scan-control.json' with {type:'json'};
 import {normalizeOutcome,analyseOutcomes,learnRouting,historicalRoutingInput} from './outcomes.js';
 import {evaluateX} from './route-feedback.js';
 import {checkPublication} from './publication-outcomes.js';
+import {nativeXCopy} from './x-copy.js';
 import crypto from 'node:crypto';
 import {marketingWorkUnit} from './harness.js';
 import {SpendEnvelope,zeroQuote,zeroBilling} from './spending.js';
@@ -282,6 +283,7 @@ const workers={
   },
   async editorial_intelligence(c,e) {
     c.allowed_copy=[...(c.signal.approved_copy||[])];
+    if(c.input.product==='EMRADAR'&&c.route.destination.platform==='X'){const native=nativeXCopy(c.signal);c.allowed_copy=[native.copy];c.copy=native.copy;c.fact_bindings=native.evidence_refs;c.copy_method=native.method;return;}
     if(c.route?.destination?.platform==='OPEN_ROUTE'){
       approved(c.product,c.signal);if(digest(c.product)!==c.truth_hash)fail('EVIDENCE_TRUTH_CHANGED');
       if(c.reused_proposal){
