@@ -1452,6 +1452,8 @@
     "next_cycle": "New campaign/input or configured trigger; persistent learning loaded on each entry",
     "creative_fallback": "Missing approved source/copy/destination is a bounded Harness-required blocker; do not fabricate",
     "autonomous_trigger": "MARKETING_AUTONOMOUS=true; bounded tick every >=60s; per-product autonomous.enabled required",
-    "model_dispatch": "runtime/harness.js calls canonical configured Harness router, registry, executor and verifier; default BLOCKED when absent; bounded reserved worker costs"
+    "model_dispatch": "runtime/harness.js calls canonical configured Harness router, registry, executor and verifier; default BLOCKED when absent; bounded reserved worker costs",
+    "approval_entrypoint": "GraphEngine.approvePublication: exact identity -> durable OWNER_APPROVED + distribution_work -> acknowledgement",
+    "distribution_entrypoint": "GraphEngine.distributeApproved: leased bounded worker -> exact persisted asset -> execute -> receipt -> asynchronous existing feedback"
   }
 }

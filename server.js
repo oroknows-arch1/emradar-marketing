@@ -1,4 +1,5 @@
 import http from "node:http";
+import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
@@ -265,7 +266,10 @@ const server=http.createServer(async(req,res)=>{
       if(!/^[a-f0-9]{64}$/.test(decision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(decision?.review_hash||''))return json(res,400,{ok:false,reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});
       if(decision.decision==='REJECTED')return json(res,200,await (await marketingEngine()).rejectPublication(decision));
       if(decision.decision&&decision.decision!=='APPROVED')return json(res,400,{ok:false,reason:'INVALID_PUBLICATION_DECISION'});
-      return json(res,200,await (await marketingEngine()).approvePublication(decision));
+      const approved=await (await marketingEngine()).approvePublication(decision);
+      json(res,202,approved);
+      setImmediate(()=>distributionCycle().catch(e=>console.error('APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:e.message}))));
+      return;
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==="POST"&&["/RUN_MARKETING","/COLLECT_PERFORMANCE","/CYCLE"].includes(u.pathname)){
@@ -292,6 +296,7 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
+  distributionCycle().catch(e=>console.error('APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:e.message})));
   try{const probe=correspondenceProbe();console.log('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:probe.status,version:probe.version,worker:probe.worker,mode:probe.mode,external_actions:probe.external_actions,artifact_hash:probe.artifact_hash,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'}));}catch(e){console.error('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:'BLOCKED',reason:e.message}));}
   normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0})));
 });
@@ -377,3 +382,19 @@ async function normalCycle(){
   return normalCyclePromise;
 }
 setInterval(()=>normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0}))),Math.max(60000,Number(process.env.MARKETING_CYCLE_INTERVAL_MS)||300000)).unref();
+
+// Durable reviewed work has its own bounded runtime wake-up; no connected Work caller.
+let distributionPromise=null;
+async function distributionCycle(){
+  if(distributionPromise)return distributionPromise;
+  distributionPromise=(async()=>{
+    const engine=await marketingEngine();
+    const excludeCampaigns=[];
+    try{await engine.recoverApprovedCampaign(approvedRecovery);}catch(e){excludeCampaigns.push(approvedRecovery.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:approvedRecovery.campaign_id,reason:e.message}));}
+    const results=await engine.distributeApproved({limit:8,excludeCampaigns});
+    for(const result of results)console.log('APPROVED_DISTRIBUTION_RECEIPT '+JSON.stringify(result));
+    return results;
+  })().finally(()=>{distributionPromise=null;});
+  return distributionPromise;
+}
+setInterval(()=>distributionCycle().catch(e=>console.error('APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:e.message}))),60000).unref();

@@ -34,7 +34,7 @@ test('bounded revision refreshes only same unsent route, preserves source and co
  await assert.rejects(f.engine.approvePublication(f.p),/EXPIRED_OR_CHANGED/);
  const repeat=await f.engine.revisePublication(f.p);assert.equal(repeat.proposal_id,p.proposal_id);assert.equal(f.delivered.length,0);
  const run=await f.store.get('run:'+result.run_id);assert(!run.nodes.some(n=>n.node==='execute'));assert.equal(run.selection.options.length,1);assert.equal(run.learning_after.version,run.learning_before.version);
- const submitted=await f.engine.approvePublication(p);assert.equal(submitted.status,'PASS',submitted.blocker);assert.equal(f.delivered.length,1);assert.deepEqual(f.delivered[0].asset,p.asset);
+ const acknowledgement=await f.engine.approvePublication(p);assert.equal(acknowledgement.status,'OWNER_APPROVED');const [submitted]=await f.engine.distributeApproved();assert.equal(submitted.status,'SUBMITTED',submitted.receipt.error);assert.equal(f.delivered.length,1);assert.deepEqual(f.delivered[0].asset,p.asset);
 });
 
 test('tampered reviewed email and changed source cannot authorize any delivery',async()=>{

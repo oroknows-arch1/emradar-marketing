@@ -26,7 +26,8 @@ export async function reconcileZeroHistory(store,ledger){
 // workers, attempts, publication and observation. Never infer billing from ad spend.
 export class SpendEnvelope {
   constructor(store){this.store=store;}
-  async reserve({campaign_id,quote,action_id,run_id,category='other_variable',at=new Date()}){
+  async reserve(args){return this.store.locked('spend_envelope',()=>this.reserveLocked(args));}
+  async reserveLocked({campaign_id,quote,action_id,run_id,category='other_variable',at=new Date()}){
     if(!quote||quote.currency!=='AUD'||quote.verified!==true||!quote.provider_enforced||!valid(quote.max_cost_aud)||!quote.receipt_id)throw new Error('ACTUAL_COST_BOUND_UNKNOWN');
     const month=calendarMonth(at);const key='spend:'+month;
     const ledger=await this.store.get(key)||{month,actual_aud:0,unresolved:{},campaigns:{},receipts:{},historical_billing:'UNKNOWN'};
@@ -40,7 +41,8 @@ export class SpendEnvelope {
     await costCall(this.store,run_id,{action_id:id,category,provider:quote.provider||'UNKNOWN',model:quote.model||'UNKNOWN',service:quote.service||'UNKNOWN',quote_receipt:quote.receipt_id,reserved_max_aud:quote.max_cost_aud,amount_aud:'UNKNOWN',state:'UNKNOWN',reason:'CALL_RESERVED_NO_BILLING_RECEIPT'});
     return {id,key,month,campaign_id,run_id,category,max_cost_aud:quote.max_cost_aud,quote};
   }
-  async settle(reservation,billing){
+  async settle(reservation,billing){return this.store.locked('spend_envelope',()=>this.settleLocked(reservation,billing));}
+  async settleLocked(reservation,billing){
     const l=await this.store.get(reservation.key);const held=l.unresolved[reservation.id];
     if(!held)throw new Error('COST_RESERVATION_MISSING');
     const detail=billingDetail(billing);

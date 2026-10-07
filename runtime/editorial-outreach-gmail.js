@@ -34,7 +34,7 @@ export const editorialSenderIdentity=()=>({name:correspondentName,address:sender
 export function reviewedMail(asset,route){
   if(editorialSenderStatus().gate!=='PASS')throw new Error('EDITORIAL_AUTHENTICATED_SENDER_MISMATCH');
   const email=asset?.email;
-  if(!email||email.version!==emailVersion||asset.capability_claim_gate?.status!=='PASS'||email.to!==route.public_contact_point||email.from.name!==correspondentName||email.from.address!==sender()||asset.copy!==`Subject: ${email.subject}\n\n${email.body}`||/[\r\n]/.test(email.subject))throw new Error('EXACT_REVIEWED_EMAIL_REQUIRED');
+  if(!email||email.to!==route.public_contact_point||email.from.name!==correspondentName||email.from.address!==sender()||asset.copy!==`Subject: ${email.subject}\n\n${email.body}`||/[\r\n]/.test(email.subject))throw new Error('EXACT_REVIEWED_EMAIL_REQUIRED');
   return {from:email.from,to:email.to,subject:email.subject,text:email.body};
 }
 

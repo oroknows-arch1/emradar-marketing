@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises';
+import {approveExact,drainApproved,recoverApprovedCampaign} from './approved-distribution.js';
 import scanControl from '../config/scan-control.json' with {type:'json'};
 import {intakeHeld} from './autonomous-source.js';
 import {normalizeOutcome,analyseOutcomes,learnRouting,historicalRoutingInput} from './outcomes.js';
@@ -57,23 +58,9 @@ export class GraphEngine {
       return result;
     });
   }
-  async approvePublication({proposal_id,review_hash}) {
-    const proposal=await this.store.locked('engine',async()=>{
-      const p=await this.store.get('publication_review:'+proposal_id);
-      if(!p||['REJECTED','SUPERSEDED'].includes(p.status)||p.review_hash!==review_hash||Date.parse(p.expires_at)<=Date.now())fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
-      if(p.preview_only)fail('PREVIEW_WARNINGS_REQUIRE_VERIFIED_REVISION_BEFORE_DISTRIBUTION');
-      if(isEmail(p.asset?.delivery)){
-        if(!p.asset.email||!p.review_binding)fail('HUMAN_READY_EMAIL_REFRESH_REQUIRED');
-        const computed=digest({product_truth:p.review_binding.product_truth,signal_revision:p.signal_revision,asset:p.asset,destination:p.review_binding.destination,source_receipt:p.source_receipt||null});
-        if(computed!==p.review_hash||digest([p.publication_key,computed])!==p.proposal_id)fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
-      }
-      const existing=await this.store.get('receipt:'+p.publication_key);
-      if(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS'].includes(existing?.execution_status))fail('PUBLICATION_ALREADY_EXECUTED');
-      await this.store.put('publication_approval:'+proposal_id,{review_hash,approved_by:'OWNER',approved_at:now(),expires_at:p.expires_at});
-      return p;
-    });
-    const {stop_at,...input}=proposal.input;return this.run({...input,...(proposal.asset.email?{reviewed_proposal_id:proposal_id}: {})});
-  }
+  async approvePublication(decision) {return approveExact(this,decision);}
+  async distributeApproved(options) {return drainApproved(this,workers,options);}
+  async recoverApprovedCampaign(manifest) {return recoverApprovedCampaign(this,manifest);}
   async revisePublication({proposal_id,review_hash}) {
     const p=await this.store.get('publication_review:'+proposal_id);
     if(!p||p.review_hash!==review_hash)fail('PUBLICATION_REVIEW_EXPIRED_OR_CHANGED');
@@ -186,7 +173,7 @@ export class GraphEngine {
       await beginCosts(this.store,{run_id:c.run_id,input:c.input,source:{id:r.signal_id,revision:r.signal_revision},kind:'FEEDBACK'});
       try{await this.traverse(c,'observe');}finally{await finishCosts(this.store,c.run_id,{outcome:c.status==='RUNNING'?'FEEDBACK_COMPLETE':c.status,blocker:c.blocker});}
       const receiptIndex=await this.store.get('receipt_index')||[];const indexed=receiptIndex.find(v=>v.id===r.id);if(indexed){indexed.last_collection=now();await this.store.put('receipt_index',receiptIndex);}
-      const feedbackRecord={run_id:c.run_id,trace:c.trace,outcome:c.outcome||null,learning:c.state,routing_memory:c.routing_memory};await this.store.put('feedback_run:'+c.run_id,feedbackRecord);const feedbackIndex=await this.store.get('feedback_history:'+r.id)||[];feedbackIndex.push(c.run_id);await this.store.put('feedback_history:'+r.id,feedbackIndex);await this.store.put('feedback:'+r.id,feedbackRecord);return {trace:c.trace,outcome:c.outcome,learning:c.state};
+      const feedbackRecord={run_id:c.run_id,trace:c.trace,outcome:c.outcome||null,learning:c.state,routing_memory:c.routing_memory};await this.store.put('feedback_run:'+c.run_id,feedbackRecord);const feedbackIndex=await this.store.get('feedback_history:'+r.id)||[];feedbackIndex.push(c.run_id);await this.store.put('feedback_history:'+r.id,feedbackIndex);await this.store.put('feedback:'+r.id,feedbackRecord);if(await this.store.get('outcome_work:'+r.id))await this.store.put('outcome_work:'+r.id,{receipt_id:r.id,status:'WAITING_NEXT_OBSERVATION',last_collection:now(),feedback_run_id:c.run_id});return {trace:c.trace,outcome:c.outcome,learning:c.state};
     });
   }
 }
@@ -447,7 +434,7 @@ const workers={
     if(intakeHeld())fail('MARKETING_EMERGENCY_STOP');
     if(c.route.destination.platform!=='LOCAL'&&(c.input.stop_at==='PUBLICATION_REVIEW'||c.review?.decision!=='APPROVED'))fail('EXACT_PUBLICATION_APPROVAL_REQUIRED');
     if(c.route.destination.open_access_prepare_only)fail('OPEN_ROUTE_EXECUTOR_NOT_IMPLEMENTED');
-    c.publication_key=digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
+    c.publication_key=c.approved_distribution?c.approved_proposal.publication_key:digest([c.input.product,c.signal.id,c.signal.revision,c.route.id,c.route.format,c.variant.id]);
     const prior=await e.store.get('receipt:'+c.publication_key);
     if(['PUBLISHED','SUBMITTED'].includes(prior?.execution_status)){c.receipt=prior;c.duplicate=true;return;}
     if(prior?.execution_status==='IN_FLIGHT'||prior?.execution_status==='AMBIGUOUS')fail('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
@@ -470,7 +457,9 @@ const workers={
     c.receipt.account=c.route.destination.route_record?.public_contact_point||'UNKNOWN';
     c.receipt.approved_artifact_hash ||= c.review?.review_hash||null;
     c.receipt.proposal_id ||= c.review?.proposal_id||null;
-    await e.store.put('receipt:'+c.publication_key,c.receipt);
+    if(c.approved_distribution)Object.assign(c.receipt,{review_hash:c.review.review_hash,asset_hash:c.asset.sha256||digest(c.asset),idempotency_key:c.publication_key,provider_route:c.asset.delivery||c.route.destination.id});
+    if(c.approved_distribution){if(!await e.store.claimReceipt('receipt:'+c.publication_key,c.receipt)){await e.spend.settle(c.cost_reservation,c.adapter.cost==='ZERO'?zeroBilling(c.publication_key):null);fail('PUBLICATION_ALREADY_CLAIMED');}}
+    else await e.store.put('receipt:'+c.publication_key,c.receipt);
     await e.store.put(pendingKey,{receipt_id:c.publication_key,status:'IN_FLIGHT'});
     try {
       const result=await c.adapter.publish(c.asset,c.publication_key,c.input.product);
@@ -483,6 +472,8 @@ const workers={
       // A timeout/5xx after POST might already have published. Never repeat it blindly.
       Object.assign(c.receipt,{execution_status:status===429?'RATE_LIMITED':status&&status>=400&&status<500?'FAILED':'AMBIGUOUS',error:String(error.message).slice(0,200),retry_at:status===429?new Date(Math.max(Date.now()+60000,error.retry_at||0)).toISOString():null});
     }
+    // Persist provider outcome before billing/indexing, so later failures cannot lose delivery proof.
+    await e.store.put('receipt:'+c.publication_key,c.receipt);
     c.receipt.provider_cost=await e.spend.settle(c.cost_reservation,c.adapter.cost==='ZERO'?zeroBilling(c.publication_key):c.provider_billing);
     await e.store.put('receipt:'+c.publication_key,c.receipt);
     if(c.receipt.execution_status!=='AMBIGUOUS')await e.store.put(pendingKey,null);

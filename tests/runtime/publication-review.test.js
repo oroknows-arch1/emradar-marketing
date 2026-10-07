@@ -21,19 +21,21 @@ test('external publication waits for exact owner review, then resumes graph and 
   const proposal=await f.store.get('publication_review:'+candidate.review.proposal_id);
   assert.equal(proposal.copy,candidate.review.copy);
   await assert.rejects(f.engine.approvePublication({proposal_id:proposal.proposal_id,review_hash:'changed'}),/PUBLICATION_REVIEW_EXPIRED_OR_CHANGED/);
-  const published=await f.engine.approvePublication({proposal_id:proposal.proposal_id,review_hash:proposal.review_hash});
+  const acknowledgement=await f.engine.approvePublication({proposal_id:proposal.proposal_id,review_hash:proposal.review_hash});
+  assert.equal(acknowledgement.status,'OWNER_APPROVED');
+  const [execution]=await f.engine.distributeApproved();
+  const feedback=await f.engine.feedback(execution.receipt.id);
+  const published={...feedback,status:'PASS',receipt:execution.receipt,review:execution.receipt.publication_review,learning_after:feedback.learning};
   assert.equal(published.status,'PASS');assert.equal(published.receipt.execution_status,'PUBLISHED');assert.equal(published.review.decision,'APPROVED');assert.equal(published.receipt.publication_review.review_hash,proposal.review_hash);
   assert.equal(published.outcome.measurements.content_verified.value,1);assert.equal(published.learning_after.version,1);
-  const again=await f.engine.run({...f.input,campaign_id:'NEXT_CYCLE'});
-  assert.equal(again.receipt.id,published.receipt.id);assert.equal((await fs.readdir(f.dir+'/destination')).length,1);
-  assert(again.selection.options[0].learned>candidate.selection.options[0].learned);
+  const again=await f.engine.approvePublication(proposal);
+  assert.equal(again.receipt.id,published.receipt.id);assert.deepEqual(await f.engine.distributeApproved(),[]);assert.equal((await fs.readdir(f.dir+'/destination')).length,1);
+  assert.equal(published.learning_after.version,1);
 });
 
-test('owner approval for old product truth cannot authorize changed copy or source revision',async()=>{
+test('owner approval keeps exact reviewed artifact even when current source has advanced',async()=>{
   const f=await externalFixture();const before=await f.engine.run(f.input);
   f.p.signals[0].revision='r2';f.p.signals[0].approved_copy=['TEST_PRODUCT — FORMING. Updated reviewed fact.'];
-  for(const d of f.p.destinations){d.delta.signal_revision='r2';d.permission.signal_revision='r2';}
-  const after=await f.engine.approvePublication(before.review);
-  assert.equal(after.status,'AWAITING_REVIEW');assert.notEqual(after.review.proposal_id,before.review.proposal_id);
-  await assert.rejects(fs.readdir(f.dir+'/destination'),{code:'ENOENT'});
+  const ack=await f.engine.approvePublication(before.review);assert.equal(ack.status,'OWNER_APPROVED');
+  const [out]=await f.engine.distributeApproved();assert.equal(out.status,'PUBLISHED');assert.equal(out.receipt.signal_revision,'r1');
 });

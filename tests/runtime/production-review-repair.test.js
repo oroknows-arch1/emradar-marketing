@@ -89,7 +89,7 @@ test('X_UNKNOWN_DISTRIBUTION_COST_PRESERVES_REVIEW_ARTIFACT',async()=>{
  const f=await setup(),result=await autonomousScanCycle(f.args),x=result.package.proposals.find(p=>p.platform==='X');
  assert(x,JSON.stringify(result.package.blockers));assert.equal(x.cost_state,'UNKNOWN');assert.equal(x.distribution_cost_state,'UNKNOWN');assert.equal(x.distribution_state,'BLOCKED_PENDING_COST_RESOLUTION');
  const engine=await f.args.engineFactory(),attempt=await engine.approvePublication({proposal_id:x.proposal_id,review_hash:x.review_hash});
- assert.equal(attempt.blocker,'ACTUAL_COST_BOUND_UNKNOWN');assert.equal(f.actions(),0);
+ assert.equal(attempt.status,'OWNER_APPROVED');const [out]=await engine.distributeApproved();assert.equal(out.receipt.error,'ACTUAL_COST_BOUND_UNKNOWN');assert.equal(f.actions(),0);
 });
 test('HUMAN_CORRESPONDENCE_REQUIRES_RECIPIENT_AGENCY',()=>{
  const p=correspondenceProbe(),draft=structuredClone(p.email.proposition),old=draft.correspondence.question;
@@ -167,7 +167,7 @@ test('OWNER_PREVIEW_ALL_CREDIBLE_DESTINATIONS_WITHOUT_COUNT_CEILING',async()=>{
 test('OWNER_PREVIEW_WARNING_RETAINS_EXACT_GENERATED_CONTENT_WITHOUT_DISTRIBUTION',async()=>{
  const f=await setup((r,c)=>{if(c.destination.organisation==='Hydrocarbon Engineering')r.result.body+='\n\nWe will provide ongoing monitoring.';return r;},true);
  const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));const p=out.package.proposals.find(p=>p.destination==='HYDROCARBON-ENGINEERING-EDITORIAL');assert(p.asset.email.body.includes('We will provide ongoing monitoring.'));assert.equal(p.review_state,'PREVIEW_WITH_WARNING');assert(p.preview_warnings.some(w=>w.reason==='UNVERIFIED_CAPABILITY_CLAIM'));assert(p.preview_only);
- const engine=await f.args.engineFactory();await assert.rejects(engine.approvePublication({proposal_id:p.proposal_id,review_hash:p.review_hash}),/PREVIEW_WARNINGS/);assert.equal(f.actions(),0);
+ const engine=await f.args.engineFactory();const ack=await engine.approvePublication({proposal_id:p.proposal_id,review_hash:p.review_hash});assert.equal(ack.status,'OWNER_APPROVED');assert.equal(f.actions(),0);
 });
 test('OWNER_AUTHORIZED_PREVIEW_USES_AUD_ENVELOPE_INSTEAD_OF_EXHAUSTED_WORKER_COUNT',async()=>{
  const f=await setup(undefined,true);await f.store.put('worker_cost:EMRADAR:'+new Date().toISOString().slice(0,10),{calls:100,reserved_aud:8});const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));assert.equal(f.actions(),0);

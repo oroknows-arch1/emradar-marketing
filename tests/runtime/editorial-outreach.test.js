@@ -32,8 +32,9 @@ test('approved REDIMIN route localizes, submits once, records outcome and learns
   assert(candidate.nodes.some(n=>n.node==='localization'&&n.status==='PASS'));
   assert.equal(f.sends(),0);
 
-  const submitted=await f.engine.approvePublication(candidate.review);
-  assert.equal(submitted.status,'PASS',submitted.blocker);
+  await f.engine.approvePublication(candidate.review);
+  const [executed]=await f.engine.distributeApproved();
+  const feedback=await f.engine.feedback(executed.receipt.id);const submitted={...feedback,learning_after:feedback.learning,receipt:executed.receipt};
   assert.equal(submitted.receipt.execution_status,'SUBMITTED');
   assert.equal(submitted.receipt.delivery_status,'DELIVERED');
   assert.equal(submitted.outcome.measurements.response_received.value,1);

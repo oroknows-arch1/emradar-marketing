@@ -1,0 +1,38 @@
+{
+  "campaign_id": "EMRADAR_2026_10_06_LAUNCH",
+  "authority": "EXPLICIT_OWNER_APPROVAL_2026_10_07_EXACT_REVIEW_PACKAGE",
+  "proposals": [
+    {
+      "proposal_id": "85a18ba2e14425a600afe1ee6bc44f6b480191a54aa5a124c8770b95a54ad640",
+      "review_hash": "5d972182aad3263313e81e95f69ed29221a14def646194996ea842082ad37bb2"
+    },
+    {
+      "proposal_id": "10d265194ff8699efeb4ed3e5a17b6afed10386047a9ee5a9909f4a76f502280",
+      "review_hash": "0c43da6b598e5e9970f95bbb1e2e875df79963c239ceb5cd3703bbd558c48ff5"
+    },
+    {
+      "proposal_id": "c2d641d260eba953af5032d24548437354d83c11dfa3e8eb7275a1ea528e5656",
+      "review_hash": "5fc9a5431e08321d96b3a02d3c3d3fcae04e2fec97c26198339b6e0b24a3c62e"
+    },
+    {
+      "proposal_id": "027f098eefdf2550a3b3a8feef604afbfe116950e1b0f6b2d24ad3b035cd8c10",
+      "review_hash": "1d2633ba20ca7b2d69cb3c9e34910f3f36237c0fa4c134296d8b1105d6baad09"
+    },
+    {
+      "proposal_id": "da64167ff464d54814c38f9a503f78d5f6307e2f8bc12a0188fb2e2af518520a",
+      "review_hash": "59e32be1d67789f7e46c145b5d313904b9cd9e82820a98d934dd7f3015581e17"
+    },
+    {
+      "proposal_id": "32a0ae9829e95d642f77bd100f70df49ff05b1ab347e2298681de89f93b832c3",
+      "review_hash": "5dc58f773f36b65435f6786b757936aea8141acdbd03e419eed27751608e8ae6"
+    },
+    {
+      "proposal_id": "61335f795ba13c7a7544b329d87528884741401fdd215f4ab5367c1181f4b094",
+      "review_hash": "e5b6793f291c92a1d5a98a6f0aea66aa9968d8f6f36acec9a2321d975279742e"
+    },
+    {
+      "proposal_id": "f02d77658fd71f34dbdd88d9c9d243e48fe2650da6e996e6e4116a678e6accaa",
+      "review_hash": "8d2e4e5c6802f9fb4bb69fa7e589b8251cd64682a1bb95c2398f8ab0ec1c5502"
+    }
+  ]
+}
