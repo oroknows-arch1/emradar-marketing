@@ -12,7 +12,7 @@ import {autonomousScanCycle,reviewContractRevision} from '../../runtime/autonomo
 import {nativeXCopy} from '../../runtime/x-copy.js';
 import {evidenceVisual,validateCombinedX} from '../../runtime/x-visual.js';
 import {formationFromSignal,openRouteScout,prepareRouteAssets} from '../../runtime/open-route-scout.js';
-import {validateCorrespondenceProposition} from '../../runtime/editorial-email.js';
+import {validateCorrespondenceProposition,draftCapability,draftOffer} from '../../runtime/editorial-email.js';
 import {correspondenceProbe} from '../../runtime/correspondence-probe.js';
 import {editorialContext} from '../../runtime/editorial-copy.js';
 import {calendarMonth} from '../../runtime/spending.js';
@@ -27,19 +27,20 @@ async function setup(transform,preview=false){
  const harness=editorialHarness(),work=harness.work;
  harness.work=async(...args)=>{
    const r=await work(...args),context=args[1],name=context.destination.organisation;
-   const reason="I'm contacting "+name+" about "+context.destination.relevant_beat_topic[0]+'.';
-   const insight=({FINANCIAL_MARKETS:'Recovered exports do not establish lower delivered prices.',REFINING_AND_STORAGE:'Recovered crude flows do not establish restored refining capacity.',MARITIME_LOGISTICS:'Tanker risk remains distinct from crude export volume.'})[context.brief.lane];
-   const proposition='The proposed analysis examines '+context.destination.relevant_beat_topic[0]+'.';
-   const question='Would this analysis be useful for your readers?';
-   for(const [key,value] of Object.entries({reason,insight,proposition,question})){r.result.body=r.result.body.replace(r.result.correspondence[key],value);r.result.correspondence[key]=value;}
-   // The test model uses one exact fact and all uncertainties, preserving the production shape within the email word limit.
-   const development=context.source.source_facts[0].text;
-   r.result.body=r.result.body.replace(r.result.correspondence.development,development);r.result.correspondence.development=development;r.result.claims=[{text:development,evidence_refs:[context.source.source_facts[0].id]}];
+   const question='Would this analysis be useful for '+name+' readers?';
+   const reason=question;
+   const insight='What stood out was '+({FINANCIAL_MARKETS:'the gap between recovered exports and delivered prices.',REFINING_AND_STORAGE:'the gap between recovered crude flows and restored refining capacity.',MARITIME_LOGISTICS:'tanker risk remaining distinct from crude export volume.'})[context.brief.lane];
+   const proposition='We are developing an evidence-backed contribution around '+context.destination.relevant_beat_topic[0]+' — while keeping the unresolved delivery risks explicit.';
+   // The test model uses one exact fact and keeps all uncertainty in internal metadata, preserving the production shape within the email word limit.
+   const development=context.source.source_facts[0].text+' The formation is '+context.source.state+'.';
+   const next_step=draftOffer(context.target_language);
+   Object.assign(r.result.correspondence,{reason,development,insight,proposition,question,next_step});
+   r.result.body=[development+' '+insight,proposition,question,next_step].join('\n\n');
+   r.result.claims=[{text:development,evidence_refs:[context.source.source_facts[0].id]}];
+   r.result.capability_claims=[{text:next_step,capability:draftCapability}];
    if(name==='Reuters Breakingviews'){
-    const development='Crude exports recovered while tanker risk persisted.';
-    r.result.body=r.result.body.replace(r.result.correspondence.development,development);r.result.correspondence.development=development;r.result.claims=[{text:development,evidence_refs:[context.source.source_facts[2].id]}];
-    const concise=['Crude recovery could ease upstream tightness.','Executives have scarcity incentives.','War risk changes rapidly; disabled tracking obscures movements.'];
-    for(let i=0;i<3;i++){r.result.body=r.result.body.replace(r.result.qualifications[i].text,concise[i]);r.result.qualifications[i].text=concise[i];}
+    const development='Crude exports recovered while tanker risk persisted. The formation is '+context.source.state+'.';
+    r.result.correspondence.development=development;r.result.body=[development+' '+insight,proposition,question,next_step].join('\n\n');r.result.claims=[{text:development,evidence_refs:[context.source.source_facts[2].id]}];
    }
    return transform?transform(r,context):r;
  };
@@ -93,7 +94,7 @@ test('X_UNKNOWN_DISTRIBUTION_COST_PRESERVES_REVIEW_ARTIFACT',async()=>{
 });
 test('HUMAN_CORRESPONDENCE_REQUIRES_RECIPIENT_AGENCY',()=>{
  const p=correspondenceProbe(),draft=structuredClone(p.email.proposition),old=draft.correspondence.question;
- draft.correspondence.question='Could this logistics bottleneck reverse soon, easing fuel cost inflation?';draft.body=draft.body.replace(old,draft.correspondence.question);
+ draft.correspondence.question='Could this logistics bottleneck reverse soon, easing fuel cost inflation?';draft.correspondence.reason=draft.correspondence.question;draft.body=draft.body.replace(old,draft.correspondence.question);
  assert.throws(()=>validateCorrespondenceProposition(draft,p.route),/RECIPIENT_AGENCY/);assert.doesNotThrow(()=>validateCorrespondenceProposition(p.email.proposition,p.route));
 });
 test('PRODUCTION_SHAPED_PATH_STOPS_AT_PUBLICATION_REVIEW',async()=>{
@@ -122,7 +123,7 @@ test('UNVERIFIED_CAPABILITY_PRODUCER_ROBUSTNESS',async()=>{
 test('MARINELINK_STRUCTURED_RESULT_ROBUSTNESS',async()=>{
  for(const [field,value] of [['subject',''],['body',''],['signal_state','UNKNOWN'],['language','es-CL']]){
   let calls=0;const f=await setup((r,c)=>{if(c.destination.organisation==='MarineLink'&&++calls===1)r.result[field]=value;return r;});
-  const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));assert.equal(calls,2);const marine=out.package.proposals.find(p=>p.destination==='MARINELINK-EDITORIAL-INQUIRY');assert(marine);assert.match(marine.copy,/Tanker risk/);assert.equal(f.actions(),0);
+  const out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));assert.equal(calls,2);const marine=out.package.proposals.find(p=>p.destination==='MARINELINK-EDITORIAL-INQUIRY');assert(marine);assert.match(marine.copy,/tanker risk/i);assert.equal(f.actions(),0);
  }
 });
 test('OPTIONAL_ROUTE_ISOLATION_AND_EXISTING_VALID_ARTIFACT_PRESERVATION',async()=>{
@@ -152,7 +153,7 @@ test('ALL_OPTIONAL_ROUTES_RECEIVE_STRICT_CURRENT_CAPABILITY_SCHEMA',async()=>{
  const f=await setup();await autonomousScanCycle(f.args);const product=(await f.intake.products()).EMRADAR,signal=product.signals[0],route=directory.destinations.find(d=>d.destination_id==='MARINELINK-EDITORIAL-INQUIRY');
  const context=editorialContext({signal,product,route:{id:route.destination_id,destination:{route_record:route}},route_plan:{proposed_assets:[{destination_id:route.destination_id}]}});
  assert(context.response_schema);assert.deepEqual(context.response_schema.properties.language.enum,['en']);assert.deepEqual(context.response_schema.properties.signal_state.enum,[signal.state]);assert(context.response_schema.required.includes('subject'));assert(context.response_schema.required.includes('body'));assert(context.response_schema.required.includes('correspondence'));
- assert.deepEqual(context.response_schema.properties.capability_claims.items.properties.text.enum,['I’m sharing the source-linked note below.']);assert(context.response_schema.properties.correspondence.properties.next_step.enum.includes(null));
+ assert.deepEqual(context.response_schema.properties.capability_claims.items.properties.text.enum,[draftOffer('en')]);assert.deepEqual(context.response_schema.properties.correspondence.properties.next_step.enum,[draftOffer('en')]);
 });
 
 
@@ -160,7 +161,7 @@ test('OWNER_PREVIEW_ALL_CREDIBLE_DESTINATIONS_WITHOUT_COUNT_CEILING',async()=>{
  const f=await setup(undefined,true),out=await autonomousScanCycle(f.args);assert.equal(out.status,'AWAITING_REVIEW',JSON.stringify(out.package.blockers));
  const external=out.package.proposals.filter(p=>p.platform!=='X'),plan=await f.store.get('route_plan:EMRADAR:'+out.package.formation.id+':'+external[0].signal_revision);
  assert.equal(external.length,plan.candidates.filter(d=>d.destination_id!=='EMRADAR-X-OROKNOWS').length);assert(external.length>=7);assert.equal(new Set(external.map(p=>p.copy)).size,external.length);
- for(const p of external){assert(p.asset.email.body.startsWith('Hello,')||p.asset.email.body.startsWith('Hi '));assert(p.asset.email.body.includes('Sean Walker'));assert.match(p.asset.email.body,/Would this analysis be useful for your readers\?/);assert(p.asset.email.body.endsWith('Sean Walker\nEMRADAR'));assert(p.evidence_refs.length);}
+ for(const p of external){assert(p.asset.email.body.startsWith('Hello,')||p.asset.email.body.startsWith('Hi '));assert(p.asset.email.body.includes('Sean Walker'));assert.match(p.asset.email.body,/Would this analysis be useful for .+ readers\?/);assert(p.asset.email.body.endsWith('Sean Walker\nEMRADAR'));assert(p.evidence_refs.length);}
  const x=out.package.proposals.find(p=>p.platform==='X');assert(x.asset.combined_review_artifact);assert(x.asset.base64);assert.equal(f.actions(),0);assert.equal(out.external_actions,0);
  const second=await autonomousScanCycle(f.args);assert.deepEqual(second.package.proposals.map(p=>p.proposal_id),out.package.proposals.map(p=>p.proposal_id));
 });

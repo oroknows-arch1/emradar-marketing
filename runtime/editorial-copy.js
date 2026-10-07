@@ -82,6 +82,6 @@ export async function produceEditorial(context,work,record=async()=>{}){
     const output=await work(request,attempt);
     output.result=normalizeCorrespondence(output.result,context.source,context.destination);
     try{validateEditorial(output.result,output.proof,context);await record({attempt,status:'PASS'});return output;}
-    catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(context.owner_preview&&previewWarning(error.message)&&output.result?.subject?.trim()&&output.result?.body?.trim()){return {...output,preview_warnings:[{gate:'editorial_intelligence',reason:error.message}],preview_only:true};}if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID'].includes(error.message))throw error;correction=error.message;}
+    catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(context.owner_preview&&previewWarning(error.message)&&output.result?.subject?.trim()&&output.result?.body?.trim()){return {...output,preview_warnings:[{gate:'editorial_intelligence',reason:error.message}],preview_only:true};}if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID','EDITORIAL_SOURCE_STATE_MISMATCH'].includes(error.message))throw error;correction=error.message;}
   }
 }

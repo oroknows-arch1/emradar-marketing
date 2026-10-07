@@ -443,8 +443,10 @@ const workers={
     let dailyLedger;
     let dailyLedgerKey;
     const standing=c.approved_distribution&&c.input.product==='EMRADAR'&&c.route.destination.platform==='X';
-    if(c.adapter.cost!=='ZERO'&&!standing){
+    if(c.adapter.cost!=='ZERO'){
       if(!c.adapter.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
+    }
+    if(c.adapter.cost!=='ZERO'&&!standing){
       dailyLedgerKey='cost:'+c.input.product+':'+now().slice(0,10);dailyLedger=await e.store.get(dailyLedgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
       if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||dailyLedger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||dailyLedger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
     }
