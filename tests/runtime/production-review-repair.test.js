@@ -101,7 +101,7 @@ test('PRODUCTION_SHAPED_PATH_STOPS_AT_PUBLICATION_REVIEW',async()=>{
  const f=await setup(),first=await autonomousScanCycle(f.args);
  assert.equal(first.status,'AWAITING_REVIEW',JSON.stringify(first.package.blockers));assert.equal(first.package.required_stop,'PUBLICATION_REVIEW');assert.equal(first.external_actions,0);assert.equal(f.actions(),0);
  assert.equal(first.package.proposals.filter(p=>p.platform==='X').length,1);assert(first.package.proposals.find(p=>p.platform==='X').asset.combined_review_artifact);
- const external=first.package.proposals.filter(p=>p.platform!=='X');assert(external.length>1&&external.length<=5);assert.equal(new Set(external.map(p=>p.copy)).size,external.length);
+ const external=first.package.proposals.filter(p=>p.platform!=='X');assert(external.length>1);assert.equal(new Set(external.map(p=>p.copy)).size,external.length);
  const second=await autonomousScanCycle(f.args);assert(second.duplicate);assert.deepEqual(first.package.proposals.map(p=>p.proposal_id),second.package.proposals.map(p=>p.proposal_id));
  // An incomplete old review checkpoint is refreshed by the same signed autonomous entry, preserving campaign identity.
  const key='autonomous_scan:'+scan.snapshot_date+':'+first.package.source_sha256,state=await f.store.get(key);
@@ -111,6 +111,21 @@ test('PRODUCTION_SHAPED_PATH_STOPS_AT_PUBLICATION_REVIEW',async()=>{
  await f.store.put('receipt_index',first.package.proposals.map(p=>({product:'EMRADAR',campaign_id:first.campaign_id,signal_id:first.package.formation.id,signal_revision:p.signal_revision,destination:p.destination,proposal_id:p.destination===legacy.destination?legacy.proposal_id:p.proposal_id,execution_status:'AWAITING_REVIEW'})));
  await f.store.put(key,{...state,review_contract_revision:'old',routes:{},status:'AWAITING_REVIEW'});
  const resumed=await autonomousScanCycle(f.args);assert.equal(resumed.campaign_id,first.campaign_id);assert.equal(resumed.status,'AWAITING_REVIEW');assert.equal(resumed.package.review_contract_revision,reviewContractRevision);assert.equal(f.actions(),0);const superseded=await f.store.get('publication_review:'+legacy.proposal_id);assert.equal(superseded.status,'SUPERSEDED');assert(resumed.package.proposals.some(p=>p.replaces_proposal_id===legacy.proposal_id));
+});
+
+test('SAME_CONTRACT_X_ONLY_CHECKPOINT_RESUMES_DISCOVERY_AND_PERSISTS_COMPLETE_DISPOSITIONS',async()=>{
+ const f=await setup(),first=await autonomousScanCycle(f.args),key='autonomous_scan:'+scan.snapshot_date+':'+first.package.source_sha256;
+ const x=first.package.proposals.find(p=>p.destination==='EMRADAR-X-OROKNOWS'),state=await f.store.get(key);
+ await f.store.put('receipt_index',[{product:'EMRADAR',campaign_id:first.campaign_id,signal_id:first.package.formation.id,signal_revision:x.signal_revision,destination:x.destination,proposal_id:x.proposal_id,execution_status:'AWAITING_REVIEW'}]);
+ await f.store.put(key,{...state,status:'AWAITING_REVIEW',review_contract_revision:reviewContractRevision,routes:{[x.destination]:{status:'AWAITING_REVIEW',proposal_id:x.proposal_id,reused:true}}});
+ await f.store.put('review_package:'+first.campaign_id,{...first.package,proposals:[x],route_dispositions:[],discovery_routing_completion_receipt:null});
+ await f.store.put('discovery_routing_completion:'+first.campaign_id+':'+reviewContractRevision,null);
+ const runsBefore=(await f.store.keys('run:')).length,resumed=await autonomousScanCycle(f.args);
+ assert.equal(resumed.status,'AWAITING_REVIEW',JSON.stringify(resumed.package.blockers));assert.equal(resumed.duplicate,undefined);assert((await f.store.keys('run:')).length>runsBefore);
+ const receipt=resumed.package.discovery_routing_completion_receipt;assert.equal(receipt.status,'COMPLETE');assert.equal(receipt.review_contract_revision,reviewContractRevision);
+ assert.equal(resumed.package.route_dispositions.length,receipt.discovered_destinations.length);assert(receipt.candidate_destinations.every(id=>resumed.package.route_dispositions.some(d=>d.destination===id&&d.status!=='DISCOVERED_ONLY')));
+ assert(resumed.package.proposals.length>1);assert.equal(resumed.package.proposals.filter(p=>p.destination===x.destination).length,1);assert.equal(f.actions(),0);assert.equal(resumed.external_actions,0);
+ const stable=await autonomousScanCycle(f.args);assert.equal(stable.duplicate,true);assert.deepEqual(stable.package.proposals.map(p=>p.proposal_id),resumed.package.proposals.map(p=>p.proposal_id));
 });
 
 
