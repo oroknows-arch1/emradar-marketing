@@ -1,3 +1,4 @@
+import brand from './email-brand.cjs';
 import crypto from 'node:crypto';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 export const emailVersion='human-correspondence-v2';
@@ -82,7 +83,7 @@ export function recipientGreeting(route,language){
 export function humanReadyEmail({proposition,signal,route,identity,product}){
   if(!isEmail(route))return null;
   if(product!=='EMRADAR')fail('EMAIL_PRODUCT_PROFILE_REQUIRED');
-  if(!identity?.approved||identity.name!==correspondentName||identity.address!=='oroknows@gmail.com')fail('APPROVED_EMAIL_SENDER_REQUIRED');
+  if(!identity?.approved||identity.name!==correspondentName||identity.address!==brand.identity.address)fail('APPROVED_EMAIL_SENDER_REQUIRED');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(route.public_contact_point||''))fail('EDITORIAL_EMAIL_CONTACT_INVALID');
   if(proposition.signal_state!==signal.state||hash(proposition.evidence_refs)!==hash(signal.evidence))fail('EMAIL_SOURCE_BINDING_REQUIRED');
   if(!['en','es-CL'].includes(proposition.language))fail('EMAIL_LANGUAGE_PROFILE_REQUIRED');
@@ -98,7 +99,7 @@ export function humanReadyEmail({proposition,signal,route,identity,product}){
   const body=[greeting.text,context,clean,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
   const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'recipient_agency_contribution_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
   const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE',evidence_binding:evidenceBinding(signal)};
-  validateHumanEmail(email,signal,route,identity);return email;
+  brand.brand(email);validateHumanEmail(email,signal,route,identity);return email;
 }
 export function recipientAgency(question){
   const q=String(question||'');
@@ -163,7 +164,9 @@ export function validateCapabilityInventory(result,proof){
 export function validateHumanEmail(email,signal,route,identity){
   if(!email?.subject?.trim()||/[\r\n]/.test(email.subject)||!email.body?.trim()||email.to!==route.public_contact_point||hash(email.from)!==hash({name:identity.name,address:identity.address})||email.version!==emailVersion)fail('HUMAN_READY_EMAIL_REQUIRED');
   const greeting=recipientGreeting(route,email.language);
-  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|I’m|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!email.body.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
+  const humanBody=email.brand_version?brand.correspondence(email.body):email.body;
+  if(email.brand_version)brand.envelope(email);
+  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|I’m|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!humanBody.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
   validateCorrespondenceProposition(email.proposition,route);
   validateCapabilityInventory(email.proposition,{editorial_checks:{capability_inventory:'PASS'}});
   validateInternalUncertainty(email.proposition,signal);
@@ -171,8 +174,9 @@ export function validateHumanEmail(email,signal,route,identity){
   if(email.features?.version!==emailVersion||email.features.greeting_type!==greeting.type||email.features.email_length_words!==email.body.trim().split(/\s+/).length)fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
   if(/(?:^|\n)Subject:/.test(email.body)||claims.test(email.proposition.body.replace(draftOffer(email.language),'')))fail('UNVERIFIED_CAPABILITY_CLAIM');
   if(email.features.source_revision!==signal.revision||email.features.named_recipient!==(greeting.name!==null)||email.features.localisation!==email.language||email.features.causal_effect!=='UNKNOWN'||!['destination_specific_reason','angle','question'].every(k=>email.features[k]&&email.body.includes(email.features[k])))fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
-  correspondenceDensity(email.body,email.language);
+  correspondenceDensity(humanBody,email.language);
   const limit=route.submission_requirements?.match(/(\d+) words or less/i);
   if(limit&&email.body.trim().split(/\s+/).length>Number(limit[1]))fail('EDITORIAL_DESTINATION_LENGTH_EXCEEDED');
   return {status:'PASS',version:emailVersion,claims:[{capability:'current_evidence_mapping',state:'VERIFIED',authorized:true,evidence:email.evidence_binding},{capability:draftCapability,state:'VERIFIED',authorized:true,scope:'One finished sourced draft for this campaign and destination, on request',evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence],artifact_hash:hash({subject:email.subject,body:email.body})}}],excluded_capabilities:[{capability:'ongoing_monitoring_or_continuous_coverage',state:'UNVERIFIED',authorized:false,reason:'No ongoing service authorized.'}]};
 }
+

@@ -26,10 +26,11 @@ test('D/G: exact email and combined X asset reach transports unchanged',async()=
  x.engine.adapters.X={cost:'ZERO',publish:async asset=>{assert.deepEqual(asset,p.asset);return {id:'x-post',url:'https://x.com/i/web/status/x-post',status:'PUBLISHED'};}};
  await x.engine.approvePublication(p);const [out]=await x.engine.distributeApproved();assert.equal(out.receipt.url,'https://x.com/i/web/status/x-post');assert.equal(out.receipt.delivery_hash,digest(p.asset));
 });
-test('E/F: only oroknows@gmail.com authorizes; all different identities are rejected',async()=>{
- const old={user:process.env.EDITORIAL_GMAIL_USER,password:process.env.EDITORIAL_GMAIL_APP_PASSWORD};
- try{process.env.EDITORIAL_GMAIL_APP_PASSWORD='fake-test-only';for(const sender of ['oroknows@gmail.com','robdanrutene34@gmail.com','other@gmail.com','oroknows+fallback@gmail.com','']){process.env.EDITORIAL_GMAIL_USER=sender;assert.equal(await editorialRouteAuthorized(),sender==='oroknows@gmail.com');if(sender!=='oroknows@gmail.com')assert.throws(()=>reviewedMail(proposals[0].asset,proposals[0].asset.delivery),/SENDER_MISMATCH/);}}
- finally{for(const [name,value] of [['EDITORIAL_GMAIL_USER',old.user],['EDITORIAL_GMAIL_APP_PASSWORD',old.password]])if(value===undefined)delete process.env[name];else process.env[name]=value;}
+test('E/F: only canonical SMTP configuration authorizes; legacy Gmail cannot impersonate it',async()=>{
+ const before={...process.env};delete process.env.EMRADAR_EMAIL_RELAY_URL;
+ Object.assign(process.env,{EDITORIAL_SMTP_HOST:'smtp.example.test',EDITORIAL_SMTP_PORT:'465',EDITORIAL_SMTP_SECURE:'true',EDITORIAL_SMTP_PASSWORD:'fixture'});
+ try{for(const user of ['sean@emradar.net','oroknows@gmail.com','personal@example.test','']){process.env.EDITORIAL_SMTP_USER=user;assert.equal(await editorialRouteAuthorized(),user==='sean@emradar.net');}}
+ finally{for(const k of Object.keys(process.env))if(!(k in before))delete process.env[k];Object.assign(process.env,before);}
 });
 for(const state of ['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS'])test('H/I: '+state+' receipt prevents repeat delivery',async()=>{
  const f=await candidate();let calls=0;f.adapter.publish=async()=>{calls++;throw Error('MUST_NOT_CALL');};
@@ -76,10 +77,12 @@ test('atomic IN_FLIGHT claim and leased worker exclusion prevent concurrent dupl
  const f=await fixture();const key='receipt:concurrent';const results=await Promise.all([f.store.claimReceipt(key,{execution_status:'IN_FLIGHT'}),f.store.claimReceipt(key,{execution_status:'IN_FLIGHT'})]);assert.equal(results.filter(Boolean).length,1);
  let release,entered;const started=new Promise(r=>entered=r);const first=f.store.leased('test-worker',async()=>{entered();await new Promise(r=>release=r);return ['first'];});await started;assert.deepEqual(await f.store.leased('test-worker',()=>{throw Error('SECOND_WORKER');}),[]);release();assert.deepEqual(await first,['first']);assert.deepEqual(await f.store.leased('test-worker',async()=>['restarted']),['restarted']);
 });
-test('approved email transport ignores old machine warnings but preserves every reviewed byte',()=>{
- const old={user:process.env.EDITORIAL_GMAIL_USER,password:process.env.EDITORIAL_GMAIL_APP_PASSWORD};try{process.env.EDITORIAL_GMAIL_USER='oroknows@gmail.com';process.env.EDITORIAL_GMAIL_APP_PASSWORD='fake-test-only';const asset=structuredClone(proposals[0].asset);asset.capability_claim_gate={status:'WARNING'};asset.email.version='old-approved-format';const mail=reviewedMail(asset,asset.delivery);assert.equal(mail.text,asset.email.body);assert.equal(mail.subject,asset.email.subject);assert.equal(mail.to,asset.email.to);assert.equal(mail.from.address,'oroknows@gmail.com');}finally{for(const [name,value] of [['EDITORIAL_GMAIL_USER',old.user],['EDITORIAL_GMAIL_APP_PASSWORD',old.password]])if(value===undefined)delete process.env[name];else process.env[name]=value;}
+test('legacy approved proposals remain unchanged and cannot silently acquire new sender or branding',()=>{
+ const asset=structuredClone(proposals[0].asset),before=structuredClone(asset);
+ assert.throws(()=>reviewedMail(asset,asset.delivery),/EXACT_REVIEWED_BRAND_REQUIRED/);assert.deepEqual(asset,before);
 });
 test('approval retains durable work intent if materialized queue entry is lost before restart',async()=>{
  const f=await candidate();await f.engine.approvePublication(f.proposal);const {default:fs}=await import('node:fs/promises');const {default:path}=await import('node:path');await fs.unlink(path.join(f.store.directory,encodeURIComponent('distribution_work:'+f.proposal.proposal_id)+'.json'));
  const restarted=new GraphEngine({store:f.store,products:{},adapters:{EXTERNAL:f.adapter}});const [out]=await restarted.distributeApproved();assert.equal(out.status,'PUBLISHED');
 });
+
