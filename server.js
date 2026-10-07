@@ -1,4 +1,6 @@
 import http from "node:http";
+import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
+import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
@@ -391,6 +393,7 @@ async function distributionCycle(){
     const engine=await marketingEngine();
     const excludeCampaigns=[];
     try{await engine.recoverApprovedCampaign(approvedRecovery);}catch(e){excludeCampaigns.push(approvedRecovery.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:approvedRecovery.campaign_id,reason:e.message}));}
+    await releaseVerifiedUnsent(engine,repairRecovery);
     const results=await engine.distributeApproved({limit:8,excludeCampaigns});
     for(const result of results)console.log('APPROVED_DISTRIBUTION_RECEIPT '+JSON.stringify(result));
     return results;

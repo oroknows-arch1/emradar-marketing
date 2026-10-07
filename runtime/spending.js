@@ -27,7 +27,20 @@ export async function reconcileZeroHistory(store,ledger){
 export class SpendEnvelope {
   constructor(store){this.store=store;}
   async reserve(args){return this.store.locked('spend_envelope',()=>this.reserveLocked(args));}
-  async reserveLocked({campaign_id,quote,action_id,run_id,category='other_variable',at=new Date()}){
+  async reserveLocked({campaign_id,quote,action_id,run_id,category='other_variable',at=new Date(),standing_authority=false}){
+    if(standing_authority){
+      const month=calendarMonth(at),key='spend:'+month;
+      const ledger=await this.store.get(key)||{month,actual_aud:0,unresolved:{},campaigns:{},receipts:{},historical_billing:'UNKNOWN'};
+      const known=quote?.currency==='AUD'&&valid(quote.max_cost_aud)?quote.max_cost_aud:null;
+      const pending=Object.values(ledger.unresolved);
+      const amount=x=>valid(x.max_cost_aud)?x.max_cost_aud:0;
+      if((ledger.campaigns[campaign_id]||0)+pending.filter(x=>x.campaign_id===campaign_id).reduce((s,x)=>s+amount(x),0)+(known??0)>authority.spending.campaign_limit)throw new Error('OWNER_EXCEPTION_CAMPAIGN_AUD_5');
+      if(ledger.actual_aud+pending.reduce((s,x)=>s+amount(x),0)+(known??0)>authority.spending.calendar_month_limit)throw new Error('OWNER_EXCEPTION_MONTH_AUD_50');
+      const id=action_id||crypto.randomUUID();if(ledger.receipts[id]||ledger.unresolved[id])throw new Error('COST_ACTION_ALREADY_RESERVED');
+      ledger.unresolved[id]={campaign_id,run_id,category,max_cost_aud:known??'UNKNOWN',quote_receipt:quote?.receipt_id||'UNKNOWN',status:'RESERVED',standing_authority:true};await this.store.put(key,ledger);
+      await costCall(this.store,run_id,{action_id:id,category,provider:quote?.provider||'X',reserved_max_aud:known??'UNKNOWN',amount_aud:'UNKNOWN',state:'UNKNOWN',reason:'STANDING_OWNER_AUTHORITY_BILLING_PENDING'});
+      return {id,key,month,campaign_id,run_id,category,max_cost_aud:known??'UNKNOWN',quote};
+    }
     if(!quote||quote.currency!=='AUD'||quote.verified!==true||!quote.provider_enforced||!valid(quote.max_cost_aud)||!quote.receipt_id)throw new Error('ACTUAL_COST_BOUND_UNKNOWN');
     const month=calendarMonth(at);const key='spend:'+month;
     const ledger=await this.store.get(key)||{month,actual_aud:0,unresolved:{},campaigns:{},receipts:{},historical_billing:'UNKNOWN'};
@@ -48,7 +61,7 @@ export class SpendEnvelope {
     const detail=billingDetail(billing);
     await costCall(this.store,reservation.run_id,{action_id:reservation.id,...detail});
     if(!valid(detail.amount_aud)||!['ZERO','ACTUAL','CALCULATED'].includes(detail.state)||!billing?.receipt_id){held.status='UNKNOWN';await this.store.put(reservation.key,l);return {state:'UNKNOWN',amount:'UNKNOWN',reservation};}
-    if(detail.amount_aud>held.max_cost_aud){held.status='UNKNOWN';await this.store.put(reservation.key,l);throw new Error('PROVIDER_ENFORCED_COST_BOUND_BREACH');}
+    if(valid(held.max_cost_aud)&&detail.amount_aud>held.max_cost_aud){held.status='UNKNOWN';await this.store.put(reservation.key,l);throw new Error('PROVIDER_ENFORCED_COST_BOUND_BREACH');}
     l.actual_aud+=detail.amount_aud;l.campaigns[held.campaign_id]=(l.campaigns[held.campaign_id]||0)+detail.amount_aud;
     const record={...billing,currency:'AUD',amount:detail.amount_aud,cost_state:detail.state,campaign_id:held.campaign_id,action_id:reservation.id,quote_receipt:held.quote_receipt,recorded_at:new Date().toISOString()};l.receipts[reservation.id]=record;delete l.unresolved[reservation.id];await this.store.put(reservation.key,l);return record;
   }

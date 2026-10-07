@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import nodemailer from 'nodemailer';
 import net from 'node:net';
 import {emailVersion,correspondentName} from './editorial-email.js';
@@ -41,13 +42,16 @@ export function reviewedMail(asset,route){
 export const editorialRouteSupported=route=>String(route?.access_method||'').toLowerCase().includes('email');
 export const editorialRouteAuthorized=async()=>editorialSenderStatus().gate==='PASS';
 
-export async function sendEditorialEmail({idempotency_key,product,asset,route}){
+export async function sendEditorialEmail({idempotency_key,product,asset,route,approvalBinding}){
   if(!await editorialRouteAuthorized())throw new Error('EDITORIAL_GMAIL_AUTHORIZATION_REQUIRED');
   if(!editorialRouteSupported(route))throw new Error('EDITORIAL_EMAIL_ROUTE_REQUIRED');
   const to=String(route.public_contact_point||'').trim();
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to))throw new Error('EDITORIAL_EMAIL_CONTACT_INVALID');
   const mail=reviewedMail(asset,route);
-  const info=relay()?await relayRequest('submit',{mail,idempotency_key}):await transport().sendMail({
+  const binding=approvalBinding;
+  if(relay()&&(!binding||binding.proposal.asset.email.to!==mail.to))throw new Error('OWNER_APPROVED_EMAIL_BINDING_REQUIRED');
+  const signature=binding?crypto.createHmac('sha256',process.env.EMRADAR_EMAIL_RELAY_TOKEN).update('EMRADAR_OWNER_APPROVED_DELIVERY_V1\n'+JSON.stringify({mail,idempotency_key,binding})).digest('hex'):null;
+  const info=relay()?await relayRequest('submit',{mail,idempotency_key,binding,signature}):await transport().sendMail({
     ...mail,
     headers:{'X-EMRADAR-Idempotency-Key':idempotency_key}
   });

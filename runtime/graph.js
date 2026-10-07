@@ -442,13 +442,14 @@ const workers={
     if(Date.parse(prior?.retry_at||0)>Date.now())fail('RETRY_NOT_DUE');
     let dailyLedger;
     let dailyLedgerKey;
-    if(c.adapter.cost!=='ZERO'){
+    const standing=c.approved_distribution&&c.input.product==='EMRADAR'&&c.route.destination.platform==='X';
+    if(c.adapter.cost!=='ZERO'&&!standing){
       if(!c.adapter.quote)fail('ACTUAL_COST_BOUND_UNKNOWN');
       dailyLedgerKey='cost:'+c.input.product+':'+now().slice(0,10);dailyLedger=await e.store.get(dailyLedgerKey)||{reserved_usd:0,calls:0};const b=c.product.budget;
       if(!Number.isFinite(b.max_daily_usd)||!Number.isFinite(b.max_daily_api_calls)||dailyLedger.reserved_usd+c.route.destination.max_action_usd>b.max_daily_usd||dailyLedger.calls+c.route.destination.max_api_calls>b.max_daily_api_calls)fail('DAILY_COST_OR_CALL_BOUND');
     }
-    const costQuote=c.adapter.cost==='ZERO'?zeroQuote(c.publication_key):await c.adapter.quote({operation:'publish',asset:c.asset,product:c.input.product});
-    c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish',run_id:c.run_id,category:'distribution'});
+    const costQuote=c.adapter.cost==='ZERO'?zeroQuote(c.publication_key):c.adapter.quote?await c.adapter.quote({operation:'publish',asset:c.asset,product:c.input.product}):null;
+    c.cost_reservation=await e.spend.reserve({campaign_id:c.input.campaign_id,quote:costQuote,action_id:c.run_id+':publish',run_id:c.run_id,category:'distribution',standing_authority:standing});
     if(dailyLedger){dailyLedger.reserved_usd+=c.route.destination.max_action_usd;dailyLedger.calls+=c.route.destination.max_api_calls;await e.store.put(dailyLedgerKey,dailyLedger);c.reserved_cost_usd=c.route.destination.max_action_usd;}
     c.receipt={id:c.publication_key,destination:c.route.id,platform:c.route.destination.platform,variant:c.variant.id,variant_key:c.variant_key,format:c.route.format,timestamp:now(),execution_status:'IN_FLIGHT',external_id:null,url:null,campaign_id:c.input.campaign_id,product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],source_receipt:c.product.source_receipt||null,publication_review:c.review||null,route_key:c.route.key,attempts:(prior?.attempts||0)+1,max_attempts:c.max_attempts,retry_at:null,error:null,api_cost_usd:c.adapter.cost==='ZERO'?0:'UNKNOWN',ad_spend_usd:0,delivery_hash:digest(c.asset),reserved_cost_usd:c.reserved_cost_usd||0};
     const pendingKey='pending:'+c.input.product+':'+c.signal.id+':'+c.signal.revision;
@@ -462,7 +463,7 @@ const workers={
     else await e.store.put('receipt:'+c.publication_key,c.receipt);
     await e.store.put(pendingKey,{receipt_id:c.publication_key,status:'IN_FLIGHT'});
     try {
-      const result=await c.adapter.publish(c.asset,c.publication_key,c.input.product);
+      const result=await c.adapter.publish(c.asset,c.publication_key,c.input.product,c.approved_distribution?{proposal:c.approved_proposal,approval:await e.store.get('publication_approval:'+c.approved_proposal.proposal_id)}:null);
       if(!result?.id||!['PUBLISHED','SUBMITTED'].includes(result.status))fail('PUBLICATION_RECEIPT_MISSING');
       Object.assign(c.receipt,{execution_status:result.status,external_id:String(result.id),url:result.url||null,timestamp:now(),api_cost_usd:result.cost_usd??'UNKNOWN',delivery_status:result.delivery_status||null,provider_receipt:result.provider_receipt||null});
       c.provider_billing=result.billing;

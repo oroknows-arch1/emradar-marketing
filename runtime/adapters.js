@@ -19,10 +19,10 @@ export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,au
       if(routeMethod(d).includes('email')&&!d.public_contact_point)throw new Error('EDITORIAL_EMAIL_CONTACT_REQUIRED');
       if(routeMethod(d).includes('form')&&!d.public_submission_url)throw new Error('EDITORIAL_FORM_URL_REQUIRED');
     },
-    async publish(asset,key,product){
+    async publish(asset,key,product,approvalBinding){
       await this.validate(asset);
       const operation=routeMethod(asset.delivery).includes('email')?sendEmail:submitForm;
-      const result=await operation({idempotency_key:key,product,asset,route:asset.delivery});
+      const result=await operation({idempotency_key:key,product,asset,route:asset.delivery,approvalBinding});
       if(!result?.id||!['SUBMITTED','DELIVERED','ACCEPTED'].includes(result.status))throw new Error('EDITORIAL_DELIVERY_RECEIPT_MISSING');
       return {id:String(result.id),url:result.url||null,status:'SUBMITTED',delivery_status:result.status,cost_usd:0,provider_receipt:result.receipt||null};
     },
