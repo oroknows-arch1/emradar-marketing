@@ -1,5 +1,4 @@
 import http from "node:http";
-import {createOwnerReview} from './runtime/owner-review.js';
 import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
 import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
@@ -122,10 +121,8 @@ async function marketingEngine(){
   return new GraphEngine({store:graphStore,products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)||createRelayHarness({store:graphStore}),xAccountStatus:async()=>{const auth=await currentAuth('EMRADAR');return {status:auth?.access_token&&(!auth.expires_at||auth.expires_at>Date.now())?(auth.refreshed_at?'REFRESHED_RUNTIME_AUTHORIZATION':'CURRENT_RUNTIME_AUTHORIZATION'):'OWNER_REAUTHORIZATION_REQUIRED',expires_at:auth?.expires_at?new Date(auth.expires_at).toISOString():null,refreshed_at:auth?.refreshed_at||null,scope:auth?.scope||'UNKNOWN',provider_revocation_check:'NOT_PROBED_UNKNOWN_API_COST'};}});
 }
 
-const ownerReview=createOwnerReview({password:()=>process.env.MARKETING_OWNER_REVIEW_PASSWORD,getPackage:async campaign=>new RedisStore(await store()).get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR'),limitAttempt:async()=>{const client=await store();return Number(await client.eval("local n=redis.call('incr',KEYS[1]); if n==1 then redis.call('expire',KEYS[1],900) end; return n",{keys:['marketing:owner-review:login-attempts'],arguments:[]}))<=10;}});
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
-  if(u.pathname==='/owner-review'||u.pathname.startsWith('/owner-review/')){await ownerReview(req,res,u);return;}
   if(u.pathname==='/X_DISCOVERY_PREVIEW'&&['GET','POST'].includes(req.method)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
     try{
@@ -260,7 +257,9 @@ const server=http.createServer(async(req,res)=>{
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
-    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    // Viewing the saved package does not grant approval or distribution authority.
+    const packageRead=req.method==='GET'&&u.searchParams.get('package')==='EMRADAR';
+    if(!packageRead&&!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
         if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record||{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
