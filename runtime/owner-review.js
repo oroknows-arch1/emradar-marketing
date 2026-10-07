@@ -17,6 +17,8 @@ export function createOwnerReview({password,getPackage,limitAttempt,now=Date.now
   const respond=(status,body,type='text/html; charset=utf-8',extra={})=>{res.writeHead(status,{...headers,'content-type':type,...extra});res.end(body);};
   const json=(status,value)=>respond(status,JSON.stringify(value),'application/json');
   const login=message=>page(`${message?'<p>'+escape(message)+'</p>':''}<form method="post" action="/owner-review/login"><label>Owner review password<br><input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label><br><button>View saved reviews</button></form>`);
+  // Public navigation is form-only, before credential/session/origin checks.
+  if(req.method==='GET'&&u.pathname==='/owner-review')return respond(200,login());
   try{
    const secret=password();
    if(!secret)return json(503,{reason:'OWNER_REVIEW_PASSWORD_NOT_CONFIGURED'});
@@ -31,12 +33,11 @@ export function createOwnerReview({password,getPackage,limitAttempt,now=Date.now
     const supplied=new URLSearchParams(body).get('password')||'';
     if(!supplied||!equal(supplied,secret))return respond(401,login('Password not accepted.'));
     const payload=String(now()+8*3600000)+'.'+crypto.randomBytes(16).toString('hex');
-    return respond(303,'','text/plain',{'location':'/owner-review','set-cookie':`${cookieName}=${payload}.${sign(payload,secret)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800`});
+    return respond(303,'','text/plain',{'location':'/owner-review/view','set-cookie':`${cookieName}=${payload}.${sign(payload,secret)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800`});
    }
-   if(!['/owner-review','/owner-review/package'].includes(u.pathname))return json(404,{reason:'NOT_FOUND'});
+   if(!['/owner-review','/owner-review/view','/owner-review/package'].includes(u.pathname))return json(404,{reason:'NOT_FOUND'});
    if(req.method!=='GET')return json(405,{reason:'READ_ONLY_OWNER_ACCESS'});
    if(!valid(req,secret)){
-    if(u.pathname==='/owner-review')return respond(200,login());
     return json(403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
    }
    const campaign=u.searchParams.get('campaign_id');

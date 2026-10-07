@@ -35,10 +35,10 @@ test('cross-site login and wrong password fail without secret disclosure',async 
 });
 test('rate limit bounds login attempts and missing configuration fails closed',async t=>{
  const f=await fixture(t);await f.login();await f.login();assert.equal((await f.login()).status,429);
- const missing=await fixture(t,{missing:true});assert.equal((await missing.request('/owner-review')).status,503);
+ const missing=await fixture(t,{missing:true});assert.equal((await missing.request('/owner-review/package')).status,503);
 });
 test('complete page displays persisted copy and recipient with no executable artifact content',async t=>{
- const f=await fixture(t);const cookie=(await f.login()).headers.get('set-cookie').split(';')[0];const r=await f.request('/owner-review?campaign_id='+pkg.campaign_id,{headers:{cookie}});const html=await r.text();assert.ok(html.includes('Complete saved body'));assert.ok(html.includes('editor@example.test'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('test-only-password'));assert.ok(r.headers.get('content-security-policy').includes("default-src 'none'"));assert.equal(f.reads(),1);
+ const f=await fixture(t);const cookie=(await f.login()).headers.get('set-cookie').split(';')[0];const r=await f.request('/owner-review/view?campaign_id='+pkg.campaign_id,{headers:{cookie}});const html=await r.text();assert.ok(html.includes('Complete saved body'));assert.ok(html.includes('editor@example.test'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('test-only-password'));assert.ok(r.headers.get('content-security-policy').includes("default-src 'none'"));assert.equal(f.reads(),1);
 });
 
 test('normal browser entry GET without Origin or form content type serves login HTML directly',async t=>{
@@ -56,5 +56,28 @@ test('login POST still requires same-origin form headers before credentials are 
  const r=await f.request('/owner-review/login',{method:'POST',headers,body:''});
  assert.equal(r.status,403);assert.equal((await r.json()).reason,'SAME_ORIGIN_FORM_REQUIRED');
  }
+ assert.equal(f.reads(),0);
+});
+
+test('public entry GET remains form-only with no Origin, Referer or authentication and with an authenticated cookie',async t=>{
+ const f=await fixture(t);
+ const cookie=(await f.login()).headers.get('set-cookie').split(';')[0];
+ for(const headers of [{},{cookie}]){
+  const r=await f.request('/owner-review?campaign_id='+pkg.campaign_id,{headers});
+  assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/^text\/html/);
+  const html=await r.text();assert.ok(html.includes('type="password"'));
+  for(const value of [pkg.campaign_id,'Complete saved body','editor@example.test','test-only-password','MARKETING_PUBLICATION_REVIEW_TOKEN','SAME_ORIGIN_FORM_REQUIRED'])assert.ok(!html.includes(value));
+ }
+ assert.equal(f.reads(),0);
+});
+test('public entry precedes password configuration; protected view still requires authentication',async t=>{
+ const f=await fixture(t,{missing:true});
+ const r=await f.request('/owner-review');assert.equal(r.status,200);assert.ok((await r.text()).includes('<form'));
+ const configured=await fixture(t);assert.equal((await configured.request('/owner-review/view')).status,403);assert.equal(configured.reads(),0);
+});
+test('same-origin login retains authentication and redirects only to protected read-only view',async t=>{
+ const f=await fixture(t);const r=await f.login();assert.equal(r.status,303);assert.equal(r.headers.get('location'),'/owner-review/view');
+ const cookie=r.headers.get('set-cookie').split(';')[0];
+ assert.equal((await f.request('/owner-review/view',{method:'POST',headers:{cookie},body:''})).status,405);
  assert.equal(f.reads(),0);
 });
