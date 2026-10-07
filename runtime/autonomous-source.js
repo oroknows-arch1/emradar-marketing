@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import {emradarSource,signSource} from './intake.js';
 import scanControl from '../config/scan-control.json' with {type:'json'};
 import {validateCombinedX} from './x-visual.js';
+import {formationFromSignal,openRouteScout,prepareRouteAssets,commercialEvidenceBranch,routingRevision} from './open-route-scout.js';
+import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
 
 const origin='https://emerging-markets-radar.onrender.com';
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
@@ -14,7 +16,7 @@ const executed=new Set(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS']);
 const optionalTerminalGates=new Set(['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID','CAPABILITY_INVENTORY_VERIFICATION_REQUIRED','HUMAN_PROPOSITION_QUALITIES_REQUIRED','HUMAN_DESTINATION_REASON_OR_QUESTION_REQUIRED','HUMAN_RECIPIENT_AGENCY_REQUIRED','HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE','HUMAN_CORRESPONDENCE_VERIFICATION_REQUIRED','EXTERNAL_EDITORIAL_SCHEMA_LEAK','UNSUPPORTED_FINANCIAL_CLAIM','EDITORIAL_CLAIM_BINDING_REQUIRED','EDITORIAL_UNCERTAINTY_NOT_PRESERVED','EDITORIAL_VERIFICATION_REQUIRED','EDITORIAL_DESTINATION_LENGTH_EXCEEDED','DESTINATION_PERMISSION_REQUIRED','REQUESTED_DESTINATION_NOT_AVAILABLE']);
 const routingReceiptKey=campaignId=>'discovery_routing_completion:'+campaignId+':'+reviewContractRevision;
 const completeReviewCheckpoint=(state,pkg,receipt)=>{
-  if(state?.status!=='AWAITING_REVIEW'||state.review_contract_revision!==reviewContractRevision||pkg?.review_contract_revision!==reviewContractRevision)return false;
+  if(state?.status!=='AWAITING_REVIEW'||state.review_contract_revision!==reviewContractRevision||pkg?.review_contract_revision!==reviewContractRevision||pkg?.routing_revision!==routingRevision)return false;
   if(receipt?.review_contract_revision!==reviewContractRevision||receipt.campaign_id!==state.campaign_id||receipt.status!=='COMPLETE')return false;
   if(receipt.route_plan_sha256!==pkg.route_plan_sha256||receipt.dispositions_sha256!==sha(JSON.stringify(pkg.route_dispositions||[])))return false;
   const dispositions=pkg.route_dispositions||[],ids=new Set(dispositions.map(d=>d.destination));
@@ -76,6 +78,20 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
       signal_id:signal.id,signal_revision:signal.revision,evidence_state:signal.state,created_at:at(),routes:{},attempts:0,status:'PREPARING'};
     await store.put(key,state);
   }
+  // Repair stale deterministic qualification without rerunning an existing X asset
+  // or changing source truth, campaign identity, approval or transport state.
+  const planKey='route_plan:EMRADAR:'+state.signal_id+':'+state.signal_revision;
+  let routePlan=await store.get(planKey);
+  if(routePlan&&routePlan.routing_revision!==routingRevision){
+    const signal=product.signals.find(s=>s.id===state.signal_id&&s.revision===state.signal_revision);
+    if(!signal)throw Error('SAVED_CAMPAIGN_SOURCE_UNAVAILABLE');
+    const formation=formationFromSignal(signal),learning={};
+    for(const d of routePlan.discovered||[]){const score=d.score_factors?.historical_route_performance;if(typeof score==='number')learning[d.destination_id]={score};}
+    const authorizedAccounts=(routePlan.candidates||[]).filter(d=>d.destination_id==='EMRADAR-X-OROKNOWS').map(d=>d.destination_id);
+    const open=openRouteScout({formation,directory:openRouteDirectory,learning,authorizedAccounts});
+    routePlan={...open,valid_until:routePlan.valid_until,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:commercialEvidenceBranch(formation),stop:'PUBLICATION_REVIEW'};
+    await store.put(planKey,routePlan);
+  }
   if(state.status==='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision){
     const pkg=await store.get('review_package:'+state.campaign_id),receipt=await store.get(routingReceiptKey(state.campaign_id));
     if(completeReviewCheckpoint(state,pkg,receipt))return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:pkg,external_actions:0};
@@ -114,8 +130,6 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   if(contractChanged)state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>executed.has(r.status)));
   if(existingProposals.length){for(const p of existingProposals.filter(p=>p.review_contract_revision===reviewContractRevision||p.destination==='EMRADAR-X-OROKNOWS'))state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
   // Reuse the graph's own persisted route decisions, never a second routing system.
-  const planKey='route_plan:EMRADAR:'+state.signal_id+':'+state.signal_revision;
-  let routePlan=await store.get(planKey);
   if(!routePlan){first=await run('EMRADAR-X-OROKNOWS');routePlan=first?.route_plan||routePlan;}
   const selected=[...(routePlan?.candidates?.map(d=>d.destination_id)||[]),...(first?.selection?.options?.map(o=>o.id)||[])];
   const xEvaluation=await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision);
@@ -137,7 +151,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const route_plan_sha256=sha(JSON.stringify(routePlan||null));
   const packageRecord={scan_date:scan.snapshot_date,source_sha256,source_receipt:product.source_receipt,campaign_id:state.campaign_id,
     formation:{id:state.signal_id,state:state.evidence_state},status:blockers.length?'BLOCKED':'AWAITING_REVIEW',proposals,blockers,rejected_routes,
-    route_plan_sha256,route_dispositions,external_actions:0,required_stop:'PUBLICATION_REVIEW',runtime_commit:runtime,updated_at:at(),handoff,capabilities:{editorial_harness_connected:!!engine.harness},x_evaluation:await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision)};
+    routing_revision:routingRevision,route_plan_sha256,route_dispositions,external_actions:0,required_stop:'PUBLICATION_REVIEW',runtime_commit:runtime,updated_at:at(),handoff,capabilities:{editorial_harness_connected:!!engine.harness},x_evaluation:await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision)};
   if(!proposals.length&&!blockers.length){packageRecord.status='BLOCKED';blockers.push({reason:'NO_ELIGIBLE_REVIEW_ARTIFACT'});}
   const x=proposals.find(p=>p.destination==='EMRADAR-X-OROKNOWS');
   let validX=false;

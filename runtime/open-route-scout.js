@@ -1,6 +1,18 @@
 const clamp=n=>Math.max(0,Math.min(1,n));
 const norm=v=>String(v||'').toLowerCase();
-const overlap=(xs=[],ys=[])=>xs.some(x=>ys.some(y=>norm(x).includes(norm(y))||norm(y).includes(norm(x))));
+export const routingRevision='conjoined-industry-fit-v2';
+// A source such as "Copper and cobalt mining" explicitly includes copper mining.
+// Require every destination word; sharing only "mining" is not a match.
+const includesIndustry=(source,target)=>{
+ const a=norm(source),b=norm(target);
+ if(a.includes(b))return true;
+ if(!a.includes(' and '))return false;
+ const words=b.match(/[a-z0-9]+/g)||[],sourceWords=a.match(/[a-z0-9]+/g)||[];
+ if(words.length<2)return false;
+ let cursor=0;
+ return words.every(word=>{const index=sourceWords.indexOf(word,cursor);if(index<0)return false;cursor=index+1;return true;});
+};
+const overlap=(xs=[],ys=[])=>xs.some(x=>ys.some(y=>includesIndustry(x,y)||includesIndustry(y,x)));
 export const formationFromSignal=s=>({id:s.id,theme:s.source_title||s.id,status:s.state,location:s.location||'UNKNOWN',why_surfaced:s.why_surfaced||s.causal_chain?.formation?.[0]||'UNKNOWN',new_to_radar:s.new_to_radar===true,causal_chain:s.causal_chain||{},evidence:(s.source_facts||[]).map(f=>({fact:f.text,url:f.url,source:f.source})),contradictions:s.source_uncertainty||[],missing_evidence:s.chain_evolution?.unresolved_evidence||[]});
 export function openRouteScout({formation,directory,learning={},authorizedAccounts=[]}){
  if(!formation?.id||!Array.isArray(formation.evidence)||!formation.evidence.length) throw new Error('OPEN_ROUTE_SOURCE_EVIDENCE_REQUIRED');
@@ -22,7 +34,7 @@ export function openRouteScout({formation,directory,learning={},authorizedAccoun
    return {...d,classification,prepare_eligible:classification==='VIABLE_VERIFIED_ROUTE',execution_state:d.destination_id==='EMRADAR-X-OROKNOWS'&&access?'AUTHORIZED_CONNECTOR_REVIEW_REQUIRED':'DISCOVERY_OR_PREPARATION_ONLY',route_score:Number(score.toFixed(3)),score_factors:{formation_relevance:formationRelevance,industry_relevance:industry,geographic_relevance:geo,audience_relevance:audience,editorial_fit:editorial,novelty,contribution_value:contribution,access_feasibility:access,historical_route_performance:learning[d.destination_id]?history:'UNKNOWN'},route_reason:industry?`Relevant to ${industries.filter(i=>overlap([i],d.industries)).join(', ')||'formation'}; verified open access; destination-specific format required.`:'No evidenced industry fit.'};
  }).sort((a,b)=>b.route_score-a.route_score||a.destination_id.localeCompare(b.destination_id));
  const candidates=discovered.filter(d=>d.prepare_eligible&&d.route_score>=0.7);
- return {discovered,rejected:discovered.filter(d=>!candidates.includes(d)),formation_id:formation.id,signal:formation.theme,why_it_matters:formation.why_surfaced,who_cares:[...new Set(candidates.map(c=>c.organisation))],where_they_are:candidates.map(c=>c.destination_name),how_to_reach:candidates.map(c=>({destination_id:c.destination_id,access_method:c.access_method,contact:c.public_contact_point,url:c.public_submission_url})),what_to_send:candidates.map(c=>({destination_id:c.destination_id,formats:c.accepted_formats})),candidates};
+ return {routing_revision:routingRevision,discovered,rejected:discovered.filter(d=>!candidates.includes(d)),formation_id:formation.id,signal:formation.theme,why_it_matters:formation.why_surfaced,who_cares:[...new Set(candidates.map(c=>c.organisation))],where_they_are:candidates.map(c=>c.destination_name),how_to_reach:candidates.map(c=>({destination_id:c.destination_id,access_method:c.access_method,contact:c.public_contact_point,url:c.public_submission_url})),what_to_send:candidates.map(c=>({destination_id:c.destination_id,formats:c.accepted_formats})),candidates};
 }
 export function commercialEvidenceBranch(formation){
  const industries=formation.causal_chain?.industries||[];

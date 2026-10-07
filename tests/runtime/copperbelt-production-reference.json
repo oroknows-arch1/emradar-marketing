@@ -1,0 +1,130 @@
+{
+  "snapshot_date": "2026-10-07",
+  "publication_state": "PUBLISHED",
+  "records": [
+    {
+      "id": "zambia-drc-copperbelt-power-interconnector",
+      "theme": "Cross-border private transmission is becoming a prerequisite for Copperbelt mine growth",
+      "status": "FORMING",
+      "new_to_radar": true,
+      "location": "Kalumbila, Zambia to Kolwezi, Democratic Republic of the Congo",
+      "why_surfaced": "Named public, private and development-finance participants signed a framework for a 700 MW link after technical and environmental studies, explicitly tying regional power trade to mining expansion.",
+      "causal_chain": {
+        "world_change": [
+          "FIS-RDC, EnPower, Trafigura and Gridworks signed a strategic framework for a privately financed cross-border transmission line."
+        ],
+        "pressure": [
+          "Copper and cobalt production around Kolwezi requires more reliable power than the DRC grid can consistently provide."
+        ],
+        "bottleneck_or_scarcity": [
+          "Bankable cross-border transmission, creditworthy offtake, tariffs, permits and coordinated Zambia-DRC grid operation."
+        ],
+        "formation": [
+          "A privately developed 700 MW interconnector could turn Southern African surplus generation into new Copperbelt industrial capacity."
+        ],
+        "industries": [
+          "Power transmission",
+          "Copper and cobalt mining",
+          "Grid equipment",
+          "Project finance",
+          "Power trading"
+        ],
+        "connected_companies_and_tickers": [
+          "Trafigura (private)",
+          "Gridworks (BII-owned)",
+          "First Quantum Minerals (TSX:FM; indirect regional load/exposure)"
+        ],
+        "consequences": [
+          "Lower-cost and more reliable mine power",
+          "New export route for Zambian generators",
+          "Demand for substations, conductors and grid services"
+        ],
+        "evidence": [
+          "Signed partner framework",
+          "Completed feasibility and environmental studies",
+          "SADC project records and local French-language reporting"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "FORMING",
+        "what_changed": "New stable formation ID in the blank 7 October scan; absent on 6 October.",
+        "why_state_changed": "A signed multi-party framework, completed studies and quantified capacity establish a coherent mechanism, but financing and construction have not closed.",
+        "strengthening_evidence": [
+          "The 6 October framework names the developer, trader and state investment participants.",
+          "Project materials quantify about 700 MW, 190-200 km and US$300 million construction cost."
+        ],
+        "weakening_evidence": [
+          "The announcement is a framework rather than financial close or notice to proceed."
+        ],
+        "break_conditions": [
+          "Financial close fails",
+          "Cross-border permits or tariffs are not agreed",
+          "Mining offtakers do not sign bankable contracts"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Financing terms",
+          "Tariff and offtake contracts",
+          "Construction schedule",
+          "ZESCO and SNEL implementation commitments"
+        ],
+        "new_links": [
+          "Copperbelt mine growth is explicitly linked to private regional transmission and SAPP power trade."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [
+        {
+          "name": "First Quantum Minerals",
+          "ticker": "FM",
+          "exchange": "TSX",
+          "role": "Large Kalumbila-area miner and indirect regional power-system participant; not a disclosed project sponsor"
+        }
+      ],
+      "valuation": null,
+      "valuation_research": "No project tariff, sponsor economics or attributable listed-company earnings are disclosed. Listed exposure is contextual and not a recommendation.",
+      "evidence": [
+        {
+          "fact": "The partners signed a framework to finance, build and operate a roughly 200 km, 700 MW Kalumbila-Kolwezi line with an estimated US$300 million construction cost.",
+          "source": "Trafigura",
+          "url": "https://www.trafigura.com/news-and-insights/press-releases/2026/fis-rdc-enpower-trafigura-and-gridworks-join-forces-to-deliver-landmark-power-interconnector-to-supply-the-drc-s-copperbelt/",
+          "date": "2026-10-06",
+          "language": "English"
+        },
+        {
+          "fact": "French-language project reporting describes the same US$300 million private interconnector and its Copperbelt purpose.",
+          "source": "Green RDC",
+          "url": "https://greenrdc.cd/2026/10/06/rdc-zambie-un-accord-historique-de-300-millions-de-dollars-pour-un-interconnecteur-electrique-prive-de-700-mw/",
+          "date": "2026-10-06",
+          "language": "French",
+          "english_summary": "The report confirms a 700 MW, 200 km private Zambia-DRC line aimed at the Kolwezi mining region."
+        },
+        {
+          "fact": "EnPower says technical and environmental studies are complete and describes a 330 kV line with a 700 MW thermal limit.",
+          "source": "EnPower DRC",
+          "url": "https://enpowerdrc.com/330-kv-project-kkip/",
+          "date": "2026-10-06",
+          "language": "English"
+        }
+      ],
+      "contradictions": [
+        "Published cost estimates vary from about US$250 million to US$300 million.",
+        "A framework agreement does not demonstrate committed debt, equity or offtake.",
+        "Regional generation availability may constrain actual imports even after the line is built."
+      ],
+      "missing_evidence": [
+        "Financial close",
+        "Tariffs and offtakers",
+        "Final permits",
+        "Construction contract and schedule"
+      ],
+      "what_to_check_next": [
+        "Lender commitments",
+        "ZESCO/SNEL approvals",
+        "Mining PPAs",
+        "Notice to proceed"
+      ]
+    }
+  ]
+}
