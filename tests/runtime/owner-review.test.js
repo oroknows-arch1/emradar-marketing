@@ -40,3 +40,21 @@ test('rate limit bounds login attempts and missing configuration fails closed',a
 test('complete page displays persisted copy and recipient with no executable artifact content',async t=>{
  const f=await fixture(t);const cookie=(await f.login()).headers.get('set-cookie').split(';')[0];const r=await f.request('/owner-review?campaign_id='+pkg.campaign_id,{headers:{cookie}});const html=await r.text();assert.ok(html.includes('Complete saved body'));assert.ok(html.includes('editor@example.test'));assert.ok(!html.includes('<script>'));assert.ok(html.includes('&lt;script&gt;'));assert.ok(!html.includes('test-only-password'));assert.ok(r.headers.get('content-security-policy').includes("default-src 'none'"));assert.equal(f.reads(),1);
 });
+
+test('normal browser entry GET without Origin or form content type serves login HTML directly',async t=>{
+ const f=await fixture(t);
+ const r=await f.request('/owner-review',{headers:{'sec-fetch-mode':'navigate','sec-fetch-dest':'document','sec-fetch-site':'none','user-agent':'Mozilla/5.0'}});
+ assert.equal(r.status,200);assert.match(r.headers.get('content-type'),/^text\/html/);
+ assert.equal(r.headers.get('location'),null);
+ const body=await r.text();assert.ok(body.includes('<form method="post" action="/owner-review/login">'));
+ assert.ok(body.includes('type="password"'));assert.ok(!body.includes('SAME_ORIGIN_FORM_REQUIRED'));
+ assert.ok(!body.includes('test-only-password'));assert.equal(f.reads(),0);
+});
+test('login POST still requires same-origin form headers before credentials are processed',async t=>{
+ const f=await fixture(t);
+ for(const headers of [{},{origin:'https://attacker.test','content-type':'application/x-www-form-urlencoded'},{origin:f.origin,'content-type':'application/json'}]){
+ const r=await f.request('/owner-review/login',{method:'POST',headers,body:''});
+ assert.equal(r.status,403);assert.equal((await r.json()).reason,'SAME_ORIGIN_FORM_REQUIRED');
+ }
+ assert.equal(f.reads(),0);
+});

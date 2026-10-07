@@ -36,7 +36,7 @@ export function createOwnerReview({password,getPackage,limitAttempt,now=Date.now
    if(!['/owner-review','/owner-review/package'].includes(u.pathname))return json(404,{reason:'NOT_FOUND'});
    if(req.method!=='GET')return json(405,{reason:'READ_ONLY_OWNER_ACCESS'});
    if(!valid(req,secret)){
-    if(u.pathname==='/owner-review')return respond(303,'','text/plain',{location:'/owner-review/login'});
+    if(u.pathname==='/owner-review')return respond(200,login());
     return json(403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
    }
    const campaign=u.searchParams.get('campaign_id');
