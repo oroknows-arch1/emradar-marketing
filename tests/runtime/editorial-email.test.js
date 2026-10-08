@@ -8,7 +8,7 @@ import {humanReadyEmail,reuseProposition,validateHumanEmail,validateCapabilityIn
 import {reviewedMail} from '../../runtime/editorial-outreach-gmail.js';
 import directory from '../../state/open-route-directory.json' with {type:'json'};
 
-const identity={name:'Sean Walker',address:'oroknows@gmail.com',approved:true};
+const identity={name:'Sean Walker',address:'sean@emradar.net',approved:true};
 const route=id=>directory.destinations.find(d=>d.destination_id===id);
 const signal={id:'copper-project',revision:'r1',state:'FORMING',evidence:['E1'],source_title:'Copper project expansion',source_facts:[{id:'E1',text:'The operator announced a copper processing expansion.',url:'https://example.test/source'}],source_uncertainty:['Forecast output is not realised output.','Final cost','Commissioning and ramp'],causal_chain:{industries:['Copper mining','Grinding equipment','Mine construction']}};
 async function legacy(id='INTERNATIONAL-MINING-EDITORIAL'){
