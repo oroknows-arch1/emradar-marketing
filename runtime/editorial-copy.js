@@ -62,7 +62,7 @@ export function validateEditorial(result,proof,context){
   validateCapabilityInventory(result,proof);
   if(context.human_correspondence_contract||isEmail(context.destination)){validateCorrespondenceProposition(result,context.destination);if(proof?.editorial_checks?.human_correspondence!=='PASS')throw new Error('HUMAN_CORRESPONDENCE_VERIFICATION_REQUIRED');}
   const copy=`Subject: ${result?.subject||''}\n\n${result?.body||''}`;
-  if(externalSchemaLeak(copy)&&!isEmail(context.destination))throw new Error('EXTERNAL_EDITORIAL_SCHEMA_LEAK');
+  if(externalSchemaLeak(copy)&&!isEmail(context.destination)&&!context.owner_preview)throw new Error('EXTERNAL_EDITORIAL_SCHEMA_LEAK');
   if(/\b(buy now|guaranteed return|risk.free investment|compra ahora|rendimiento garantizado|inversi[oó]n sin riesgo)\b/i.test(copy))throw new Error('UNSUPPORTED_FINANCIAL_CLAIM');
   const bound=ids=>Array.isArray(ids)&&ids.length>0&&ids.every(id=>refs.includes(id));
   if(!bound(proof?.evidence_refs)||!bound(result.evidence_refs)||!result.claims?.length||!result.claims.every(x=>x.text&&result.body.includes(x.text)&&bound(x.evidence_refs)))throw new Error('EDITORIAL_CLAIM_BINDING_REQUIRED');

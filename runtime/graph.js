@@ -355,7 +355,7 @@ const workers={
   },
   async editorial_quality_gate(c) {
     if(!c.allowed_copy.includes(c.copy)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
-    if(c.route?.destination?.platform==='OPEN_ROUTE'&&!c.email){if(!c.editorial||c.copy_method!=='editorial_copy_system_v1')fail('EDITORIAL_TRANSFORMATION_REQUIRED');if(externalSchemaLeak(c.copy))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');validateEditorial(c.editorial.result,c.editorial.proof,editorialContext(c));}
+    if(c.route?.destination?.platform==='OPEN_ROUTE'&&!c.email){if(!c.editorial||c.copy_method!=='editorial_copy_system_v1')fail('EDITORIAL_TRANSFORMATION_REQUIRED');if(externalSchemaLeak(c.copy)&&!ownerPreview(c.input))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');validateEditorial(c.editorial.result,c.editorial.proof,editorialContext(c));}
     if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('UNSUPPORTED_FINANCIAL_CLAIM');
   },
   async variant_factory(c) {
