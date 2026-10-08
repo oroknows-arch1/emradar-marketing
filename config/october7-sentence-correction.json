@@ -1,0 +1,22 @@
+{
+  "campaign_id": "EMRADAR_2026_10_07_LAUNCH",
+  "authority": "EXPLICIT_OWNER_SENTENCE_REMOVAL_AND_APPROVAL_2026_10_09",
+  "sentence": "The formation is FORMING.",
+  "proposals": [
+    {
+      "destination": "GLOBAL-MINING-REVIEW-EDITORIAL",
+      "proposal_id": "8d42d5dc49824b43ab49285410f1ad3a34ecd12010e0d70a6c2320daf84e2a8a",
+      "review_hash": "f99ab6bf849feadb3ec0aa359376be2922af6ef7db8256acd68ecb1075c5b1c0"
+    },
+    {
+      "destination": "MINING-WEEKLY-TIP",
+      "proposal_id": "ec925fab44e29c0e9fd5d28c67ba7f22a4949f1a97fb22255d54a9aa297eb51f",
+      "review_hash": "fd8134e9ecc4e108bc6b69447165bb23ea007efde14caa471beb6975ee0cab16"
+    },
+    {
+      "destination": "AUSTRALIAN-MINING-REVIEW-EDITORIAL",
+      "proposal_id": "bc7505dd795c3ed873741ce882fbb1293e01341753fe3b32332028bbf83a7977",
+      "review_hash": "9982edc931ac4cccb7bb529ae617ce7391c638a71d648fb7722247a02d463122"
+    }
+  ]
+}
