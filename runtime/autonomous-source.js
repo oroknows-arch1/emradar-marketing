@@ -120,7 +120,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const reuse=destination=>existingProposals.filter(p=>p.destination===destination).sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at))[0];
   const external=destination=>matching.find(r=>r.destination===destination&&executed.has(r.execution_status));
   const results=[];
-  const preview=state.campaign_id==='EMRADAR_2026_10_06_LAUNCH';
+  const preview=/^EMRADAR_2026_10_(06|07|08)_LAUNCH$/.test(state.campaign_id);
   const run=async(destination,refreshDiscovery=false)=>{
     const saved=reuse(destination);
     if(!refreshDiscovery&&saved&&(saved.review_contract_revision===reviewContractRevision||destination==='EMRADAR-X-OROKNOWS')&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
