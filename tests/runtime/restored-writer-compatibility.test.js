@@ -108,4 +108,7 @@ test('recipient agency failure gets one verified correction without relaxing the
  const bad=structuredClone(good),question='What exploration milestones remain?';bad.body=bad.body+"\n"+question;bad.correspondence.question=question;let calls=0;
  const output=await produceEditorial(context,async(request,attempt)=>{calls++;if(attempt===2)assert.equal(request.editorial_correction.failed_gate,'HUMAN_RECIPIENT_AGENCY_REQUIRED');return {result:attempt===1?bad:good,proof};});assert.equal(output.result,good);assert.equal(calls,2);
  await assert.rejects(produceEditorial(context,async()=>({result:bad,proof})),/HUMAN_RECIPIENT_AGENCY_REQUIRED/);
+ const paraphrased=structuredClone(good);paraphrased.correspondence.insight='Unused paraphrase of the body.';let repaired=0;
+ await produceEditorial(context,async(request,attempt)=>{repaired++;if(attempt===2){assert.deepEqual(request.editorial_correction.rejected_result,paraphrased);assert.equal(request.editorial_correction.failed_gate,'HUMAN_PROPOSITION_QUALITIES_REQUIRED');}return {result:attempt===1?paraphrased:good,proof};});assert.equal(repaired,2);
+ await assert.rejects(produceEditorial(context,async()=>({result:paraphrased,proof})),/HUMAN_PROPOSITION_QUALITIES_REQUIRED/);
 }));

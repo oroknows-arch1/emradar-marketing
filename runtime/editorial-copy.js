@@ -71,11 +71,11 @@ export function validateEditorial(result,proof,context){
 // One bounded correction is allowed for diagnosed content defects; all gates still apply. Each
 // call still owns its quote, reservation, verification and billing receipt.
 export async function produceEditorial(context,work,record=async()=>{}){
-  let correction=null;
+  let correction=null,rejectedResult=null;
   for(let attempt=1;attempt<=2;attempt++){
-    const request=correction?{...context,editorial_correction:{attempt,failed_gate:correction,instructions:'Write a new destination-specific result using the exact response_schema. Preserve all source facts and uncertainty. Remove unverified future/ongoing service promises; retain only the owner-authorized offer of one finished sourced draft for this campaign and destination on request. Copy all correspondence excerpts exactly from body. Ask the editor whether the proposed contribution suits their publication or what angle they would prefer; retain their choice and do not ask only a subject-matter question.'}}:context;
+    const request=correction?{...context,editorial_correction:{attempt,failed_gate:correction,rejected_result:rejectedResult,instructions:'Write a new destination-specific result using the exact response_schema. Preserve all source facts and uncertainty. Remove unverified future/ongoing service promises; retain only the owner-authorized offer of one finished sourced draft for this campaign and destination on request. Write the complete natural body first. Then extract each required correspondence field as a nonempty contiguous excerpt actually present in that body, with no paraphrasing; overlapping excerpts are allowed. Include the exact publication name in the reason excerpt. Copy all correspondence excerpts exactly from body. Ask the editor whether the proposed contribution suits their publication or what angle they would prefer; retain their choice and do not ask only a subject-matter question.'}}:context;
     const output=await work(request,attempt);
     try{validateEditorial(output.result,output.proof,context);await record({attempt,status:'PASS'});return output;}
-    catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID','HUMAN_RECIPIENT_AGENCY_REQUIRED'].includes(error.message))throw error;correction=error.message;}
+    catch(error){await record({attempt,status:'REJECTED',reason:error.message});if(attempt===2||!['UNVERIFIED_CAPABILITY_CLAIM','EDITORIAL_RESULT_INVALID','HUMAN_RECIPIENT_AGENCY_REQUIRED','HUMAN_PROPOSITION_QUALITIES_REQUIRED','HUMAN_DESTINATION_REASON_OR_QUESTION_REQUIRED'].includes(error.message))throw error;correction=error.message;rejectedResult=output.result;}
   }
 }
