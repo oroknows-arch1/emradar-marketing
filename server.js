@@ -1,3 +1,4 @@
+import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
 import sentenceCorrection from './config/october7-sentence-correction.json' with {type:'json'};
 import {applySentenceCorrection} from './runtime/sentence-correction.js';
 import {recoverIdlePreparationLock} from './runtime/preparation-recovery.js';
@@ -425,7 +426,9 @@ async function distributionCycle(){
     const engine=await marketingEngine();
     const excludeCampaigns=[];
     try{const correction=await applySentenceCorrection(engine,sentenceCorrection);if(correction.status==='COMPLETE')console.log('OCTOBER7_SENTENCE_CORRECTION '+JSON.stringify({status:correction.status,campaign_id:correction.campaign_id,results:correction.results.map(({body,...r})=>r),external_actions:0}));}catch(e){excludeCampaigns.push(sentenceCorrection.campaign_id);console.error('OCTOBER7_SENTENCE_CORRECTION_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0}));}
-    try{await engine.recoverApprovedCampaign(approvedRecovery);}catch(e){excludeCampaigns.push(approvedRecovery.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:approvedRecovery.campaign_id,reason:e.message}));}
+    for(const manifest of [approvedRecovery,...approvedReleases]){
+      try{await engine.recoverApprovedCampaign(manifest);}catch(e){excludeCampaigns.push(manifest.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:manifest.campaign_id,reason:e.message}));}
+    }
     await releaseVerifiedUnsent(engine,repairRecovery);
     const results=await engine.distributeApproved({limit:8,excludeCampaigns});
     for(const result of results)console.log('APPROVED_DISTRIBUTION_RECEIPT '+JSON.stringify(result));
