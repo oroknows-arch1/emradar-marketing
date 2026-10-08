@@ -275,7 +275,7 @@ const server=http.createServer(async(req,res)=>{
     if(!packageRead&&!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
-        if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record||{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
+        if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record?{...record,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)}:{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
         const id=u.searchParams.get('proposal_id');if(!id||!/^[a-f0-9]{64}$/.test(id))return json(res,400,{ok:false,reason:'PROPOSAL_ID_REQUIRED'});
         const proposal=await new RedisStore(await store()).get('publication_review:'+id);
         return json(res,proposal?200:404,proposal||{ok:false,reason:'PUBLICATION_REVIEW_NOT_FOUND'});
@@ -398,10 +398,10 @@ async function normalCycle(){
     const s=new RedisStore(await store());
     let preparation;
     const lockRecovery=await recoverIdlePreparationLock(s);
-    if(lockRecovery.status==='RECOVERED_IDLE_PREPARATION_LOCK')console.log('PREPARATION_LOCK_RECOVERY '+JSON.stringify(lockRecovery));
+    console.log('PREPARATION_LOCK_RECOVERY '+JSON.stringify(lockRecovery));
     const recovered=[];
     // Resume only existing, attested campaigns; keep the latest signed intake intact.
-    for(const campaign_id of ['EMRADAR_2026_10_07_LAUNCH','EMRADAR_2026_10_08_LAUNCH']){
+    for(const campaign_id of ['EMRADAR_2026_10_08_LAUNCH']){
       if(!await s.get('review_package:'+campaign_id))continue;
       try{recovered.push(await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id}));}
       catch(error){const blocked={campaign_id,status:'BLOCKED',blocker:error.message,external_actions:0};recovered.push(blocked);console.error('CAMPAIGN_RESUME_BLOCKED '+JSON.stringify(blocked));}

@@ -73,3 +73,19 @@ test('idle lock recovery preserves recent locks, in-flight actions and compare-a
   const result=await recoverIdlePreparationLock(store);assert.equal(deleted,condition==='idle');assert.equal(result.external_actions||0,0);
  }
 });
+test('legacy ownership stability recovers despite Redis idle resetting, while preserving artifacts and other locks',async()=>{
+ const t=Date.parse('2026-10-08T17:00:00Z');let token='stale-token';
+ const values=new Map([['review_package:'+campaign,{external_actions:0,status:'AWAITING_REVIEW',proposals:[]}],['receipt_index',[]],['campaign_cost_index:'+campaign,[]],['unrelated-lock','KEEP']]);
+ const store={get:async k=>values.get(k),put:async(k,v)=>values.set(k,v),keys:async()=>[],client:{sendCommand:async()=>5,get:async()=>token,eval:async(_s,args)=>{if(token!==args.arguments[0])return 0;token=null;return 1;}}};
+ assert.equal((await recoverIdlePreparationLock(store,{now:t})).reason,'OBSERVING_LEGACY_LOCK_OWNER');
+ const result=await recoverIdlePreparationLock(store,{now:t+300000});assert.equal(result.status,'RECOVERED_IDLE_PREPARATION_LOCK');assert.equal(token,null);assert.equal(values.get('unrelated-lock'),'KEEP');assert.deepEqual(values.get('review_package:'+campaign),{external_actions:0,status:'AWAITING_REVIEW',proposals:[]});
+});
+test('tracked active owners and recent expense activity prohibit stale-lock recovery',async()=>{
+ const now=Date.now(),token='active',token_hash=crypto.createHash('sha256').update(token).digest('hex');
+ for(const tracked of [true,false]){
+  let deleted=false;const values=new Map([['review_package:'+campaign,{external_actions:0}],['receipt_index',[]],['campaign_cost_index:'+campaign,[]],['campaign_cost:active',{outcome:'RUNNING',timestamp:new Date(now).toISOString(),calls:[]}]]);
+  if(tracked)values.set('lock_owner:engine',{token_hash,heartbeat_at:new Date(now).toISOString()});
+  const store={get:async k=>values.get(k),put:async(k,v)=>values.set(k,v),keys:async prefix=>prefix==='campaign_cost:'?['campaign_cost:active']:[],client:{sendCommand:async()=>7200,get:async()=>token,eval:async()=>{deleted=true;return 1;}}};
+  const result=await recoverIdlePreparationLock(store,{now});assert.equal(deleted,false);assert.equal(result.reason,tracked?'ACTIVE_ENGINE_HEARTBEAT':'RUN_ACTIVITY_RECENT');
+ }
+});

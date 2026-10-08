@@ -34,5 +34,11 @@ export class RedisStore {
     const timer=setInterval(()=>this.client.eval("if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('pexpire',KEYS[1],120000) else return 0 end",{keys:[k],arguments:[token]}).catch(()=>{}),30000);timer.unref();
     try{return await fn();}finally{clearInterval(timer);await this.client.eval("if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end",{keys:[k],arguments:[token]});}
   }
-  async locked(key,fn) {const k='marketing:graph:lock:'+key;const token=crypto.randomUUID();if(!await this.client.set(k,token,{NX:true}))throw new Error('RUN_IN_PROGRESS_OR_RECOVERY_REQUIRED');try{return await fn();}finally{await this.client.eval("if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end",{keys:[k],arguments:[token]});}}
+  async locked(key,fn) {const k='marketing:graph:lock:'+key;const token=crypto.randomUUID();if(!await this.client.set(k,token,{NX:true}))throw new Error('RUN_IN_PROGRESS_OR_RECOVERY_REQUIRED');
+    const token_hash=crypto.createHash('sha256').update(token).digest('hex');
+    const heartbeat=async()=>{if(await this.client.get(k)===token)await this.put('lock_owner:'+key,{token_hash,heartbeat_at:new Date().toISOString()});};
+    let timer;
+    try{if(key==='engine'){await heartbeat();timer=setInterval(()=>heartbeat().catch(()=>{}),30000);timer.unref();}return await fn();}
+    finally{if(timer)clearInterval(timer);await this.client.eval("if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end",{keys:[k],arguments:[token]});}
+  }
 }
