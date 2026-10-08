@@ -8,7 +8,7 @@ import openRouteDirectory from '../state/open-route-directory.json' with {type:'
 const origin='https://emerging-markets-radar.onrender.com';
 const sha=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const at=()=>new Date().toISOString();
-export const reviewContractRevision='sfy-bounded-draft-correspondence-v4';
+export const reviewContractRevision='sfy-bounded-draft-correspondence-v5-human-editorial';
 const executed=new Set(['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS']);
 // Terminal optional content/qualification failures are retained for review.
 // Infrastructure, ambiguous execution, source truth and cost authority failures
