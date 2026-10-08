@@ -14,6 +14,7 @@ import { createClient } from "redis";
 import fs from 'node:fs/promises';
 import { GraphEngine } from './runtime/graph.js';
 import { RedisStore } from './runtime/store.js';
+import {billingAudit} from './runtime/billing-audit.js';
 import {ProductIntake,loadPolicies,emradarSource,signSource} from './runtime/intake.js';
 import {applyAuthority} from './runtime/authority.js';
 import {loadHarness} from './runtime/harness.js';
@@ -301,6 +302,11 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(PORT,()=>{
   console.log("EMRADAR X executor listening");
+  // Read-only bounded billing visibility; no generation, settlement or transport.
+  if(KEY_VALUE_URL)store().then(client=>billingAudit(new RedisStore(client))).then(audit=>{
+    console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
+    for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
+  }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
   distributionCycle().catch(e=>console.error('APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:e.message})));
   try{const probe=correspondenceProbe();console.log('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:probe.status,version:probe.version,worker:probe.worker,mode:probe.mode,external_actions:probe.external_actions,artifact_hash:probe.artifact_hash,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'}));}catch(e){console.error('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:'BLOCKED',reason:e.message}));}
   normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0})));
