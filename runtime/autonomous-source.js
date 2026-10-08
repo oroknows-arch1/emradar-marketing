@@ -105,7 +105,9 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   }
   if(state.status==='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision){
     const pkg=await store.get('review_package:'+state.campaign_id),receipt=await store.get(routingReceiptKey(state.campaign_id));
-    if(completeReviewCheckpoint(state,pkg,receipt))return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:pkg,external_actions:0};
+    // A repaired runtime must revisit rejected incomplete routes; valid proposals remain reusable.
+    const repairedIncomplete=state.runtime_commit!==(env.RENDER_GIT_COMMIT||'UNKNOWN')&&(pkg?.rejected_routes||[]).length>0;
+    if(!repairedIncomplete&&completeReviewCheckpoint(state,pkg,receipt))return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:pkg,external_actions:0};
   }
   if(state.status!=='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision&&state.runtime_commit===(env.RENDER_GIT_COMMIT||'UNKNOWN')&&state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
   const runtime=env.RENDER_GIT_COMMIT||'UNKNOWN';

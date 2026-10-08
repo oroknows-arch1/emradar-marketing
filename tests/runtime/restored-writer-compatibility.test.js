@@ -9,7 +9,7 @@ import {autonomousScanCycle,reviewContractRevision} from '../../runtime/autonomo
 import {editorialOutreachAdapter,xAdapter} from '../../runtime/adapters.js';
 import {recoverIdlePreparationLock} from '../../runtime/preparation-recovery.js';
 import {draftCapability,validateCapabilityInventory} from '../../runtime/editorial-email.js';
-import {editorialContext} from '../../runtime/editorial-copy.js';
+import {editorialContext,produceEditorial} from '../../runtime/editorial-copy.js';
 const sha=v=>crypto.createHash('sha256').update(v).digest('hex');
 const campaign='EMRADAR_2026_10_08_LAUNCH';
 const quiet=async fn=>{const log=console.log;console.log=()=>{};try{return await fn();}finally{console.log=log;}};
@@ -89,3 +89,23 @@ test('tracked active owners and recent expense activity prohibit stale-lock reco
   const result=await recoverIdlePreparationLock(store,{now});assert.equal(deleted,false);assert.equal(result.reason,tracked?'ACTIVE_ENGINE_HEARTBEAT':'RUN_ACTIVITY_RECENT');
  }
 });
+
+test('runtime repair resumes only rejected incomplete route and retains completed emails and X',()=>quiet(async()=>{
+ const f=await setup(),factory=f.args.engineFactory;let reject=true;
+ f.args.engineFactory=async()=>{const e=await factory(),run=e.run.bind(e);e.run=async input=>reject&&input.destination_id==='MARINELINK-EDITORIAL-INQUIRY'?{status:'BLOCKED',blocker:'HUMAN_RECIPIENT_AGENCY_REQUIRED',run_id:'test-rejected',nodes:[{node:'editorial_intelligence',status:'BLOCKED'}]}:run(input);return e;};
+ const first=await autonomousScanCycle(f.args);assert.equal(first.package.rejected_routes[0].destination,'MARINELINK-EDITORIAL-INQUIRY');
+ const saved=first.package.proposals;const before=f.calls();
+ const duplicate=await autonomousScanCycle({...f.args,resumeCampaign:campaign});assert(duplicate.duplicate);assert.equal(f.calls(),before);
+ reject=false;const repaired=await autonomousScanCycle({...f.args,resumeCampaign:campaign,env:{RENDER_GIT_COMMIT:'test-repair'}});
+ assert.equal(repaired.campaign_id,campaign);assert.equal(repaired.package.rejected_routes.length,0);assert.equal(f.calls(),before+1);
+ for(const p of saved)assert.deepEqual(repaired.package.proposals.find(q=>q.proposal_id===p.proposal_id),p);
+ const after=f.calls();assert((await autonomousScanCycle({...f.args,resumeCampaign:campaign,env:{RENDER_GIT_COMMIT:'test-repair'}})).duplicate);assert.equal(f.calls(),after);assert.equal(f.actions(),0);
+}));
+test('recipient agency failure gets one verified correction without relaxing the gate',()=>quiet(async()=>{
+ const f=await setup(),result=await autonomousScanCycle(f.args),p=result.package.proposals.find(p=>p.asset.email);
+ const context=editorialContext({signal:{...p.evidence_binding,state:p.signal_state,revision:p.signal_revision,evidence:p.evidence_refs},product:{},route:{id:p.destination,destination:{route_record:p.asset.delivery}},route_plan:{proposed_assets:[{destination_id:p.destination}]}});
+ const good=p.asset.email.proposition,proof={evidence_refs:p.evidence_refs,editorial_checks:Object.fromEntries(['factual_entailment','uncertainty_preserved','destination_fit','originality','capability_inventory','human_correspondence'].map(k=>[k,'PASS']))};
+ const bad=structuredClone(good),question='What exploration milestones remain?';bad.body=bad.body+"\n"+question;bad.correspondence.question=question;let calls=0;
+ const output=await produceEditorial(context,async(request,attempt)=>{calls++;if(attempt===2)assert.equal(request.editorial_correction.failed_gate,'HUMAN_RECIPIENT_AGENCY_REQUIRED');return {result:attempt===1?bad:good,proof};});assert.equal(output.result,good);assert.equal(calls,2);
+ await assert.rejects(produceEditorial(context,async()=>({result:bad,proof})),/HUMAN_RECIPIENT_AGENCY_REQUIRED/);
+}));
