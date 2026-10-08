@@ -29,8 +29,8 @@ async function read(url,fetcher){
   if(!response.ok)throw new Error('AUTHORITATIVE_SOURCE_HTTP_'+response.status);
   return Buffer.from(await response.arrayBuffer());
 }
-export async function publishedSource(fetcher=fetch){
-  const latest=JSON.parse(await read(origin+'/data/discovery.json',fetcher));
+export async function publishedSource(fetcher=fetch,snapshotDate=null){
+  const latest=JSON.parse(await read(snapshotDate?origin+'/data/checkpoints/discovery-'+snapshotDate+'.json':origin+'/data/discovery.json',fetcher));
   const date=latest.snapshot_date;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date||'')||latest.publication_state!=='PUBLISHED')throw new Error('AUTHORITATIVE_SCAN_NOT_PUBLISHED');
   const [bytes,attestationBytes]=await Promise.all([
@@ -50,11 +50,16 @@ export async function publishedSource(fetcher=fetch){
 
 // This admits source truth and prepares exact review artifacts through GraphEngine.
 // It never invokes approval or transport. No browser or ChatGPT-held secret is used.
-export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys,fetcher=fetch,env=process.env,log=console.log}){
+export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys,fetcher=fetch,env=process.env,log=console.log,resumeCampaign=null}){
   if(intakeHeld(env))return {status:'HELD',reason:'MARKETING_EMERGENCY_STOP',external_actions:0};
-  const published=await publishedSource(fetcher),{scan,source,attestation,source_sha256}=published;
+  if(resumeCampaign&&!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(resumeCampaign))throw Error('RESUME_CAMPAIGN_INVALID');
+  const snapshotDate=resumeCampaign?resumeCampaign.slice(8,18).replaceAll('_','-'):null;
+  const savedPackage=resumeCampaign?await store.get('review_package:'+resumeCampaign):null;
+  if(resumeCampaign&&!savedPackage)throw Error('PERSISTED_CAMPAIGN_REVIEW_REQUIRED');
+  const published=await publishedSource(fetcher,snapshotDate),{scan,source,attestation,source_sha256}=published;
   if(!sourceKeys.EMRADAR)throw new Error('SOURCE_NOT_REGISTERED');
-  const handoff=await store.locked('autonomous_source',async()=>{
+  if(resumeCampaign&&(savedPackage.source_sha256!==source_sha256||attestation.campaign_authority.campaign_id!==resumeCampaign||!savedPackage.source_receipt))throw Error('PERSISTED_CAMPAIGN_SOURCE_BINDING_MISMATCH');
+  const handoff=resumeCampaign?{status:'PERSISTED_SOURCE_REUSED',...savedPackage.source_receipt}:await store.locked('autonomous_source',async()=>{
     const previous=await store.get('source:EMRADAR');
     if(previous?.source.signals?.some(s=>s.source_snapshot>scan.snapshot_date))throw new Error('STALE_PUBLISHED_SCAN');
     const same=previous&&JSON.stringify(previous.source.signals)===JSON.stringify(source.signals)&&
@@ -66,7 +71,13 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   });
   const key='autonomous_scan:'+scan.snapshot_date+':'+source_sha256;
   let state=await store.get(key);
-  const engine=await engineFactory(),product=engine.products.EMRADAR;
+  if(resumeCampaign&&(!state||state.campaign_id!==resumeCampaign))throw Error('PERSISTED_CAMPAIGN_STATE_REQUIRED');
+  const engine=await engineFactory();
+  if(resumeCampaign){
+    if(engine.products.EMRADAR?.source_release_authority?.automatic_after_native_gates!==true)throw Error('NATIVE_SOURCE_RELEASE_AUTHORITY_REQUIRED');
+    engine.products.EMRADAR={...engine.products.EMRADAR,...source,review:{evidence:true,editorial:true,brand:true,risk:true},source_receipt:savedPackage.source_receipt};
+  }
+  const product=engine.products.EMRADAR;
   if(!product?.source_receipt||!product.release_approved)throw new Error('SOURCE_REVIEW_OR_RELEASE_REQUIRED');
   // Preserve any existing campaign identity before admitting a new one.
   const receipts=await store.get('receipt_index')||[];

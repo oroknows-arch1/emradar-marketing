@@ -385,10 +385,17 @@ async function normalCycle(){
   normalCyclePromise=(async()=>{
     const s=new RedisStore(await store());
     let preparation;
+    const recovered=[];
+    // Resume only existing, attested campaigns; keep the latest signed intake intact.
+    for(const campaign_id of ['EMRADAR_2026_10_07_LAUNCH','EMRADAR_2026_10_08_LAUNCH']){
+      if(!await s.get('review_package:'+campaign_id))continue;
+      try{recovered.push(await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id}));}
+      catch(error){const blocked={campaign_id,status:'BLOCKED',blocker:error.message,external_actions:0};recovered.push(blocked);console.error('CAMPAIGN_RESUME_BLOCKED '+JSON.stringify(blocked));}
+    }
     try{preparation=await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});}
     catch(error){preparation={status:'BLOCKED',blocker:error.message,external_actions:0};console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify(preparation));await s.put('autonomous_scan_latest_blocker:EMRADAR',{...preparation,at:new Date().toISOString()});}
     const feedback=await (await marketingEngine()).tick({feedbackOnly:true});
-    return {preparation,feedback};
+    return {preparation,recovered,feedback};
   })().finally(()=>{normalCyclePromise=null;});
   return normalCyclePromise;
 }

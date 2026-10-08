@@ -53,3 +53,20 @@ test('unresolved actual cost blocks all later paid actions; local zero remains m
   const local=await spending.reserve({campaign_id:'test',quote:zeroQuote('local')});
   const receipt=await spending.settle(local,zeroBilling('local'));assert.equal(receipt.amount,0);
 });
+
+test('missing historical provider billing is observational for bounded content only',async()=>{
+ const f=await fixture(),spend=new SpendEnvelope(f.store),month=calendarMonth(),key='spend:'+month;
+ const unknown={campaign_id:'old',category:'distribution',max_cost_aud:'UNKNOWN',status:'UNKNOWN',quote_receipt:'UNKNOWN'};
+ await f.store.put(key,{month,actual_aud:0.2,unresolved:{old:unknown},campaigns:{},receipts:{},historical_billing:'UNKNOWN'});
+ const quote={currency:'AUD',verified:true,provider_enforced:true,max_cost_aud:.25,receipt_id:'verified-current-bound'};
+ const held=await spend.reserve({campaign_id:'new',category:'generation',quote,action_id:'content'});
+ await spend.settle(held,undefined);
+ const ledger=await f.store.get(key);assert.deepEqual(ledger.unresolved.old,unknown);assert.equal(ledger.actual_aud,.2);assert.equal(ledger.unresolved.content.status,'UNKNOWN');
+ await assert.rejects(spend.reserve({campaign_id:'new',category:'distribution',quote}),/MONTHLY_BILLING_UNKNOWN/);
+ ledger.historical_billing='RECONCILED';await f.store.put(key,ledger);
+ await assert.rejects(spend.reserve({campaign_id:'new',category:'distribution',quote}),/PROVIDER_BILLING_UNKNOWN/);
+ await assert.rejects(spend.reserve({campaign_id:'new',category:'generation',quote:{...quote,max_cost_aud:5}}),/OWNER_EXCEPTION_CAMPAIGN_AUD_5/);
+ await assert.rejects(spend.reserve({campaign_id:'new',category:'generation',quote:{...quote,verified:false}}),/ACTUAL_COST_BOUND_UNKNOWN/);
+ ledger.actual_aud=49.9;await f.store.put(key,ledger);
+ await assert.rejects(spend.reserve({campaign_id:'other',category:'generation',quote}),/OWNER_EXCEPTION_MONTH_AUD_50/);
+});

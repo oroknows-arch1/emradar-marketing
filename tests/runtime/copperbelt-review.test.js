@@ -5,6 +5,7 @@ import sharp from 'sharp';
 import scan from './energy-production-reference.json' with {type:'json'};
 const energyScan=scan;
 import copperbeltScan from './copperbelt-production-reference.json' with {type:'json'};
+import offshoreScan from './offshore-production-reference.json' with {type:'json'};
 import brand from '../../runtime/email-brand.cjs';
 import directory from '../../state/open-route-directory.json' with {type:'json'};
 import {fixture,editorialHarness,editorialBudget} from './fixture.js';
@@ -22,7 +23,7 @@ import {calendarMonth} from '../../runtime/spending.js';
 const hash=v=>crypto.createHash('sha256').update(v).digest('hex');
 async function setup(transform,preview=false,scan=energyScan){
  const f=await fixture(),bytes=Buffer.from(JSON.stringify(scan));
- const attestation={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-'+scan.snapshot_date+'.json',source_sha256:hash(bytes),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(g=>[g,'PASS'])),campaign_authority:{campaign_id:preview?'EMRADAR_2026_10_06_LAUNCH':'EMRADAR_REGRESSION_LEGACY',required_stop:'PUBLICATION_REVIEW',external_publication_allowed:false}};
+ const attestation={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-'+scan.snapshot_date+'.json',source_sha256:hash(bytes),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(g=>[g,'PASS'])),campaign_authority:{campaign_id:preview?'EMRADAR_2026_10_06_LAUNCH':'EMRADAR_'+scan.snapshot_date.replaceAll('-','_')+'_LAUNCH',required_stop:'PUBLICATION_REVIEW',external_publication_allowed:false}};
  const policy={...f.p,product_identity:'EMRADAR',destinations:[],uncertainty_state_model:['CONFIRMED','FORMING','INVESTIGATE','UNKNOWN'],source_release_authority:{automatic_after_native_gates:true,required_gates:['evidence','editorial','brand','risk','publication']},budget:{...editorialBudget,max_worker_calls:20},provider_authority:{automatic_connected_approved_only:true},spending_envelope:{currency:'AUD',campaign_limit:5,calendar_month_limit:50}};
  const intake=new ProductIntake({store:f.store,policies:{EMRADAR:policy},sourceKeys:{EMRADAR:'REGRESSION_ONLY'}});
  let actions=0;const noSend=()=>{actions++;throw Error('EXTERNAL_ACTION_FORBIDDEN');};
@@ -32,7 +33,7 @@ async function setup(transform,preview=false,scan=energyScan){
    const r=await work(...args),context=args[1],name=context.destination.organisation;
    const question='Would this analysis be useful for '+name+' readers?';
    const reason=question;
-   const insight='What stood out was '+({FINANCIAL_MARKETS:'the gap between recovered exports and delivered prices.',REFINING_AND_STORAGE:'the gap between recovered crude flows and restored refining capacity.',MARITIME_LOGISTICS:'tanker risk remaining distinct from crude export volume.',MINING_TRADE:'the mine-power constraint and outstanding financial close.',CHILE_LATAM:'the unresolved construction and supplier milestones.'})[context.brief.lane];
+   const insight='What stood out was '+({OFFSHORE_EXPLORATION:'the gap between awarded acreage and sanctioned offshore production.',FINANCIAL_MARKETS:'the gap between recovered exports and delivered prices.',REFINING_AND_STORAGE:'the gap between recovered crude flows and restored refining capacity.',MARITIME_LOGISTICS:'tanker risk remaining distinct from crude export volume.',MINING_TRADE:'the mine-power constraint and outstanding financial close.',CHILE_LATAM:'the unresolved construction and supplier milestones.'})[context.brief.lane];
    const proposition='We are developing an evidence-backed contribution around '+context.destination.relevant_beat_topic[0]+' — while keeping the unresolved delivery risks explicit.';
    // The test model uses one exact fact and keeps all uncertainty in internal metadata, preserving the production shape within the email word limit.
    const development=context.source.source_facts[0].text+' The formation is '+context.source.state+'.';
@@ -63,7 +64,9 @@ test('COPPERBELT_COMPOUND_INDUSTRY_RESUMES_X_ONLY_REVIEW_WITH_RENDERED_BOUND_EMA
  await f.store.put('receipt_index',[{product:'EMRADAR',campaign_id:first.campaign_id,signal_id:x.signal_id,signal_revision:x.signal_revision,destination:x.destination,proposal_id:x.proposal_id,execution_status:'AWAITING_REVIEW'}]);
  await f.store.put(key,{...state,status:'AWAITING_REVIEW',routes:{[x.destination]:{status:x.status,proposal_id:x.proposal_id}}});
  await f.store.put('review_package:'+first.campaign_id,{...first.package,proposals:[x],routing_revision:undefined});
- const sourceBefore=await f.store.get('source:EMRADAR'),resumed=await autonomousScanCycle(f.args);
+ const sourceBefore=await f.store.get('source:EMRADAR');
+ const month=calendarMonth();await f.store.put('spend:'+month,{month,actual_aud:0,unresolved:{legacy:{campaign_id:'old',category:'distribution',max_cost_aud:'UNKNOWN',status:'UNKNOWN'}},campaigns:{},receipts:{},historical_billing:'UNKNOWN'});
+ const resumed=await autonomousScanCycle({...f.args,resumeCampaign:first.campaign_id});
  assert.equal(resumed.status,'AWAITING_REVIEW',JSON.stringify(resumed.package.blockers));
  assert.equal(resumed.campaign_id,first.campaign_id);assert.deepEqual(await f.store.get('source:EMRADAR'),sourceBefore);
  const sameX=resumed.package.proposals.find(p=>p.platform==='X');assert.equal(sameX.proposal_id,x.proposal_id);assert.equal(sameX.review_hash,x.review_hash);assert.deepEqual(sameX.asset,x.asset);
@@ -74,3 +77,13 @@ test('COPPERBELT_COMPOUND_INDUSTRY_RESUMES_X_ONLY_REVIEW_WITH_RENDERED_BOUND_EMA
  assert.equal(f.actions(),0);assert.equal(resumed.external_actions,0);
  const stable=await autonomousScanCycle(f.args);assert.equal(stable.duplicate,true);assert.deepEqual(stable.package.proposals.map(p=>p.proposal_id),resumed.package.proposals.map(p=>p.proposal_id));
 });
+
+ test('OFFSHORE_PRODUCTION_SOURCE_ROUTES_ONLY_EVIDENCED_BEATS_AND_REUSES_EXACT_X',async()=>{
+ const f=await setup(null,false,offshoreScan),first=await autonomousScanCycle(f.args);
+ assert.equal(first.status,'AWAITING_REVIEW',JSON.stringify(first.package.blockers));
+ const plan=await f.store.get('route_plan:EMRADAR:'+first.package.formation.id+':'+first.package.proposals[0].signal_revision);
+ assert.deepEqual(new Set(plan.candidates.map(d=>d.destination_id)),new Set(['EMRADAR-X-OROKNOWS','MARINELINK-EDITORIAL-INQUIRY','OIL-GAS-JOURNAL-EDITORIAL']));
+ assert(plan.candidates.filter(d=>d.destination_id!=='EMRADAR-X-OROKNOWS').every(d=>d.editorial_lane==='OFFSHORE_EXPLORATION'&&d.beat_evidence_source_url));
+ const resumed=await autonomousScanCycle({...f.args,resumeCampaign:first.campaign_id});
+ assert.equal(resumed.duplicate,true);assert.deepEqual(resumed.package.proposals,first.package.proposals);assert.equal(f.actions(),0);
+ });

@@ -1,6 +1,6 @@
 const clamp=n=>Math.max(0,Math.min(1,n));
 const norm=v=>String(v||'').toLowerCase();
-export const routingRevision='conjoined-industry-fit-v2';
+export const routingRevision='conjoined-industry-offshore-fit-v3';
 // A source such as "Copper and cobalt mining" explicitly includes copper mining.
 // Require every destination word; sharing only "mining" is not a match.
 const includesIndustry=(source,target)=>{
@@ -18,7 +18,8 @@ export function openRouteScout({formation,directory,learning={},authorizedAccoun
  if(!formation?.id||!Array.isArray(formation.evidence)||!formation.evidence.length) throw new Error('OPEN_ROUTE_SOURCE_EVIDENCE_REQUIRED');
  const industries=formation.causal_chain?.industries||[];
  const geography=[formation.location||''];
- const discovered=(directory.destinations||[]).map(d=>{
+ const discovered=(directory.destinations||[]).map(entry=>{
+   const d=entry.offshore_editorial_profile&&overlap(industries,['Offshore oil and gas','Subsea equipment'])?{...entry,...entry.offshore_editorial_profile}:entry;
    const industry=d.industries?.includes('all')||overlap(industries,d.industries)?1:0;
    const geo=d.geography?.includes('global')||overlap(geography,d.geography)?1:0;
    const formationRelevance=industry?1:0;
