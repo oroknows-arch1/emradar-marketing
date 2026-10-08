@@ -1,4 +1,5 @@
 import http from "node:http";
+import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
 import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
 import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
@@ -256,6 +257,16 @@ const server=http.createServer(async(req,res)=>{
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(req.method==='GET'&&u.pathname==='/CAMPAIGN_REVIEW'){
+    try{
+      const campaign=u.searchParams.get('campaign_id');
+      if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+      const s=new RedisStore(await store());
+      const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');
+      if(!record)return json(res,404,{reason:'REVIEW_PACKAGE_NOT_FOUND'});
+      return html(res,campaignReviewHtml(record,campaign));
+    }catch(e){return json(res,409,{reason:e.message});}
   }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     // Viewing the saved package does not grant approval or distribution authority.
