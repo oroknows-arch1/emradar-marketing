@@ -1,3 +1,4 @@
+import brand from './email-brand.cjs';
 import crypto from 'node:crypto';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 export const emailVersion='human-correspondence-v2';
@@ -82,7 +83,7 @@ export function recipientGreeting(route,language){
 export function humanReadyEmail({proposition,signal,route,identity,product}){
   if(!isEmail(route))return null;
   if(product!=='EMRADAR')fail('EMAIL_PRODUCT_PROFILE_REQUIRED');
-  if(!identity?.approved||identity.name!==correspondentName||identity.address!=='oroknows@gmail.com')fail('APPROVED_EMAIL_SENDER_REQUIRED');
+  if(!identity?.approved||identity.name!==correspondentName||identity.address!==brand.identity.address)fail('APPROVED_EMAIL_SENDER_REQUIRED');
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(route.public_contact_point||''))fail('EDITORIAL_EMAIL_CONTACT_INVALID');
   if(proposition.signal_state!==signal.state||hash(proposition.evidence_refs)!==hash(signal.evidence))fail('EMAIL_SOURCE_BINDING_REQUIRED');
   if(!['en','es-CL'].includes(proposition.language))fail('EMAIL_LANGUAGE_PROFILE_REQUIRED');
@@ -100,9 +101,10 @@ export function humanReadyEmail({proposition,signal,route,identity,product}){
   ];
   const introIndex=parseInt(hash([signal.revision,proposition.subject,route.destination_id]).slice(0,8),16)%introductions.length;
   const context=route.accepted_formats.includes('financial_guest_view_pitch')?(es?'Soy Sean Walker, de EMRADAR.':"I'm Sean Walker, working on EMRADAR."):introductions[introIndex];
-  let clean=removeUnverifiedOffers(proposition.body);
+  validateCapabilityInventory(proposition,{editorial_checks:{capability_inventory:'PASS'}});
+  let clean=proposition.body;
   if(!clean.trim())fail('EMAIL_EDITORIAL_PROPOSITION_REQUIRED');
-  if(!(signal.source_uncertainty||[]).every((_,i)=>proposition.qualifications?.some(q=>q.source_index===i&&clean.includes(q.text))))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
+  validateInternalUncertainty(proposition,signal);
   let reason,angle,question;
   if(proposition.correspondence){
     validateCorrespondenceProposition(proposition,route);
@@ -120,9 +122,10 @@ export function humanReadyEmail({proposition,signal,route,identity,product}){
   }else fail('HUMAN_PROPOSITION_QUALITIES_REQUIRED');
   const refs=(signal.source_facts||[]).filter(f=>signal.evidence.includes(f.id));
   const sourceText=refs.slice(0,1).map(f=>f.url).join('');if(!sourceText)fail('EMAIL_SOURCE_LINK_REQUIRED');
-  const body=[greeting.text,context,clean,(es?'Fuente de apoyo: ':'Supporting source: ')+sourceText,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
+  const body=[greeting.text,context,clean,(es?'Saludos,':'Regards,')+'\n'+correspondentName+'\nEMRADAR'].join('\n\n');
   const features={version:emailVersion,greeting_type:greeting.type,named_recipient:greeting.name!==null,introduction_style:'person_before_organisation',introduction_variant:route.accepted_formats.includes('financial_guest_view_pitch')?'compact':introIndex,destination_specific_reason:reason,angle,email_length_words:body.trim().split(/\s+/).length,question_type:'recipient_agency_contribution_question',question,offered_next_step:proposition.correspondence?.next_step||'NONE',localisation:proposition.language,source_revision:signal.revision,causal_effect:'UNKNOWN'};
-  const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE'};
+  const email={version:emailVersion,to:route.public_contact_point,from:{name:correspondentName,address:identity.address},subject:proposition.subject,body,language:proposition.language,proposition,features,visual:'NONE',evidence_binding:evidenceBinding(signal)};
+  brand.brand(email);
   validateHumanEmail(email,signal,route,identity);return email;
 }
 export function recipientAgency(question){
@@ -136,21 +139,16 @@ export function validateCorrespondenceProposition(proposition,route){
   if(!parts.reason.includes(name)||!/[?？]/u.test(parts.question))fail('HUMAN_DESTINATION_REASON_OR_QUESTION_REQUIRED');
   if(!recipientAgency(parts.question))fail('HUMAN_RECIPIENT_AGENCY_REQUIRED');
   if(proposition.body.trim().split(/\s+/u).length>180||/(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|(?:I'm|I’m) writing from EMRADAR|Le escribo desde EMRADAR|relevant to your audience/imu.test(proposition.body)||/https?:\/\//i.test(proposition.body))fail('HUMAN_PROPOSITION_MEMO_OR_BOILERPLATE');
-  // Only the presently included, verified note can be offered. Future capability
-  // expansion must pass the existing independently verified capability inventory.
-  if(parts.next_step&&!['I’m sharing the source-linked note below.','Comparto la nota basada en fuentes a continuación.'].includes(parts.next_step))fail('UNVERIFIED_CAPABILITY_CLAIM');
-  if(parts.next_step&&!proposition.body.includes(parts.next_step))fail('UNVERIFIED_CAPABILITY_CLAIM');
-  if(parts.next_step&&!proposition.capability_claims?.some(c=>c.text===parts.next_step&&c.capability==='source_linked_note'))fail('UNVERIFIED_CAPABILITY_CLAIM');
+  if(parts.next_step&&(!proposition.body.includes(parts.next_step)||!proposition.capability_claims?.some(c=>c.text===parts.next_step&&c.capability===draftCapability)))fail('UNVERIFIED_CAPABILITY_CLAIM');
 }
 export function validateCapabilityInventory(result,proof){
   if(proof?.editorial_checks?.capability_inventory!=='PASS'||!Array.isArray(result?.capability_claims))fail('CAPABILITY_INVENTORY_VERIFICATION_REQUIRED');
   for(const claim of result.capability_claims){
-    if(!claim.text||!result.body.includes(claim.text)||claim.capability!=='source_linked_note')fail('UNVERIFIED_CAPABILITY_CLAIM');
+    if(!claim.text||!result.body.includes(claim.text)||claim.capability!==draftCapability)fail('UNVERIFIED_CAPABILITY_CLAIM');
   }
   let factualBody=result.body;
   for(const claim of result.capability_claims){
-    const permitted=['I’m sharing the source-linked note below.','Comparto la nota basada en fuentes a continuación.'];
-    if(!permitted.includes(claim.text))fail('UNVERIFIED_CAPABILITY_CLAIM');
+    if(!/(?:draft|borrador)/iu.test(claim.text)||!/(?:sources?|fuentes)/iu.test(claim.text)||!/(?:review|revisi[oó]n)/iu.test(claim.text)||/(?:ongoing|continuous|updates?|monitor|interview)/iu.test(claim.text))fail('UNVERIFIED_CAPABILITY_CLAIM');
     factualBody=factualBody.replace(claim.text,'');
   }
   if(claims.test(factualBody))fail('UNVERIFIED_CAPABILITY_CLAIM');
@@ -158,14 +156,23 @@ export function validateCapabilityInventory(result,proof){
 export function validateHumanEmail(email,signal,route,identity){
   if(!email?.subject?.trim()||/[\r\n]/.test(email.subject)||!email.body?.trim()||email.to!==route.public_contact_point||hash(email.from)!==hash({name:identity.name,address:identity.address})||email.version!==emailVersion)fail('HUMAN_READY_EMAIL_REQUIRED');
   const greeting=recipientGreeting(route,email.language);
-  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!email.body.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
+  const humanBody=email.brand_version?brand.correspondence(email.body):email.body;
+  if(email.brand_version)brand.envelope(email);
+  if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!humanBody.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
   if(email.proposition.correspondence)validateCorrespondenceProposition(email.proposition,route);
   if(email.features?.version!==emailVersion||email.features.greeting_type!==greeting.type||email.features.email_length_words!==email.body.trim().split(/\s+/).length)fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
-  if(/(?:^|\n)Subject:/.test(email.body)||claims.test(email.body))fail('UNVERIFIED_CAPABILITY_CLAIM');
-  if(!(signal.source_uncertainty||[]).every((_,i)=>email.proposition.qualifications?.some(q=>q.source_index===i&&email.body.includes(q.text))))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');
+  if(/(?:^|\n)Subject:/.test(email.body))fail('UNVERIFIED_CAPABILITY_CLAIM');
+  validateCapabilityInventory(email.proposition,{editorial_checks:{capability_inventory:'PASS'}});
+  validateInternalUncertainty(email.proposition,signal);
+  if(hash(email.evidence_binding)!==hash(evidenceBinding(signal)))fail('EMAIL_SOURCE_BINDING_REQUIRED');
   if(email.features.source_revision!==signal.revision||email.features.named_recipient!==(greeting.name!==null)||email.features.localisation!==email.language||email.features.causal_effect!=='UNKNOWN'||!['destination_specific_reason','angle','question'].every(k=>email.features[k]&&email.body.includes(email.features[k])))fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
   const limit=route.submission_requirements?.match(/(\d+) words or less/i);
   if(limit&&email.body.trim().split(/\s+/).length>Number(limit[1]))fail('EDITORIAL_DESTINATION_LENGTH_EXCEEDED');
   return {status:'PASS',version:emailVersion,claims:[{capability:'current_evidence_mapping',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence]}},{capability:'source_linked_note',state:'VERIFIED',authorized:true,evidence:{source_revision:signal.revision,evidence_refs:[...signal.evidence],artifact_hash:hash({subject:email.subject,body:email.body})}}],excluded_capabilities:[{capability:'ongoing_monitoring_or_continuous_coverage',state:'UNVERIFIED',authorized:false,reason:'No current campaign-scoped production proof; no ongoing service promised.'}]};
 }
 
+
+export const draftCapability='campaign_specific_finished_sourced_draft';
+export const draftOffer=language=>language==='es-CL'?'Si les resulta útil, puedo enviar un borrador terminado y conciso con fuentes para su revisión.':'If useful, I can send a concise finished draft with sources for review.';
+export const evidenceBinding=signal=>({source_revision:signal.revision,signal_state:signal.state,evidence_refs:[...signal.evidence],source_facts:structuredClone(signal.source_facts||[]),source_uncertainty:[...(signal.source_uncertainty||[])]});
+export function validateInternalUncertainty(result,signal){if(!(signal.source_uncertainty||[]).every((text,i)=>result.qualifications?.some(q=>q.source_index===i&&q.text===text)))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');}

@@ -1,3 +1,4 @@
+import {recoverIdlePreparationLock} from './runtime/preparation-recovery.js';
 import http from "node:http";
 import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
 import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
@@ -396,6 +397,8 @@ async function normalCycle(){
   normalCyclePromise=(async()=>{
     const s=new RedisStore(await store());
     let preparation;
+    const lockRecovery=await recoverIdlePreparationLock(s);
+    if(lockRecovery.status==='RECOVERED_IDLE_PREPARATION_LOCK')console.log('PREPARATION_LOCK_RECOVERY '+JSON.stringify(lockRecovery));
     const recovered=[];
     // Resume only existing, attested campaigns; keep the latest signed intake intact.
     for(const campaign_id of ['EMRADAR_2026_10_07_LAUNCH','EMRADAR_2026_10_08_LAUNCH']){
