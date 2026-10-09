@@ -34,8 +34,8 @@ test('protected actions and changed hashes cannot be overridden',async()=>{
 test('all 18 mobile controls, confirmation/cancel and rendered script are valid',()=>{
  const proposals=Array.from({length:18},(_,i)=>({destination:'D'+i,proposal_id:'P'+i,review_hash:'H'+i,asset:{copy:'exact '+i}}));
  const h=campaignReviewHtml({campaign_id,proposals,route_dispositions:[]});
- assert.equal((h.match(/data-decision="APPROVED"/g)||[]).length,18);assert.equal((h.match(/data-decision="REJECTED"/g)||[]).length,18);assert.equal((h.match(/data-override="EDITORIAL_ADVISORY"/g)||[]).length,18);
- assert(h.includes('Cancelled; no override saved.'));assert(h.includes('min-height:44px'));new Script(h.split('<script>')[1].split('</script>')[0]);
+ assert.equal((h.match(/data-decision="APPROVED"/g)||[]).length,18);assert.equal((h.match(/data-decision="REJECTED"/g)||[]).length,18);assert.equal((h.match(/data-override=/g)||[]).length,0);
+ assert(!h.includes('OWNER OVERRIDE'));assert(h.includes('/PUBLICATION_REVIEW/session'));assert(h.includes('min-height:44px'));new Script(h.split('<script>')[1].split('</script>')[0]);
 });
 test('lossless codec and bounded compaction preserve concurrent records and protected raw identities',async()=>{
  const value={asset:{base64:'image-data'.repeat(5000),copy:'unchanged'},review_hash:'HASH'};

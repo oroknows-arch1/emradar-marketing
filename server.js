@@ -1,3 +1,4 @@
+import {createReviewAuth} from './runtime/review-auth.js';
 import {ownerOverride} from './runtime/owner-override.js';
 import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
 import sentenceCorrection from './config/october7-sentence-correction.json' with {type:'json'};
@@ -87,11 +88,9 @@ function authorizedRequest(req){
   const expected='Bearer '+secret;
   return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
 }
-function authorizedPublicationReview(req){
-  const secret=process.env.MARKETING_PUBLICATION_REVIEW_TOKEN;
-  const actual=String(req.headers.authorization||'');const expected='Bearer '+secret;
-  return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
-}
+const reviewAuth=createReviewAuth({secret:()=>process.env.MARKETING_PUBLICATION_REVIEW_TOKEN,origin:req=>PUBLIC_BASE_URL||'https://'+req.headers.host});
+function authorizedPublicationReview(req){return reviewAuth.authorized(req);}
+
 async function publishX(asset,key,product){
   const auth=await currentAuth(product);if(!auth?.access_token){const error=new Error('X authorization required');error.status=401;throw error;}
   let media;
@@ -263,6 +262,10 @@ const server=http.createServer(async(req,res)=>{
     try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
+  if(u.pathname==='/PUBLICATION_REVIEW/session'&&['GET','POST'].includes(req.method)){
+    if(req.method==='POST'&&!reviewAuth.establish(req,res))return json(res,403,{reason:reviewAuth.configured()?'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED':'OWNER_REVIEW_AUTH_CONFIGURATION_MISSING'});
+    return json(res,200,{authenticated:authorizedPublicationReview(req),configured:reviewAuth.configured()});
+  }
   if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/owner-override'){
     if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{const input=JSON.parse(await readBody(req)),s=new RedisStore(await store()),awaitIntake=await productIntake();
@@ -277,8 +280,8 @@ const server=http.createServer(async(req,res)=>{
       const s=new RedisStore(await store());
       const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');
       if(!record)return json(res,404,{reason:'REVIEW_PACKAGE_NOT_FOUND'});
-      const owner_overrides=[];for(const key of await s.keys('owner_override:')){const audit=await s.get(key);if(audit?.campaign_id===record.campaign_id)owner_overrides.push(audit);}
-      return html(res,campaignReviewHtml({...record,owner_overrides,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)},campaign));
+      const owner_decisions=Object.fromEntries(await Promise.all(record.proposals.map(async p=>{const current=await s.get('publication_review:'+p.proposal_id),approval=await s.get('publication_approval:'+p.proposal_id);return [p.proposal_id,{status:approval?.review_hash===p.review_hash?approval.status:current?.status||p.status,distribution:approval?await s.get('distribution_work:'+p.proposal_id):null}];})));
+      return html(res,campaignReviewHtml({...record,owner_decisions,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)},campaign));
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
