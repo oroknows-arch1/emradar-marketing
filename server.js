@@ -27,6 +27,7 @@ import {xDiscoveryConnector} from './runtime/x-discovery.js';
 import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
 import {editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication} from './runtime/editorial-outreach-gmail.js';
+import {createV2Runtime} from './runtime/v2-integration.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -120,9 +121,31 @@ async function marketingEngine(){
   const graphStore=new RedisStore(await store());
   return new GraphEngine({store:graphStore,products,adapters,harness:await loadHarness(process.env.MARKETING_HARNESS_MODULE)||createRelayHarness({store:graphStore}),xAccountStatus:async()=>{const auth=await currentAuth('EMRADAR');return {status:auth?.access_token&&(!auth.expires_at||auth.expires_at>Date.now())?(auth.refreshed_at?'REFRESHED_RUNTIME_AUTHORIZATION':'CURRENT_RUNTIME_AUTHORIZATION'):'OWNER_REAUTHORIZATION_REQUIRED',expires_at:auth?.expires_at?new Date(auth.expires_at).toISOString():null,refreshed_at:auth?.refreshed_at||null,scope:auth?.scope||'UNKNOWN',provider_revocation_check:'NOT_PROBED_UNKNOWN_API_COST'};}});
 }
+async function v2Runtime(){
+  if(process.env.MARKETING_V2_ENABLED!=='true')throw new Error('V2_NOT_ACTIVATED');
+  return createV2Runtime({redisClient:await store(),integrationModulePath:process.env.MARKETING_V2_INTEGRATION_MODULE,editorialModulePath:process.env.MARKETING_EDITORIAL_OUTREACH_MODULE});
+}
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
+  if(u.pathname==='/V2/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
+    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{
+      const runtime=await v2Runtime();
+      if(req.method==='GET'){
+        const id=u.searchParams.get('proposal_id');if(!/^[a-f0-9]{64}$/.test(id||''))return json(res,400,{reason:'PROPOSAL_ID_REQUIRED'});
+        const proposal=await runtime.review(id);return json(res,proposal?200:404,proposal||{reason:'PUBLICATION_REVIEW_NOT_FOUND'});
+      }
+      const input=JSON.parse(await readBody(req));
+      if(!/^[a-f0-9]{64}$/.test(input?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(input?.review_hash||'')||!['APPROVE','REJECT'].includes(input?.decision))return json(res,400,{reason:'V2_OWNER_DECISION_INVALID'});
+      return json(res,200,await runtime.decide(input,req.headers.authorization));
+    }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
+    if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
+    try{const runtime=await v2Runtime(),input=JSON.parse(await readBody(req));const result=u.pathname==='/V2/PREPARE'?await runtime.prepare(input):u.pathname==='/V2/DISTRIBUTE'?await runtime.distribute():await runtime.feedback(input);return json(res,200,result);}
+    catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
   if(u.pathname==='/X_DISCOVERY_PREVIEW'&&['GET','POST'].includes(req.method)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
     try{
