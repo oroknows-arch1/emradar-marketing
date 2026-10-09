@@ -9,7 +9,7 @@ const editorialFormats=['editorial_pitch','editor_pitch','financial_guest_view_p
 // editorial and identity decisions remain owned by the existing graph.
 export function editorialOutreachAdapter({sendEmail,submitForm,collectOutcome,authorized=async()=>true,routeSupported=()=>true,senderIdentity}={}) {
   const routeMethod=route=>String(route?.access_method||'').toLowerCase();
-  const supportsRoute=route=>routeSupported(route)&&((routeMethod(route).includes('email')&&typeof sendEmail==='function')||(routeMethod(route).includes('form')&&typeof submitForm==='function'));
+  const supportsRoute=route=>route?.verification_state==='VERIFIED'&&routeSupported(route)&&((routeMethod(route).includes('email')&&typeof sendEmail==='function')||(routeMethod(route).includes('form')&&typeof submitForm==='function'));
   return {
     cost:'ZERO',formats:editorialFormats,authorized,supportsRoute,senderIdentity,
     async validate(asset){

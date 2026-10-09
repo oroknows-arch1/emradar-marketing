@@ -156,7 +156,7 @@ export class GraphEngine {
         const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
         const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:c.input.product,campaign:c.input.campaign_id,learning:c.state.version})};
         if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:'RUNNING'}));
-        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){if(ownerPreview(c.input)&&c.route?.destination?.platform==='OPEN_ROUTE'&&c.editorial?.result?.body&&previewWarning(e.message)){c.preview_warnings||=[];c.preview_warnings.push({gate:id,reason:e.message});entry.status='PASS';entry.warning=e.message;}else{entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}}
+        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){if(ownerPreview(c.input)&&c.route?.destination?.platform==='OPEN_ROUTE'&&c.editorial?.result?.body&&previewWarning(e.message,c.input)){c.preview_warnings||=[];c.preview_warnings.push({gate:id,reason:e.message});entry.status='PASS';entry.warning=e.message;}else{entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}}
         entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
         if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:entry.status,reason:entry.reason||null}));
         const edges=graph.edges.filter(e=>e.from===id);
@@ -240,7 +240,7 @@ const workers={
           const platform=d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE';
           const executable=platform==='X'||!!(e.adapters.OPEN_ROUTE?.supportsRoute?.(d)&&await e.adapters.OPEN_ROUTE.authorized?.(c.input.product,d));
           const {classification,prepare_eligible,execution_state,route_score,score_factors,route_reason,...routeRecord}=d;
-          openCandidates.push({id:d.destination_id,platform,signal_ids:[c.signal.id],formats:['text'],relevance:route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:executable?'EXECUTE_AFTER_EXACT_PUBLICATION_REVIEW':'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:platform==='OPEN_ROUTE'&&!executable,route_record:routeRecord});
+          openCandidates.push({id:d.destination_id,platform,signal_ids:[c.signal.id],formats:['text'],relevance:route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:executable?'EXECUTE_AFTER_EXACT_PUBLICATION_REVIEW':'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:platform==='OPEN_ROUTE'&&!executable,route_record:{...routeRecord,classification,route_score,score_factors,route_reason}});
         }
         const existing=c.candidates.length?c.candidates:configured;
         c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))];
@@ -295,7 +295,7 @@ const workers={
       if(!editorial){const work=await produceEditorial(context,(request,attempt)=>e.modelWork(c,'editorial_intelligence',request,'creation_approved',attempt),record=>e.store.put('editorial_attempt:'+c.run_id+':'+record.attempt,{...record,campaign_id:c.input.campaign_id,destination:c.route.id}));editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id,preview_warnings:work.preview_warnings||[]};await e.store.put(key,editorial);}
       try{validateEditorial(editorial.result,editorial.proof,context);editorial.preview_warnings=[];}catch{}
       c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};c.preview_warnings=[...(c.preview_warnings||[]),...(editorial.preview_warnings||[])];
-      try{c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];}catch(error){if(!ownerPreview(c.input)||!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'editorial_intelligence',reason:error.message});c.allowed_copy=['Subject: '+editorial.result.subject+'\n\n'+editorial.result.body];}c.copy_method='editorial_copy_system_v1';
+      try{c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];}catch(error){if(!ownerPreview(c.input)||!previewWarning(error.message,c.input))throw error;c.preview_warnings.push({gate:'editorial_intelligence',reason:error.message});c.allowed_copy=['Subject: '+editorial.result.subject+'\n\n'+editorial.result.body];}c.copy_method='editorial_copy_system_v1';
       c.copy=c.allowed_copy[0];return;
     }
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
@@ -344,7 +344,7 @@ const workers={
     const proposition=c.email_proposition||c.editorial?.result;
     if(!proposition)fail('EDITORIAL_TRANSFORMATION_REQUIRED');
     if(c.input.reviewed_proposal_id){c.email=structuredClone(c.reused_proposal.asset.email);return;}
-    if(ownerPreview(c.input)){try{c.email=isEmail(route)&&!c.preview_warnings?.length?humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product}):previewCorrespondence(proposition,c.signal,route);}catch(error){if(!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'human_ready_email',reason:error.message});c.email=previewCorrespondence(proposition,c.signal,route);}}else c.email=humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product});
+    if(ownerPreview(c.input)){try{c.email=isEmail(route)&&!c.preview_warnings?.length?humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product}):previewCorrespondence(proposition,c.signal,route);}catch(error){if(!previewWarning(error.message,c.input))throw error;c.preview_warnings.push({gate:'human_ready_email',reason:error.message});c.email=previewCorrespondence(proposition,c.signal,route);}}else c.email=humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product});
     c.copy='Subject: '+c.email.subject+'\n\n'+c.email.body;c.allowed_copy=[c.copy];
     c.localization={...c.localization,copy_hash:digest(c.copy),language:c.email.language};
   },
