@@ -25,7 +25,7 @@ async function fixture(t){
 }
 test('existing package GET retrieves exact persisted campaign without login or internal credentials and cannot distribute',async t=>{
  const f=await fixture(t);const r=await f.request('/PUBLICATION_REVIEW?package=EMRADAR&campaign_id='+f.pkg.campaign_id);
- assert.equal(r.status,200);assert.deepEqual(await r.json(),f.pkg);assert.deepEqual(f.keys,['review_package:'+f.pkg.campaign_id]);f.unchanged();
+ assert.equal(r.status,200);assert.deepEqual(await r.json(),{...f.pkg,execution_recovery:null});assert.deepEqual(f.keys,['review_package:'+f.pkg.campaign_id,'preparation_lock_recovery:'+f.pkg.campaign_id]);f.unchanged();
 });
 test('package query never bypasses owner approval or rejection authorization',async t=>{
  const f=await fixture(t);

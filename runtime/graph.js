@@ -1,3 +1,4 @@
+import {preparedArticle} from './october9-preparation.js';
 import fs from 'node:fs/promises';
 import {approveExact,drainApproved,recoverApprovedCampaign} from './approved-distribution.js';
 import scanControl from '../config/scan-control.json' with {type:'json'};
@@ -369,7 +370,7 @@ const workers={
       const key='x_visual:'+digest([c.signal,c.product.source_receipt||null,'V1']);
       let visual=await e.store.get(key);if(!visual){visual=await evidenceVisual(c.signal,c.product.source_receipt);await e.store.put(key,visual);}
       c.asset={...visual,copy:c.copy,combined_review_artifact:true};validateCombinedX(c.asset,c.signal,c.product.source_receipt);
-    }else if(c.route.destination.platform==='OPEN_ROUTE'){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy,delivery:{...c.route.destination.route_record},localization:c.localization||null,...(c.email?{email:c.email,capability_claim_gate:c.capability_claim_gate}: {})};}
+    }else if(c.route.destination.platform==='OPEN_ROUTE'){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy,...(preparedArticle(c)?{article:preparedArticle(c)}:{}),delivery:{...c.route.destination.route_record},localization:c.localization||null,...(c.email?{email:c.email,capability_claim_gate:c.capability_claim_gate}: {})};}
     else if(c.route.format==='svg'){
       const escape=s=>s.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
       const rows=c.copy.match(/.{1,65}(?:\s|$)|.{1,65}/g)||[];

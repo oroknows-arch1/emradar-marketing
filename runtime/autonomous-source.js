@@ -1,3 +1,4 @@
+import {campaignPreparation,preparationRevision,limitationProposal} from './october9-preparation.js';
 import crypto from 'node:crypto';
 import {emradarSource,signSource} from './intake.js';
 import scanControl from '../config/scan-control.json' with {type:'json'};
@@ -75,6 +76,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   let state=await store.get(key);
   if(resumeCampaign&&(!state||state.campaign_id!==resumeCampaign))throw Error('PERSISTED_CAMPAIGN_STATE_REQUIRED');
   const engine=await engineFactory();
+  const boundedPreparation=attestation.campaign_authority.campaign_id===campaignPreparation.campaign_id&&source_sha256===campaignPreparation.source_sha256;
   if(resumeCampaign){
     if(engine.products.EMRADAR?.source_release_authority?.automatic_after_native_gates!==true)throw Error('NATIVE_SOURCE_RELEASE_AUTHORITY_REQUIRED');
     engine.products.EMRADAR={...engine.products.EMRADAR,...source,review:{evidence:true,editorial:true,brand:true,risk:true},source_receipt:savedPackage.source_receipt};
@@ -105,6 +107,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
     routePlan={...open,valid_until:routePlan.valid_until,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:commercialEvidenceBranch(formation),stop:'PUBLICATION_REVIEW'};
     await store.put(planKey,routePlan);
   }
+  if(boundedPreparation&&state.preparation_revision===preparationRevision){const pkg=await store.get('review_package:'+state.campaign_id);if(pkg)return {status:pkg.status,duplicate:true,campaign_id:state.campaign_id,package:pkg,external_actions:0};}
   if(state.status==='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision){
     const pkg=await store.get('review_package:'+state.campaign_id),receipt=await store.get(routingReceiptKey(state.campaign_id));
     // A repaired runtime must revisit rejected incomplete routes; valid proposals remain reusable.
@@ -131,9 +134,10 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
     const plan=openRouteScout({formation:formationFromSignal(signal),directory:openRouteDirectory});
     for(const route of plan.discovered){const prior=sourceChoices.get(route.destination_id);if(!prior||route.route_score>prior.route.route_score)sourceChoices.set(route.destination_id,{signal,route});}
   }
+  if(boundedPreparation)for(const [destination,seed] of Object.entries(campaignPreparation.prepared)){const signal=product.signals.find(s=>s.id===seed.signal_id);if(!signal)throw Error('PREPARED_SOURCE_BINDING_CHANGED');const route=openRouteScout({formation:formationFromSignal(signal),directory:openRouteDirectory,learning:Object.fromEntries((routePlan?.discovered||[]).filter(d=>typeof d.score_factors?.historical_route_performance==='number').map(d=>[d.destination_id,{score:d.score_factors.historical_route_performance}]))}).discovered.find(d=>d.destination_id===destination);sourceChoices.set(destination,{signal,route});}
   const contributionFor=destination=>destination==='EMRADAR-X-OROKNOWS'?product.signals.find(s=>s.id===state.signal_id):sourceChoices.get(destination)?.signal||product.signals.find(s=>s.id===state.signal_id);
   const run=async(destination,refreshDiscovery=false)=>{
-    const saved=reuse(destination),contribution=contributionFor(destination);
+    const original=reuse(destination),saved=boundedPreparation&&destination==='TRADEWINDS-EDITORIAL'?null:original,contribution=contributionFor(destination);
     if(!refreshDiscovery&&saved&&(saved.review_contract_revision===reviewContractRevision||destination==='EMRADAR-X-OROKNOWS')&&Date.parse(saved.expires_at)>Date.now()){state.routes[destination]={status:saved.status,proposal_id:saved.proposal_id,reused:true};return;}
     if(saved&&await store.get('publication_approval:'+saved.proposal_id))throw Error('APPROVED_REVIEW_ARTIFACT_CANNOT_AUTO_SUPERSEDE');
     const sent=external(destination);
@@ -148,9 +152,20 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
     await store.put(key,state);
     return result;
   };
+  if(boundedPreparation&&state.preparation_revision!==preparationRevision){
+    for(const destination of [...Object.keys(campaignPreparation.prepared),...Object.keys(campaignPreparation.unsupported)]){
+      const prior=state.routes[destination]?.proposal_id?await store.get('publication_review:'+state.routes[destination].proposal_id):null;
+      if(prior&&await store.get('publication_approval:'+prior.proposal_id))throw Error('APPROVED_REVIEW_ARTIFACT_CANNOT_AUTO_SUPERSEDE');
+      if(destination==='TRADEWINDS-EDITORIAL'||destination==='RIVIERA-TANKER-EDITORIAL'){
+        if(prior){await store.put('publication_review:'+prior.proposal_id,{...prior,status:'SUPERSEDED',superseded_reason:'OCTOBER9_UNSUPPORTED_TANKER_CRUDE_CLAIMS',superseded_at:at()});}
+      }
+      if(!prior||['TRADEWINDS-EDITORIAL','RIVIERA-TANKER-EDITORIAL'].includes(destination))delete state.routes[destination];
+    }
+    for(const route of openRouteDirectory.destinations){const p=limitationProposal({product,route,campaign_id:state.campaign_id,source_sha256,signals:product.signals});if(p){const saved=await store.get('publication_review:'+p.proposal_id);await store.put('publication_review:'+p.proposal_id,saved||p);state.routes[route.destination_id]={status:'AWAITING_REVIEW',proposal_id:p.proposal_id,evidence_support_status:p.evidence_support_status};}}
+  }
   let first;
   if(contractChanged)state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>executed.has(r.status)));
-  if(existingProposals.length){for(const p of existingProposals.filter(p=>p.review_contract_revision===reviewContractRevision||p.destination==='EMRADAR-X-OROKNOWS'))state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
+  if(existingProposals.length){for(const p of existingProposals.filter(p=>(!boundedPreparation||!['TRADEWINDS-EDITORIAL','RIVIERA-TANKER-EDITORIAL'].includes(p.destination))&&(p.review_contract_revision===reviewContractRevision||p.destination==='EMRADAR-X-OROKNOWS')))state.routes[p.destination]={status:p.status,proposal_id:p.proposal_id,reused:true};}
   // Reuse the graph's own persisted route decisions, never a second routing system.
   if(!routePlan){first=await run('EMRADAR-X-OROKNOWS');routePlan=first?.route_plan||routePlan;}
   const selected=[...(openRouteDirectory.destinations.map(d=>d.destination_id)),...(routePlan?.candidates?.map(d=>d.destination_id)||[]),...(first?.selection?.options?.map(o=>o.id)||[])];
@@ -169,7 +184,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const candidateRoutes=routePlan?.candidates||[],discovered=openRouteDirectory.destinations.map(entry=>sourceChoices.get(entry.destination_id)?.route||entry),candidateIds=new Set(candidateRoutes.map(d=>d.destination_id));
   const route_dispositions=discovered.map(route=>{
     const outcome=state.routes[route.destination_id];
-    if(outcome)return {destination:route.destination_id,classification:route.classification,route_score:route.route_score,score_factors:route.score_factors,route_reason:route.route_reason,publication:route.organisation,contact:route.public_contact_point,submission:route.public_submission_url,verification_state:route.verification_state,contribution_signal_id:contributionFor(route.destination_id)?.id,transport_availability:route.classification==='VIABLE_VERIFIED_ROUTE'?'VERIFY_SUPPORTED_CONNECTOR_BEFORE_DELIVERY':'UNVERIFIED_OR_UNAVAILABLE',evidence_limitations:route.score_factors?.industry_relevance===0?['No literal industry match in the selected source; editorial suitability belongs to the owner.']:[],preparation_status:outcome.proposal_id?'PREPARED':'INCOMPLETE',status:outcome.status==='OPTIONAL_REJECTED'?'PREPARATION_INCOMPLETE':outcome.status,proposal_id:outcome.proposal_id||null,reason:outcome.reason||outcome.blocker||null,gate:outcome.gate||null};
+    if(outcome)return {destination:route.destination_id,classification:route.classification,route_score:route.route_score,score_factors:route.score_factors,route_reason:route.route_reason,publication:route.organisation,contact:route.public_contact_point,submission:route.public_submission_url,verification_state:route.verification_state,contribution_signal_id:contributionFor(route.destination_id)?.id,transport_availability:route.destination_id==='EMRADAR-X-OROKNOWS'?'EXISTING_X_CONNECTOR_AUTH_AND_OWNER_APPROVAL_REQUIRED':engine.adapters.OPEN_ROUTE?.supportsRoute?.(route)?'SUPPORTED_EMAIL_CONNECTOR_AUTH_PERMISSION_AND_OWNER_APPROVAL_REQUIRED':'UNVERIFIED_OR_UNSUPPORTED_TRANSPORT',evidence_limitations:route.score_factors?.industry_relevance===0?['No literal industry match in the selected source; editorial suitability belongs to the owner.']:[],evidence_support_status:outcome.evidence_support_status||null,preparation_status:outcome.evidence_support_status|| (outcome.proposal_id?'PREPARED':'INCOMPLETE'),status:outcome.status==='OPTIONAL_REJECTED'?'PREPARATION_INCOMPLETE':outcome.status,proposal_id:outcome.proposal_id||null,reason:outcome.reason||outcome.blocker||null,gate:outcome.gate||null};
     return {destination:route.destination_id,classification:route.classification,route_score:route.route_score,status:candidateIds.has(route.destination_id)?'DISCOVERED_ONLY':'NOT_CANDIDATE',proposal_id:null,reason:route.route_reason||route.classification,gate:'discovery_routing'};
   });
   const route_plan_sha256=sha(JSON.stringify(routePlan||null));
@@ -186,6 +201,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const routingReceipt={receipt_type:'DISCOVERY_ROUTING_COMPLETION',status:route_dispositions.some(d=>d.status==='DISCOVERED_ONLY')?'INCOMPLETE':'COMPLETE',campaign_id:state.campaign_id,scan_date:scan.snapshot_date,source_sha256,signal_id:state.signal_id,signal_revision:state.signal_revision,review_contract_revision:reviewContractRevision,route_plan_sha256,dispositions_sha256:sha(JSON.stringify(route_dispositions)),discovered_destinations:discovered.map(d=>d.destination_id),candidate_destinations:[...candidateIds],completed_at:at(),external_actions:0};
   packageRecord.discovery_routing_completion_receipt=routingReceipt;
   if(routingReceipt.status!=='COMPLETE'){packageRecord.status='BLOCKED';blockers.push({reason:'DISCOVERY_ROUTING_COMPLETENESS_REQUIRED'});}
+  if(boundedPreparation)state.preparation_revision=preparationRevision;
   state.review_contract_revision=reviewContractRevision;
   state.status=packageRecord.status;state.blocker=blockers[0]?.reason||null;state.next_due=new Date(Date.now()+300000).toISOString();
   await store.put(routingReceiptKey(state.campaign_id),routingReceipt);await store.put('review_package:'+state.campaign_id,packageRecord);await store.put('review_package_latest:EMRADAR',packageRecord);await store.put(key,state);

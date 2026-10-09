@@ -1,3 +1,4 @@
+import {preparedCorrespondence} from './october9-preparation.js';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {validateCapabilityInventory,validateCorrespondenceProposition,validateInternalUncertainty,draftCapability,draftOffer,isEmail} from './editorial-email.js';
@@ -29,7 +30,9 @@ export const externalSchemaLeak=copy=>/\b(FORMING|INVESTIGATE|WATCH\/NO SIGNAL)\
 export function editorialContext(c){
   const facts=(c.signal.source_facts||[]).filter(f=>c.signal.evidence.includes(f.id));
   if(!facts.length||facts.length!==(c.signal.source_facts||[]).length||facts.some(f=>!f.text||!f.url))throw new Error('SOURCE_FACT_BINDING_REQUIRED');
+  const prepared=preparedCorrespondence(c);
   return {
+    ...(prepared?{prepared_correspondence:prepared,preparation_instruction:'The supplied prepared_correspondence is the complete campaign-scoped draft. Return it unchanged, including all exact internal qualifications and correspondence excerpts. The independent verifier must still check factual entailment, uncertainty and capabilities against source. Do not import historic destination editorial_focus, invent relationships, add promises or convert diplomatic cooperation into orders.'}:{}),
     editorial_contract:editorialContract,contract_revision:editorialVersion,
     ...{
       human_correspondence_contract:correspondenceContract,
@@ -43,8 +46,8 @@ export function editorialContext(c){
     source:{...c.signal,source_facts:facts},
     product_copy_profile:c.product.copy_profile||c.product.product_copy_profile||null,
     brand_system:c.product.brand_system||'UNDEFINED',
-    destination:c.route.destination.route_record,
-    brief:c.route_plan.proposed_assets.find(a=>a.destination_id===c.route.id),
+    destination:prepared?{...c.route.destination.route_record,editorial_focus:prepared.correspondence.proposition,editorial_intent:prepared.correspondence.question}:c.route.destination.route_record,
+    brief:prepared?{destination_id:c.route.id,angle:prepared.correspondence.proposition,review_limitations:['Use only the supplied October 9 source. Historical destination examples do not establish current facts.']}:c.route_plan.proposed_assets.find(a=>a.destination_id===c.route.id),
     capabilities:{[draftCapability]:{state:'VERIFIED',authorized:true,scope:'Owner-authorized offer of one finished sourced draft for this campaign and destination on request'},ongoing_monitoring_or_continuous_coverage:{state:'UNVERIFIED',authorized:false}},
     target_language:c.route.destination.route_record.destination_class==='latam_trade_publication'?'es-CL':'en',
     editorial_authority:{suitability:'OWNER_ONLY',matching:'DESCRIPTIVE_ONLY',rule:'Never reject a contribution because of destination fit. If a connection is weak, state that limitation. A factual contribution may describe an indirect connection only when the supplied evidence supports it; never invent a relationship.'},
@@ -73,7 +76,7 @@ export function validateEditorial(result,proof,context){
 // call still owns its quote, reservation, verification and billing receipt.
 export async function produceEditorial(context,work,record=async()=>{}){
   let correction=null,rejectedResult=null;
-  for(let attempt=1;attempt<=2;attempt++){
+  for(let attempt=1;attempt<=(context.prepared_correspondence?1:2);attempt++){
     const request=correction?{...context,editorial_correction:{attempt,failed_gate:correction,rejected_result:rejectedResult,instructions:'Write a new destination-specific result using the exact response_schema. Preserve all source facts and uncertainty. Remove unverified future/ongoing service promises; retain only the owner-authorized offer of one finished sourced draft for this campaign and destination on request. Write the complete natural body first. Then extract each required correspondence field as a nonempty contiguous excerpt actually present in that body, with no paraphrasing; overlapping excerpts are allowed. Include the exact publication name in the reason excerpt. Copy all correspondence excerpts exactly from body. Ask the editor whether the proposed contribution suits their publication or what angle they would prefer; retain their choice and do not ask only a subject-matter question.'}}:context;
     const output=await work(request,attempt);
     try{validateEditorial(output.result,output.proof,context);await record({attempt,status:'PASS'});return output;}

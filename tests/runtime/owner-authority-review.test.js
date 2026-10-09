@@ -15,13 +15,13 @@ import {HarnessBridge} from '../../runtime/harness.js';
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
 const scan=JSON.parse(await fs.readFile(new URL('./october9-production-reference.json',import.meta.url)));
 async function setup(){
- const f=await fixture(),bytes=Buffer.from(JSON.stringify(scan));
+ const f=await fixture(),bytes=await fs.readFile(new URL('./october9-production-reference.json',import.meta.url));
  const attestation={product:'EMRADAR',snapshot_date:scan.snapshot_date,source_path:'data/checkpoints/discovery-'+scan.snapshot_date+'.json',source_sha256:hash(bytes),publication_state:'PUBLISHED',downstream_release_allowed:true,native_gates:Object.fromEntries(['evidence','editorial','brand','risk','publication'].map(g=>[g,'PASS'])),campaign_authority:{campaign_id:'EMRADAR_2026_10_09_LAUNCH',required_stop:'PUBLICATION_REVIEW',external_publication_allowed:false}};
  const policy={...f.p,product_identity:'EMRADAR',destinations:[],uncertainty_state_model:['CONFIRMED','FORMING','INVESTIGATE','UNKNOWN'],source_release_authority:{automatic_after_native_gates:true,required_gates:['evidence','editorial','brand','risk','publication']},budget:editorialBudget,provider_authority:{automatic_connected_approved_only:true},spending_envelope:{currency:'AUD',campaign_limit:5,calendar_month_limit:50}};
  const intake=new ProductIntake({store:f.store,policies:{EMRADAR:policy},sourceKeys:{EMRADAR:'TEST_ONLY'}});
  let actions=0,calls=0;const noSend=()=>{actions++;throw Error('EXTERNAL_ACTION_FORBIDDEN');};
  const harness=editorialHarness(),work=harness.work;
- harness.work=async(unit,context)=>{calls++;const result=await work(unit,context);result.proof.editorial_checks.destination_fit='FAIL';result.result.correspondence.development=context.source.source_facts[0].text;result.result.body=[...Object.values(result.result.correspondence),context.source.source_uncertainty[0]].filter(Boolean).join('\n\n');result.result.claims=[{text:context.source.source_facts[0].text,evidence_refs:[context.source.source_facts[0].id]}];return result;};
+ harness.work=async(unit,context)=>{calls++;const result=await work(unit,context);if(context.prepared_correspondence){result.result=structuredClone(context.prepared_correspondence);return result;}result.proof.editorial_checks.destination_fit='FAIL';result.result.correspondence.development=context.source.source_facts[0].text;result.result.body=[...Object.values(result.result.correspondence),context.source.source_uncertainty[0]].filter(Boolean).join('\n\n');result.result.claims=[{text:context.source.source_facts[0].text,evidence_refs:[context.source.source_facts[0].id]}];return result;};
  const engineFactory=async()=>new GraphEngine({store:f.store,products:await intake.products(),adapters:{OPEN_ROUTE:editorialOutreachAdapter({senderIdentity:()=>({name:'Sean Walker',address:'sean@emradar.net',approved:true}),sendEmail:noSend}),X:xAdapter({publish:noSend,authorized:async()=>true,fetchMetrics:noSend})},harness});
  return {...f,engineFactory,calls:()=>calls,actions:()=>actions,args:{intake,store:f.store,engineFactory,sourceKeys:{EMRADAR:'TEST_ONLY'},env:{RENDER_GIT_COMMIT:'test-owner-authority'},fetcher:async url=>({ok:true,arrayBuffer:async()=>url.includes('/verification/')?Buffer.from(JSON.stringify(attestation)):bytes}),log:()=>{}}};
 }
@@ -34,7 +34,7 @@ test('October 9 all registered destinations reach owner review; replay preserves
  const key='autonomous_scan:'+scan.snapshot_date+':'+r.package.source_sha256,state=await f.store.get(key);
  const planKey='route_plan:EMRADAR:'+x.signal_id+':'+x.signal_revision,oldPlan=await f.store.get(planKey);
  await f.store.put(planKey,{...oldPlan,routing_revision:'old-score-veto',candidates:oldPlan.candidates.filter(d=>d.destination_id===x.destination)});
- await f.store.put(key,{...state,runtime_commit:'old-runtime',routes:{[x.destination]:{status:'AWAITING_REVIEW',proposal_id:x.proposal_id}}});
+ await f.store.put(key,{...state,preparation_revision:null,runtime_commit:'old-runtime',routes:{[x.destination]:{status:'AWAITING_REVIEW',proposal_id:x.proposal_id}}});
  await f.store.put('review_package:'+r.campaign_id,{...r.package,routing_revision:'old-score-veto',proposals:[x]});
  const recovered=await autonomousScanCycle({...f.args,resumeCampaign:r.campaign_id});
  assert.deepEqual(recovered.package.proposals.find(p=>p.platform==='X').asset,x.asset);assert.equal(recovered.package.proposals.find(p=>p.platform==='X').review_hash,x.review_hash);

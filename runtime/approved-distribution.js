@@ -15,6 +15,7 @@ export async function approveExact(engine,decision,{queue=true}={}){
   const s=engine.store;
   return s.locked('approval:'+decision.proposal_id,async()=>{
     const p=await s.get('publication_review:'+decision.proposal_id);identity(p,decision);
+    if(p.evidence_support_status==='NOT EVIDENCE-SUPPORTED')queue=false;
     const prior=await s.get('receipt:'+p.publication_key);
     const old=await s.get('publication_approval:'+p.proposal_id);
     if(old&&(old.review_hash!==p.review_hash||(old.asset_hash&&old.asset_hash!==digest(p.asset))))fail('APPROVED_ARTIFACT_CHANGED');

@@ -1,0 +1,120 @@
+{
+  "campaign_id": "EMRADAR_2026_10_09_LAUNCH",
+  "source_sha256": "7e015ee15754c0cc8fac61811de7b1060d91608f79adca685053215f7c98219d",
+  "prepared": {
+    "MINING-WEEKLY-TIP": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia: what four operating downstream projects establish",
+      "reason": "Indonesia’s operating factories are a concrete downstreaming development for Creamer Media / Mining Weekly’s mining audience.",
+      "insight": "The useful distinction is between an industrial launch and four projects actually entering operation.",
+      "proposition": "A short news contribution could examine that execution milestone without treating announced investment as proven returns.",
+      "question": "Would your newsroom find that distinction useful for a mining-to-manufacturing note?",
+      "language": "en"
+    },
+    "INTERNATIONAL-MINING-EDITORIAL": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Weda Bay: electric heavy equipment joins the downstream cluster",
+      "reason": "International Mining’s equipment and engineering coverage makes the electric-heavy-equipment element of Indonesia’s launch worth separating from the wider investment headline.",
+      "insight": "Co-located materials, components and equipment are an industrial-cluster observation; they do not establish supplier awards or equipment performance.",
+      "proposition": "The proposed contribution would distinguish operating facilities from the still-undisclosed plant capacities and customer contracts.",
+      "question": "Would this execution-focused note be useful to your editors, or would you prefer the equipment angle?",
+      "language": "en"
+    },
+    "GLOBAL-MINING-REVIEW-EDITORIAL": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia’s downstream launch: operation before utilisation",
+      "reason": "Global Mining Review covers mining projects and processing, so the Weda Bay milestone offers a concrete way to discuss what downstream execution establishes.",
+      "insight": "Commercial operation is stronger evidence than an announcement, but profitable utilisation is a separate question.",
+      "proposition": "An editorial note could examine that boundary while retaining the cluster’s power and imported-technology uncertainties.",
+      "question": "Would that contribution suit your project and processing coverage?",
+      "language": "en"
+    },
+    "REUTERS-BREAKINGVIEWS-GUEST": {
+      "signal_id": "kenya-national-infrastructure-fund-deployment",
+      "subject": "Kenya’s infrastructure fund: income versus risk",
+      "reason": "Reuters Breakingviews covers capital allocation.",
+      "insight": "Mobilisation targets remain uncommitted.",
+      "proposition": "The angle is income versus risk transfer.",
+      "question": "Would this note interest your editors?",
+      "language": "en"
+    },
+    "REDIMIN-EDITORIAL": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia: industrialización operativa sin dar por probados sus retornos",
+      "reason": "Revista Digital Minera REDIMIN cubre minería, inversión y proveedores; el avance industrial de Indonesia ofrece un contraste internacional para esa conversación.",
+      "insight": "Una fábrica en operación no demuestra utilización rentable ni captura local de valor.",
+      "proposition": "El aporte propuesto distinguiría el hito industrial de sus resultados económicos, sin atribuir contratos ni efectos a proveedores chilenos.",
+      "question": "¿Les serviría esta nota internacional para su cobertura de minería e inversión?",
+      "language": "es-CL"
+    },
+    "TERRITORIO-MINERO-PRESS": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Weda Bay: avance industrial y dudas sobre energía y valor local",
+      "reason": "Territorio Minero aborda minería, energía y desarrollo territorial; la experiencia de Weda Bay permite plantear una comparación internacional acotada.",
+      "insight": "El avance de la industrialización no demuestra por sí solo una ventaja ambiental ni cuánto valor queda en el territorio.",
+      "proposition": "La contribución propuesta pondría el foco en esas preguntas de ejecución y energía, sin afirmar impactos en Chile.",
+      "question": "¿Les resultaría útil este enfoque para una nota sobre desarrollo industrial y sus límites?",
+      "language": "es-CL"
+    },
+    "LATINOMINERIA-EDITOR": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia: de los anuncios industriales a la operación",
+      "reason": "Latinominería / Editec cubre proyectos mineros; el caso de Indonesia ofrece una perspectiva internacional sobre ejecución industrial.",
+      "insight": "La operación comercial es un hito distinto de la rentabilidad y del valor capturado localmente.",
+      "proposition": "El aporte sería una nota comparativa sobre esa diferencia; la evidencia no establece efectos sobre el cobre ni contratos latinoamericanos.",
+      "question": "¿Les interesaría considerar esta nota internacional para su cobertura de proyectos?",
+      "language": "es-CL"
+    },
+    "AUSTRALIAN-MINING-REVIEW-EDITORIAL": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia’s cluster: operating equipment production, unconfirmed awards",
+      "reason": "The Australian Mining Review’s supplier and project coverage makes the electric-heavy-equipment element of Weda Bay a useful execution milestone.",
+      "insight": "An operating manufacturing facility does not tell us which Australian suppliers have contracts or how much demand they will receive.",
+      "proposition": "A contribution could separate the disclosed industrial milestone from unconfirmed procurement exposure.",
+      "question": "Would this supplier-evidence distinction be useful to your editorial team?",
+      "language": "en"
+    },
+    "KITCO-CONTRIBUTOR": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia’s downstream milestone: operating capacity versus investor returns",
+      "reason": "Kitco News’ metals-investor audience has reason to distinguish Indonesia’s downstream operating milestone from an investment thesis.",
+      "insight": "Operation supports the cluster mechanism; it does not establish margins, utilisation or a metals-price effect.",
+      "proposition": "The accompanying commentary examines what is disclosed and what investors still cannot infer, without recommending a security.",
+      "question": "Would this evidence-led commentary be useful when considering a contribution to Kitco News?",
+      "language": "en"
+    },
+    "HOTCOPPER-CONTRIBUTOR": {
+      "signal_id": "indonesia-weda-bay-downstream-cluster",
+      "subject": "Indonesia’s downstream launch does not establish ASX exposure",
+      "reason": "HotCopper’s capital-markets audience may find the limits of the Indonesia investment headline as useful as the headline itself.",
+      "insight": "The October 9 evidence identifies an industrial milestone, not an ASX company’s earnings exposure.",
+      "proposition": "The accompanying commentary separates operating factories from unverified company exposure and avoids a buy, hold or sell conclusion.",
+      "question": "Would this commentary suit your contributor workflow despite the absence of a disclosed ASX link?",
+      "language": "en"
+    },
+    "MARINELINK-EDITORIAL-INQUIRY": {
+      "signal_id": "egypt-korea-industrial-localisation",
+      "subject": "Egypt–Korea shipbuilding cooperation: framework before orders",
+      "reason": "MarineLink’s commercial maritime coverage makes the shipbuilding element of the Egypt–Korea statement worth examining on its own terms.",
+      "insight": "A diplomatic priority is not a shipyard investment or a vessel order.",
+      "proposition": "The proposed note would distinguish the disclosed cooperation framework from the company commitments and delivery schedules still absent.",
+      "question": "Would this note be useful for your editorial team’s consideration?",
+      "language": "en"
+    },
+    "TRADEWINDS-EDITORIAL": {
+      "signal_id": "egypt-korea-industrial-localisation",
+      "subject": "Egypt–Korea shipbuilding priority: no disclosed capital commitment",
+      "reason": "TradeWinds covers shipping markets; Egypt–Korea cooperation offers a shipbuilding policy development with clearly limited commercial evidence.",
+      "insight": "A shipbuilding priority in a joint statement does not establish yard capacity, vessel orders or freight-market effects.",
+      "proposition": "The proposed contribution would explain the framework and the missing company-level commitments, without inferring tanker or crude-flow changes.",
+      "question": "Would this policy-to-project note be useful to your editors?",
+      "language": "en"
+    }
+  },
+  "unsupported": {
+    "HYDROCARBON-ENGINEERING-EDITORIAL": "None of the seven October 9 findings establishes a refinery, hydrocarbon-processing plant, fuel-storage project or clean-fuel development. Indonesia’s downstreaming concerns battery materials and other manufacturing; it must not be presented as petroleum refining.",
+    "OIL-GAS-JOURNAL-EDITORIAL": "The October 9 evidence contains no oil/gas discovery, offshore award, refinery project or pipeline development. Kenya Pipeline Company sale proceeds are infrastructure-fund financing evidence, not a pipeline operating development. Egypt–Korea energy cooperation names no oil/gas project.",
+    "SHIP-ENERGY-EDITORIAL": "No October 9 finding discloses marine-fuel supply, bunker prices, vessel-fuel technology or a bunkering project. Egypt–Korea shipbuilding cooperation does not establish a marine-fuel consequence.",
+    "RIVIERA-TANKER-EDITORIAL": "October 9 contains no tanker orders, tanker capacity, tanker routes, ship-to-ship transfers, crude flows or marine-insurance evidence. The Egypt–Korea statement names shipbuilding broadly but no vessel class or orders. A tanker-specific contribution cannot be substantiated."
+  }
+}

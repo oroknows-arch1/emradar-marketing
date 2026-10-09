@@ -17,7 +17,7 @@ export class HarnessBridge {
     const aggregate=()=>{const d=billingDetail({calls:billings});return {actual:d.state==='ACTUAL'||d.state==='ZERO',currency:'AUD',amount:d.amount_aud,receipt_id:hash(billings),provider:billings[0]?.provider||'openai',service:'verified_marketing_work',calls:billings};};
     for(let attempt=1;attempt<=ceiling;attempt++){
       try{
-        const result=await this.execute({unit,decision,context,attempt});
+        const result=context.prepared_correspondence?structuredClone(context.prepared_correspondence):await this.execute({unit,decision,context,attempt});
         const proof=await this.verify({unit,decision,context,result});
         billings.push(proof?.billing);
         // Editorial fit is the owner's decision; independently verified facts still bind the draft.
