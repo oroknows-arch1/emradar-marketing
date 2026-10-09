@@ -36,6 +36,7 @@ import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
 import {editorialRouteStatus,editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication} from './runtime/editorial-outreach-gmail.js';
 import {createV2Runtime} from './runtime/v2-integration.js';
+import {recoverOctoberCampaignsToV2} from './runtime/v2-campaign-recovery.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -160,7 +161,7 @@ const server=http.createServer(async(req,res)=>{
       }
       const input=JSON.parse(await readBody(req));
       if(!/^[a-f0-9]{64}$/.test(input?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(input?.review_hash||'')||!['APPROVE','REJECT'].includes(input?.decision))return json(res,400,{reason:'V2_OWNER_DECISION_INVALID'});
-      return json(res,200,await runtime.decide(input,req.headers.authorization));
+      return json(res,200,await runtime.decide(input,'Bearer '+process.env.MARKETING_PUBLICATION_REVIEW_TOKEN));
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
@@ -324,6 +325,15 @@ const server=http.createServer(async(req,res)=>{
       return html(res,campaignReviewHtml({...record,owner_decisions,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)},campaign));
     }catch(e){return json(res,409,{reason:e.message});}
   }
+  if(req.method==='GET'&&u.pathname==='/V2/CAMPAIGN_REVIEW'){
+    try{
+      const campaign=u.searchParams.get('campaign_id');
+      if(!/^EMRADAR_2026_10_(08|09)_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+      const record=await new RedisStore(await store()).get('v2:review_package:'+campaign);
+      if(!record)return json(res,404,{reason:'V2_REVIEW_PACKAGE_NOT_FOUND'});
+      return html(res,campaignReviewHtml(record,campaign,{decisionPath:'/V2/PUBLICATION_REVIEW',v2:true}));
+    }catch(e){return json(res,409,{reason:e.message});}
+  }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     // Viewing the saved package does not grant approval or distribution authority.
     const packageRead=req.method==='GET'&&u.searchParams.get('package')==='EMRADAR';
@@ -374,7 +384,10 @@ server.listen(PORT,()=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
     for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
   }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
-  v2Preflight().then(result=>{cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));}).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_PREFLIGHT '+JSON.stringify(cutoverState));});
+  store().then(client=>recoverOctoberCampaignsToV2(new RedisStore(client))).then(records=>{
+    console.log('V2_OCTOBER_RECOVERY '+JSON.stringify(records.map(record=>({campaign_id:record.campaign_id,status:record.status,review_count:record.review_count,proposal_count:record.proposals.length,exclusions:record.exclusions,external_actions:record.external_actions}))));
+    return v2Preflight();
+  }).then(result=>{cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));}).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_PREFLIGHT '+JSON.stringify(cutoverState));});
 });
 
 async function runPendingSourceRelease(){

@@ -19,3 +19,8 @@ test('unbranded emails retain exact text fallback and do not invent a letterhead
  assert.match(output,/Original body/);
  assert.doesNotMatch(output,/<iframe/);
 });
+test('V2 review records decisions without offering distribution and locks final outcomes',()=>{
+ const record={proposals:[{proposal_id:'a'.repeat(64),review_hash:'b'.repeat(64),asset:{email:{body:'Exact V2 body'}}},{proposal_id:'c'.repeat(64),review_hash:'d'.repeat(64),asset:{email:{body:'Already sent'}}}],owner_decisions:{['c'.repeat(64)]:{status:'SUBMITTED'}}};
+ const output=campaignReviewHtml(record,'EMRADAR_2026_10_09_LAUNCH',{decisionPath:'/V2/PUBLICATION_REVIEW',v2:true});
+ assert.match(output,/External distribution is disabled/);assert.match(output,/data-decision="APPROVE"/);assert.match(output,/data-decision="REJECT"/);assert.match(output,/fetch\('\/V2\/PUBLICATION_REVIEW'/);assert.match(output,/data-id="c{64}"[^>]*[\s\S]*?<button data-decision="APPROVE" disabled/);
+});
