@@ -1,3 +1,4 @@
+import {preparedArticle} from './october9-preparation.js';
 import fs from 'node:fs/promises';
 import {approveExact,drainApproved,recoverApprovedCampaign} from './approved-distribution.js';
 import scanControl from '../config/scan-control.json' with {type:'json'};
@@ -14,7 +15,7 @@ import {organicWorkers,discoveryTestId} from './organic-discovery.js';
 import openRouteDirectory from '../state/open-route-directory.json' with {type:'json'};
 import {openRouteScout,commercialEvidenceBranch,prepareRouteAssets,formationFromSignal} from './open-route-scout.js';
 import {editorialContext,validateEditorial,produceEditorial,externalSchemaLeak,editorialVersion} from './editorial-copy.js';
-import {humanReadyEmail,normalizeCorrespondence,validateHumanEmail,reuseProposition,isEmail,emailVersion} from './editorial-email.js';
+import {humanReadyEmail,validateHumanEmail,reuseProposition,isEmail,emailVersion} from './editorial-email.js';
 import {beginCosts,finishCosts,costCall,costKey} from './campaign-costs.js';
 import {ownerPreview,previewWarning,previewCorrespondence} from './owner-preview.js';
 
@@ -156,7 +157,7 @@ export class GraphEngine {
         const node=graph.nodes.find(n=>n.id===id);if(!node||!workers[id])fail('UNBOUND_GRAPH_NODE:'+id);
         const entry={node:id,lane:'deterministic',at:now(),status:'RUNNING',input_hash:digest({product:c.input.product,campaign:c.input.campaign_id,learning:c.state.version})};
         if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:'RUNNING'}));
-        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){if(ownerPreview(c.input)&&c.route?.destination?.platform==='OPEN_ROUTE'&&c.editorial?.result?.body&&previewWarning(e.message)){c.preview_warnings||=[];c.preview_warnings.push({gate:id,reason:e.message});entry.status='PASS';entry.warning=e.message;}else{entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}}
+        try {await workers[id](c,this);entry.status='PASS';if(c.node_work?.node===id){entry.lane=c.node_work.decision.lane;entry.worker_receipt=c.node_work;}}catch(e){if(ownerPreview(c.input)&&c.route?.destination?.platform==='OPEN_ROUTE'&&c.editorial?.result?.body&&previewWarning(e.message,c.input)){c.preview_warnings||=[];c.preview_warnings.push({gate:id,reason:e.message});entry.status='PASS';entry.warning=e.message;}else{entry.status='BLOCKED';entry.reason=e.message;c.blocker=e.message;c.status='BLOCKED';}}
         entry.output_hash=digest({asset:c.asset,receipt:c.receipt,outcome:c.outcome,version:c.state.version,route:c.route?.id});c.trace.push(entry);
         if(!c.read_only)console.log('MARKETING_GRAPH_NODE '+JSON.stringify({campaign_id:c.input.campaign_id,node:id,status:entry.status,reason:entry.reason||null}));
         const edges=graph.edges.filter(e=>e.from===id);
@@ -240,7 +241,7 @@ const workers={
           const platform=d.destination_id==='EMRADAR-X-OROKNOWS'?'X':'OPEN_ROUTE';
           const executable=platform==='X'||!!(e.adapters.OPEN_ROUTE?.supportsRoute?.(d)&&await e.adapters.OPEN_ROUTE.authorized?.(c.input.product,d));
           const {classification,prepare_eligible,execution_state,route_score,score_factors,route_reason,...routeRecord}=d;
-          openCandidates.push({id:d.destination_id,platform,signal_ids:[c.signal.id],formats:['text'],relevance:route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:executable?'EXECUTE_AFTER_EXACT_PUBLICATION_REVIEW':'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:platform==='OPEN_ROUTE'&&!executable,route_record:routeRecord});
+          openCandidates.push({id:d.destination_id,platform,signal_ids:[c.signal.id],formats:['text'],relevance:route_score,baseline:{id:d.evidence_source_url,valid_until:validUntil},delta:{signal_revision:c.signal.revision,meaningful:true,evidence_ids:[...c.signal.evidence]},permission:{approved:true,valid_until:validUntil,signal_revision:c.signal.revision,scope:executable?'EXECUTE_AFTER_EXACT_PUBLICATION_REVIEW':'PREPARE_FOR_EXACT_PUBLICATION_REVIEW'},review_only:true,open_access_prepare_only:platform==='OPEN_ROUTE'&&!executable,route_record:{...routeRecord,classification,route_score,score_factors,route_reason}});
         }
         const existing=c.candidates.length?c.candidates:configured;
         c.candidates=[...existing,...openCandidates.filter(o=>!existing.some(r=>r.id===o.id))];
@@ -293,10 +294,9 @@ const workers={
       const context=editorialContext(c),key='editorial_copy:'+digest(context);
       let editorial=await e.store.get(key);
       if(!editorial){const work=await produceEditorial(context,(request,attempt)=>e.modelWork(c,'editorial_intelligence',request,'creation_approved',attempt),record=>e.store.put('editorial_attempt:'+c.run_id+':'+record.attempt,{...record,campaign_id:c.input.campaign_id,destination:c.route.id}));editorial={result:work.result,proof:work.proof,origin_run_id:c.run_id,preview_warnings:work.preview_warnings||[]};await e.store.put(key,editorial);}
-      editorial.result=normalizeCorrespondence(editorial.result,c.signal,c.route.destination.route_record);
       try{validateEditorial(editorial.result,editorial.proof,context);editorial.preview_warnings=[];}catch{}
       c.editorial={...editorial,contract_revision:editorialVersion,cache_key:key};c.preview_warnings=[...(c.preview_warnings||[]),...(editorial.preview_warnings||[])];
-      try{c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];}catch(error){if(!ownerPreview(c.input)||!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'editorial_intelligence',reason:error.message});c.allowed_copy=['Subject: '+editorial.result.subject+'\n\n'+editorial.result.body];}c.copy_method='editorial_copy_system_v1';
+      try{c.allowed_copy=[validateEditorial(editorial.result,editorial.proof,context)];}catch(error){if(!ownerPreview(c.input)||!previewWarning(error.message,c.input))throw error;c.preview_warnings.push({gate:'editorial_intelligence',reason:error.message});c.allowed_copy=['Subject: '+editorial.result.subject+'\n\n'+editorial.result.body];}c.copy_method='editorial_copy_system_v1';
       c.copy=c.allowed_copy[0];return;
     }
     if(!c.allowed_copy.length&&c.signal.source_facts?.length){
@@ -345,7 +345,7 @@ const workers={
     const proposition=c.email_proposition||c.editorial?.result;
     if(!proposition)fail('EDITORIAL_TRANSFORMATION_REQUIRED');
     if(c.input.reviewed_proposal_id){c.email=structuredClone(c.reused_proposal.asset.email);return;}
-    if(ownerPreview(c.input)){try{c.email=isEmail(route)&&!c.preview_warnings?.length?humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product}):previewCorrespondence(proposition,c.signal,route);}catch(error){if(!previewWarning(error.message))throw error;c.preview_warnings.push({gate:'human_ready_email',reason:error.message});c.email=previewCorrespondence(proposition,c.signal,route);}}else c.email=humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product});
+    if(ownerPreview(c.input)){try{c.email=isEmail(route)&&!c.preview_warnings?.length?humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product}):previewCorrespondence(proposition,c.signal,route);}catch(error){if(!previewWarning(error.message,c.input))throw error;c.preview_warnings.push({gate:'human_ready_email',reason:error.message});c.email=previewCorrespondence(proposition,c.signal,route);}}else c.email=humanReadyEmail({proposition,signal:c.signal,route,identity,product:c.input.product});
     c.copy='Subject: '+c.email.subject+'\n\n'+c.email.body;c.allowed_copy=[c.copy];
     c.localization={...c.localization,copy_hash:digest(c.copy),language:c.email.language};
   },
@@ -355,7 +355,7 @@ const workers={
   },
   async editorial_quality_gate(c) {
     if(!c.allowed_copy.includes(c.copy)||!c.product.review.editorial)fail('EDITORIAL_REVIEW_REQUIRED');
-    if(c.route?.destination?.platform==='OPEN_ROUTE'&&!c.email){if(!c.editorial||c.copy_method!=='editorial_copy_system_v1')fail('EDITORIAL_TRANSFORMATION_REQUIRED');if(externalSchemaLeak(c.copy))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');validateEditorial(c.editorial.result,c.editorial.proof,editorialContext(c));}
+    if(c.route?.destination?.platform==='OPEN_ROUTE'&&!c.email){if(!c.editorial||c.copy_method!=='editorial_copy_system_v1')fail('EDITORIAL_TRANSFORMATION_REQUIRED');if(externalSchemaLeak(c.copy)&&!ownerPreview(c.input))fail('EXTERNAL_EDITORIAL_SCHEMA_LEAK');validateEditorial(c.editorial.result,c.editorial.proof,editorialContext(c));}
     if(/\b(buy now|guaranteed return|risk.free investment)\b/i.test(c.copy))fail('UNSUPPORTED_FINANCIAL_CLAIM');
   },
   async variant_factory(c) {
@@ -370,7 +370,7 @@ const workers={
       const key='x_visual:'+digest([c.signal,c.product.source_receipt||null,'V1']);
       let visual=await e.store.get(key);if(!visual){visual=await evidenceVisual(c.signal,c.product.source_receipt);await e.store.put(key,visual);}
       c.asset={...visual,copy:c.copy,combined_review_artifact:true};validateCombinedX(c.asset,c.signal,c.product.source_receipt);
-    }else if(c.route.destination.platform==='OPEN_ROUTE'){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy,delivery:{...c.route.destination.route_record},localization:c.localization||null,...(c.email?{email:c.email,capability_claim_gate:c.capability_claim_gate}: {})};}
+    }else if(c.route.destination.platform==='OPEN_ROUTE'){c.asset={format:c.route.destination.route_record.accepted_formats[0],copy:c.copy,...(preparedArticle(c)?{article:preparedArticle(c)}:{}),delivery:{...c.route.destination.route_record},localization:c.localization||null,...(c.email?{email:c.email,capability_claim_gate:c.capability_claim_gate}: {})};}
     else if(c.route.format==='svg'){
       const escape=s=>s.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[ch]));
       const rows=c.copy.match(/.{1,65}(?:\s|$)|.{1,65}/g)||[];
@@ -413,7 +413,7 @@ const workers={
       c.review={proposal_id,review_hash,decision:'APPROVED',approved_at:approval.approved_at};return;
     }
     const proposal={proposal_id,review_hash,publication_key,input:{product:c.input.product,campaign_id:c.input.campaign_id,signal_id:c.signal.id,destination_id:c.route.id},product:c.input.product,signal_id:c.signal.id,signal_revision:c.signal.revision,signal_state:c.signal.state,evidence_refs:[...c.signal.evidence],destination:c.route.id,platform:c.route.destination.platform,format:c.asset.format,variant:c.variant.id,copy:c.asset.copy,asset:c.asset,source_receipt:c.product.source_receipt||null,cost_state:c.adapter.cost,publication_cost_gate:c.adapter.cost==='ZERO'?'READY':'REQUIRED_BEFORE_EXECUTION',created_at:now(),expires_at:new Date(Date.now()+24*3600000).toISOString(),status:'AWAITING_REVIEW'};
-    proposal.review_contract_revision='sfy-bounded-draft-correspondence-v2';
+    proposal.review_contract_revision='historical-writer-83d6baa-compatible-v1';
     if(ownerPreview(c.input)){proposal.preview_warnings=[...new Map((c.preview_warnings||[]).map(w=>[w.gate+':'+w.reason,w])).values()];proposal.review_state=proposal.preview_warnings.length?'PREVIEW_WITH_WARNING':'READY';proposal.preview_only=proposal.preview_warnings.length>0||c.email?.preview_only===true;proposal.permission_state='EXACT_OWNER_REVIEW_REQUIRED';}
     if(c.route.destination.platform==='X'){proposal.content_review_state='READY';proposal.distribution_cost_state=c.adapter.cost;proposal.distribution_state=c.adapter.cost==='ZERO'?'EXACT_OWNER_REVIEW_REQUIRED':'BLOCKED_PENDING_COST_RESOLUTION';}
     proposal.review_binding={product_truth:c.truth_hash,destination:destination_binding};

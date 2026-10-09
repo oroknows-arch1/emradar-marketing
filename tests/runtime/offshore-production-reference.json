@@ -1,0 +1,332 @@
+{
+  "version": 9,
+  "snapshot_date": "2026-10-08",
+  "previous_scan_date": "2026-10-07",
+  "contract": "causal-chain-evolution-v1",
+  "publication_state": "PUBLISHED",
+  "run_mode": "SCHEDULED",
+  "started_at": "2026-10-08T09:47:40+11:00",
+  "completed_at": "2026-10-08T09:49:39+11:00",
+  "timezone": "Australia/Sydney",
+  "rule": "Blank global candidate set first. Prior holdings, watchlists, themes and findings did not constrain discovery.",
+  "scope_note": "Fresh world-change-first scan. Twelve candidates were evaluated across upstream energy, cross-border fuel logistics, electricity generation and transmission, regional energy security, industrial policy, climate resilience and private-capital mobilisation; seven survived. The 7 October scan was consulted only after classification for stable-ID comparison.",
+  "scan_statistics": {
+    "surviving_findings": 7,
+    "discarded_count": 5,
+    "total_candidates_reviewed": 12,
+    "by_status": {
+      "WEAKENING": 1,
+      "INVESTIGATE": 2,
+      "FORMING": 4
+    },
+    "note": "Discarded candidates included a small Pacific coastal-resilience grant without investable scale, a Japanese regional-transport grant round without an emerging-market transmission mechanism, an Australian electrolyser factory expansion outside the scan's emerging-market consequence layer, a single Zimbabwe micro-cap restart financing with extreme dilution and no operating proof, and an event-led African minerals forum without a dated transaction."
+  },
+  "scan_report": {
+    "headline": "Emerging-market energy systems are being rebuilt at both ends: new resource acreage and generation capacity upstream, and pipelines, grids and security arrangements between producers and demand.",
+    "summary": "Brazil awarded seven pre-salt blocks, expanding acreage under production-sharing by 58%. Ethiopia, Djibouti and Dangote have defined a 120-kilometre refined-products pipeline with more than one million cubic metres of terminal storage. Gabon's 124 MW ORINKO plant has moved into lender diligence with a long-term PPA already in place. Mexico is linking a very large public and mixed-investment power program to transmission, distribution and gas infrastructure. ASEAN's Middle East supply shock is now producing an explicit regional petroleum-security agenda. C\u00f4te d'Ivoire is structuring strategic value chains around an IFC private-sector commitment, while South Africa's independent-transmission procurement has slipped to a Q2 2027 final RFP and therefore weakens.",
+    "narrative": [
+      "Brazil's 7 October pre-salt auction produced an unusually concrete supply-side change: seven of thirteen offered blocks were awarded, and the production-sharing exploration footprint is set to expand from 24,800 to 39,200 square kilometres. Petrobras, PRIO, Equinor and Chinese participants won acreage, but limited competition and multi-year exploration risk keep the market formation at FORMING rather than CONFIRMED.",
+      "The Horn of Africa has a new fuel-logistics spine on paper. Ethiopia, Djibouti and Dangote announced a 120-kilometre refined-products pipeline from Damerjog to Dewele with more than one million cubic metres of combined storage. The line could replace slower truck logistics and reduce inland fuel-delivery costs, but financing, permits, tariffs and construction dates remain undisclosed. It is FORMING.",
+      "Gabon Power Company's ORINKO project has advanced beyond a generic power plan. Africa50, Melec PowerGen and Wartsila hosted roughly twenty prospective lender representatives for a financing appraisal of a 124 MW gas plant in Owendo; a long-term state PPA and completed environmental work pre-date the visit. Lender diligence strengthens the bankability chain, but financial close and construction notice remain missing. It is FORMING.",
+      "Mexico's power buildout is becoming a capital-market and supply-chain mechanism rather than only a public target. Official releases connect generation, 275 transmission lines, 524 substation works, gas pipelines and about US$2.5 billion intended through CFE Fibra E. The system plan is FORMING, although procurement, completion and regulated-return details determine which listed exposures ultimately benefit.",
+      "ASEAN's 2026 Middle East disruption has turned a known import dependency into an explicit resilience agenda. The ASEAN Centre for Energy estimates that a severe interruption could directly affect oil volumes equal to 28% of final regional consumption; its October review calls for stronger petroleum-security arrangements, cross-border electricity and demand substitution. This is INVESTIGATE because regional coordination is clear but binding stock-sharing, procurement and infrastructure commitments are not yet public.",
+      "C\u00f4te d'Ivoire and IFC are moving from a broad US$5 billion private-sector commitment toward the structuring of strategic value chains under the 2026-2030 national plan. The policy-to-capital bridge is real, but named projects, instruments and disbursement schedules are absent, so the signal remains INVESTIGATE.",
+      "South Africa's independent-transmission chain re-entered today's blank scan with negative evidence. Government reaffirmed the program and said credit-guarantee governance was established, but moved the final Phase I RFP to Q2 2027 after an earlier 2026 operating target. The need for private grid capital is unchanged; execution timing has weakened."
+    ],
+    "unresolved_questions": [
+      "Which Brazilian pre-salt awards progress from qualification to signed contracts and commercial discoveries?",
+      "Who finances and constructs the Damerjog-Dewele pipeline, and what tariff replaces road transport costs?",
+      "Will ORINKO's lender appraisal produce financial close and a construction notice?",
+      "Which Mexico grid packages reach binding procurement, and what economics flow to CFE Fibra E or suppliers?",
+      "Will ASEAN members create binding petroleum-sharing, storage or joint-procurement mechanisms?",
+      "Which Ivorian value chains receive IFC instruments and actual disbursements?",
+      "Can South Africa's credit-guarantee vehicle become operational before the delayed transmission RFP?"
+    ]
+  },
+  "what_is_forming": [
+    {
+      "id": "brazil-pre-salt-acreage-expansion",
+      "status": "FORMING",
+      "summary": "Seven awarded blocks expand Brazil's production-sharing exploration footprint by 58%."
+    },
+    {
+      "id": "ethiopia-djibouti-products-pipeline",
+      "status": "FORMING",
+      "summary": "A 120 km pipeline and terminal system could replace truck-based fuel logistics into Ethiopia."
+    },
+    {
+      "id": "gabon-orinko-gas-power-financing",
+      "status": "FORMING",
+      "summary": "A 124 MW gas plant with a state PPA has entered prospective-lender appraisal."
+    },
+    {
+      "id": "mexico-state-led-power-buildout",
+      "status": "FORMING",
+      "summary": "Generation, grid and gas investments are being joined to mixed finance and a listed infrastructure vehicle."
+    }
+  ],
+  "current_scene": [
+    {
+      "name": "Petrobras",
+      "location": "Brazilian pre-salt",
+      "role": "Winning operator and dominant incumbent",
+      "ticker": "PETR4 / PBR",
+      "exchange": "B3 / NYSE",
+      "why_now": "Won new production-sharing acreage while operating most current Brazilian output."
+    },
+    {
+      "name": "PRIO",
+      "location": "Campos Basin, Brazil",
+      "role": "Independent upstream winner",
+      "ticker": "PRIO3",
+      "exchange": "B3",
+      "why_now": "Won the Hematita block with a 100% interest."
+    },
+    {
+      "name": "Equinor",
+      "location": "Brazilian pre-salt",
+      "role": "International upstream winner",
+      "ticker": "EQNR",
+      "exchange": "Oslo / NYSE",
+      "why_now": "Won the Rubi block and increased exposure to Brazil's exploration pipeline."
+    },
+    {
+      "name": "Dangote Group",
+      "location": "Djibouti-Ethiopia corridor",
+      "role": "Pipeline development partner",
+      "ticker": null,
+      "exchange": null,
+      "why_now": "Named partner for the refined-products pipeline and storage terminals."
+    },
+    {
+      "name": "Wartsila",
+      "location": "Owendo, Gabon",
+      "role": "ORINKO project developer and technology participant",
+      "ticker": "WRT1V",
+      "exchange": "Nasdaq Helsinki",
+      "why_now": "Participated in lender diligence for the 124 MW gas plant."
+    },
+    {
+      "name": "CFE Fibra E",
+      "location": "Mexico",
+      "role": "Transmission infrastructure financing vehicle",
+      "ticker": "FCFE18",
+      "exchange": "BMV",
+      "why_now": "Official planning identifies roughly US$2.5 billion of transmission funding through the vehicle."
+    },
+    {
+      "name": "ASEAN Centre for Energy",
+      "location": "Southeast Asia",
+      "role": "Regional petroleum-security secretariat",
+      "ticker": null,
+      "exchange": null,
+      "why_now": "Converted the Middle East disruption into quantified regional risk and policy options."
+    },
+    {
+      "name": "International Finance Corporation",
+      "location": "C\u00f4te d'Ivoire",
+      "role": "Private-sector capital and value-chain structuring partner",
+      "ticker": null,
+      "exchange": null,
+      "why_now": "Working with the government to translate a US$5 billion commitment into strategic value chains."
+    },
+    {
+      "name": "South African National Treasury and DBSA",
+      "location": "South Africa",
+      "role": "Transmission credit-guarantee sponsors",
+      "ticker": null,
+      "exchange": null,
+      "why_now": "Guarantee governance exists, but procurement timing has slipped."
+    }
+  ],
+  "records": [
+    {
+      "id": "brazil-pre-salt-acreage-expansion",
+      "theme": "Brazil is materially enlarging its pre-salt exploration option set through awarded production-sharing acreage",
+      "status": "FORMING",
+      "new_to_radar": true,
+      "location": "Campos and Santos basins, Brazil",
+      "why_surfaced": "A completed auction awarded seven blocks to named operators and expands the exploration area under production sharing by 58%.",
+      "causal_chain": {
+        "world_change": [
+          "Brazil's ANP awarded seven of thirteen offered pre-salt blocks on 7 October 2026."
+        ],
+        "pressure": [
+          "Brazil seeks to replenish long-cycle offshore resources while monetising highly productive pre-salt geology."
+        ],
+        "bottleneck_or_scarcity": [
+          "Qualification, contract signature, seismic appraisal, drilling success, FPSO capacity, local-content execution and oil-price economics."
+        ],
+        "formation": [
+          "A larger portfolio of competitively awarded pre-salt acreage extends Brazil's offshore development and supplier pipeline."
+        ],
+        "industries": [
+          "Offshore oil and gas",
+          "Subsea equipment",
+          "Floating production systems",
+          "Marine services",
+          "Geophysical services"
+        ],
+        "connected_companies_and_tickers": [
+          "Petrobras (B3:PETR4; NYSE:PBR)",
+          "PRIO (B3:PRIO3)",
+          "Equinor (OSE/NYSE:EQNR)"
+        ],
+        "consequences": [
+          "More exploration work and long-dated development options",
+          "Potential demand for subsea and floating-production capacity",
+          "Higher capital exposure before discovery certainty"
+        ],
+        "evidence": [
+          "ANP auction results",
+          "ANP August production statistics",
+          "Independent Portuguese-language reporting on bidder participation"
+        ]
+      },
+      "chain_evolution": {
+        "previous_scan_state": null,
+        "current_scan_state": "FORMING",
+        "what_changed": "New stable formation ID in the blank 8 October scan; absent on 7 October.",
+        "why_state_changed": "The auction is complete and awards are quantified, but contracts, discoveries and development decisions remain future gates.",
+        "strengthening_evidence": [
+          "Seven blocks were awarded and the production-sharing footprint will rise from 24,800 to 39,200 square kilometres.",
+          "Winners include Petrobras, PRIO and Equinor."
+        ],
+        "weakening_evidence": [
+          "Six offered blocks received no winning award and press reporting described limited competition."
+        ],
+        "break_conditions": [
+          "Winners fail qualification or contract signature",
+          "Exploration is deferred or unsuccessful",
+          "Project economics fail under fiscal or oil-price changes"
+        ],
+        "actual_breaks": [],
+        "unresolved_evidence": [
+          "Final contract signature",
+          "Minimum work commitments by winner",
+          "Exploration timetable",
+          "Commercial discovery rates"
+        ],
+        "new_links": [
+          "A completed allocation now links resource policy to a named operator and supplier pipeline."
+        ],
+        "removed_links": []
+      },
+      "listed_players": [
+        {
+          "name": "Petrobras",
+          "ticker": "PETR4 / PBR",
+          "exchange": "B3 / NYSE",
+          "role": "Winning operator"
+        },
+        {
+          "name": "PRIO",
+          "ticker": "PRIO3",
+          "exchange": "B3",
+          "role": "100% winner of Hematita"
+        },
+        {
+          "name": "Equinor",
+          "ticker": "EQNR",
+          "exchange": "Oslo / NYSE",
+          "role": "Winner of Rubi"
+        }
+      ],
+      "valuation": null,
+      "valuation_research": "Auction bonuses and prospective acreage do not establish recoverable reserves or project net present value. Entry research waits for work commitments, appraisal results and development economics.",
+      "evidence": [
+        {
+          "fact": "ANP awarded seven of thirteen offered pre-salt blocks and says production-sharing exploration acreage will increase 58%, from 24,800 to 39,200 square kilometres.",
+          "source": "Ag\u00eancia Nacional do Petr\u00f3leo, G\u00e1s Natural e Biocombust\u00edveis",
+          "url": "https://www.gov.br/anp/pt-br/canais_atendimento/imprensa/noticias-comunicados/4o-ciclo-da-oferta-permanente-de-partilha-da-anp-tem-sete-blocos-no-pre-sal-arrematados",
+          "date": "2026-10-07",
+          "language": "Portuguese",
+          "english_summary": "Brazil's regulator reports the completed auction, winning blocks and the 58% acreage expansion."
+        },
+        {
+          "fact": "Pre-salt output represented 82.6% of Brazil's total oil and gas production in August 2026.",
+          "source": "Ag\u00eancia Nacional do Petr\u00f3leo, G\u00e1s Natural e Biocombust\u00edveis",
+          "url": "https://www.gov.br/anp/pt-br/canais_atendimento/imprensa/noticias-comunicados/anp-divulga-dados-consolidados-da-producao-de-petroleo-e-gas-em-agosto-de-2026/",
+          "date": "2026-10-01",
+          "language": "Portuguese",
+          "english_summary": "The regulator's production data confirms the pre-salt's current system importance."
+        },
+        {
+          "fact": "Independent reporting described seven awards to Petrobras, PRIO, Equinor and Chinese participants with relatively little bidding rivalry.",
+          "source": "Folha de S.Paulo",
+          "url": "https://www1.folha.uol.com.br/mercado/2026/10/prio-arremata-primeira-area-em-leilao-de-areas-para-exploracao-de-petroleo-no-pre-sal.shtml",
+          "date": "2026-10-07",
+          "language": "Portuguese",
+          "english_summary": "The report corroborates winners and flags weak competition as counter-evidence."
+        }
+      ],
+      "contradictions": [
+        "Awarded acreage is not discovered reserves or production.",
+        "Limited competition may signal risk pricing rather than scarcity value.",
+        "Offshore lead times and capital intensity make supplier and earnings consequences highly delayed."
+      ],
+      "missing_evidence": [
+        "Signed contracts",
+        "Work programs",
+        "Appraisal wells",
+        "Recoverable resources and development plans"
+      ],
+      "what_to_check_next": [
+        "ANP qualification and contract signature",
+        "Operator capex guidance",
+        "Seismic and drilling awards",
+        "Discovery announcements"
+      ]
+    }
+  ],
+  "absent_from_current_scan": [
+    {
+      "id": "zambia-drc-copperbelt-power-interconnector",
+      "previous_scan_state": "FORMING",
+      "current_scan_state": "ABSENT",
+      "reason": "No new dated financing, permit or construction milestone independently promoted the chain in today's blank scan."
+    },
+    {
+      "id": "vietnam-metro-technology-transfer",
+      "previous_scan_state": "FORMING",
+      "current_scan_state": "ABSENT",
+      "reason": "No new localisation, factory or delivery evidence independently re-qualified the formation."
+    },
+    {
+      "id": "guatemala-firm-power-auction",
+      "previous_scan_state": "INVESTIGATE",
+      "current_scan_state": "ABSENT",
+      "reason": "No new bid, award or tariff evidence entered today's candidate set."
+    },
+    {
+      "id": "india-sme-growth-equity-fund",
+      "previous_scan_state": "FORMING",
+      "current_scan_state": "ABSENT",
+      "reason": "No manager, first close or investee was newly disclosed."
+    },
+    {
+      "id": "trans-caspian-digital-corridor",
+      "previous_scan_state": "FORMING",
+      "current_scan_state": "ABSENT",
+      "reason": "No commissioning certificate, customer contract or traffic evidence entered today's scan."
+    },
+    {
+      "id": "east-africa-refining-localisation",
+      "previous_scan_state": "WEAKENING",
+      "current_scan_state": "ABSENT",
+      "reason": "No new court order, financing disclosure or construction milestone independently qualified today."
+    }
+  ],
+  "published_at": "2026-10-08T09:53:27+11:00",
+  "publication_verification": {
+    "data_commit_sha": "86c2ca92d64ca6a9ae1971d56d2ef5f6a854a2f1",
+    "render_service_id": "srv-damqhauk1f9s738iteh0",
+    "render_deployment_id": "dep-db3cqanf3r2c73fq1olg",
+    "render_status": "LIVE",
+    "live_verified_at": "2026-10-08T09:53:27+11:00",
+    "dashboard_url": "https://emerging-markets-radar.onrender.com/",
+    "custom_domain_url": "https://emradar.com.au/",
+    "custom_domain_status": "INACTIVE_TIMEOUT_AT_VERIFICATION",
+    "downstream_release_allowed": true
+  }
+}

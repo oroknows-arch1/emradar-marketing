@@ -480,18 +480,30 @@
       "relevant_beat_topic": [
         "commercial maritime operations",
         "shipping",
-        "marine logistics"
+        "marine logistics",
+        "offshore exploration and development",
+        "subsea and offshore services"
       ],
       "industries": [
         "Oil shipping",
-        "Marine insurance"
+        "Marine insurance",
+        "Offshore oil and gas",
+        "Subsea equipment",
+        "Marine services"
       ],
       "public_contact_point": "public contact form",
       "public_submission_url": "https://www.marinelink.com/contactus",
       "evidence_source_url": "https://ws15.marinelink.com/contactus",
       "editorial_lane": "MARITIME_LOGISTICS",
       "editorial_focus": "Separate tanker transit risk, marine insurance and delivered freight costs from crude export volume recovery.",
-      "editorial_intent": "Prepare a maritime editorial inquiry asking whether a source-bound logistics analysis would help its commercial shipping audience."
+      "editorial_intent": "Prepare a maritime editorial inquiry asking whether a source-bound logistics analysis would help its commercial shipping audience.",
+      "offshore_editorial_profile": {
+        "editorial_lane": "OFFSHORE_EXPLORATION",
+        "editorial_focus": "Distinguish awarded offshore acreage from reserves, sanctioned projects and realised production; follow exploration commitments, development decisions and subsea/marine-service awards.",
+        "editorial_intent": "Ask whether a source-bound contribution on Brazil pre-salt acreage and unresolved development milestones would be useful to this offshore audience."
+      },
+      "beat_evidence_source_url": "https://magazines.marinelink.com/Magazines/MarineTechnology",
+      "beat_verified_at": "2026-10-08"
     },
     {
       "destination_id": "TRADEWINDS-EDITORIAL",
@@ -540,7 +552,9 @@
       "organisation": "Oil & Gas Journal",
       "relevant_beat_topic": [
         "refining and processing",
-        "pipelines and transportation"
+        "pipelines and transportation",
+        "offshore exploration and development",
+        "subsea and offshore services"
       ],
       "geography": [
         "global"
@@ -548,7 +562,10 @@
       "industries": [
         "Refining",
         "Storage and strategic reserves",
-        "Diesel and jet fuel"
+        "Diesel and jet fuel",
+        "Offshore oil and gas",
+        "Subsea equipment",
+        "Marine services"
       ],
       "access_method": "public contact form",
       "public_contact_point": "UNKNOWN",
@@ -564,7 +581,14 @@
       "verification_state": "VERIFIED",
       "editorial_lane": "REFINING_AND_STORAGE",
       "editorial_focus": "Refinery damage, medium-sour processing constraints and depleted inventories interrupt the conversion of crude into usable fuel.",
-      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful."
+      "editorial_intent": "Offer the currently available evidence note for the editor to assess; ask which angle or contribution format would be useful.",
+      "offshore_editorial_profile": {
+        "editorial_lane": "OFFSHORE_EXPLORATION",
+        "editorial_focus": "Distinguish awarded offshore acreage from reserves, sanctioned projects and realised production; follow exploration commitments, development decisions and subsea/marine-service awards.",
+        "editorial_intent": "Ask whether a source-bound contribution on Brazil pre-salt acreage and unresolved development milestones would be useful to this offshore audience."
+      },
+      "beat_evidence_source_url": "https://www.ogj.com/exploration-development",
+      "beat_verified_at": "2026-10-08"
     },
     {
       "destination_id": "SHIP-ENERGY-EDITORIAL",

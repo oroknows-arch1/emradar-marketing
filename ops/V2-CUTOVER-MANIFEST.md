@@ -1,6 +1,6 @@
 # EMRADAR Marketing Engine V2 cutover manifest
 
-Status: code-integrated, inactive, and awaiting production cutover authority. No production cutover, deletion, trigger change, credential change, or external distribution is authorised by this file.
+Status: atomic cutover implementation prepared. V1 mutation routes and runtime schedulers are retired; V2 is the sole active engine and external distribution remains disabled.
 
 ## Preserve before activation
 
@@ -24,6 +24,7 @@ Status: code-integrated, inactive, and awaiting production cutover authority. No
 - `MARKETING_V2_INTEGRATION_MODULE` must resolve to the reviewed destination catalogue and `assetBuilder`; `MARKETING_EDITORIAL_OUTREACH_MODULE` remains the existing approved email module.
 - `/V2/PUBLICATION_REVIEW` uses `MARKETING_PUBLICATION_REVIEW_TOKEN`. `/V2/PREPARE`, `/V2/DISTRIBUTE`, and `/V2/FEEDBACK` use `MARKETING_ENGINE_TOKEN`.
 - Owner approval only persists exact-hash work. Distribution remains a separate authenticated action; the review endpoint does not send.
+- This cutover sets `MARKETING_V2_DISTRIBUTION_ENABLED=false`; owner approval cannot submit externally until a later, separately authorised configuration change.
 
 ## Exact V1 retirement actions
 
@@ -52,6 +53,7 @@ Status: code-integrated, inactive, and awaiting production cutover authority. No
 - The configured existing editorial module passes authentication/identity verification without sending, and the reviewed V2 module exposes only verified executable routes.
 - V1 scheduler is disabled before `MARKETING_V2_ENABLED=true`; exactly one V2 scheduler is then enabled.
 - First production preparation stops at owner review with zero external actions. First distribution requires a separately authenticated exact-hash approval and yields a persisted provider receipt.
+- `/health` must report `service=EMRADAR_MARKETING_ENGINE_V2`, `v2_active=true`, `v1_execution=INACTIVE`, `external_distribution=DISABLED`, a passing cutover preflight, and `external_submissions=0`.
 
 ## Stop conditions
 

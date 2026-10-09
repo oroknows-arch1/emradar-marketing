@@ -11,10 +11,11 @@ function identity(p,decision){
 }
 // The work record is durable before approval is acknowledged. No provider calls here.
 // The asset hash binds all bytes, copy, recipient and subject; warnings are accepted.
-export async function approveExact(engine,decision){
+export async function approveExact(engine,decision,{queue=true}={}){
   const s=engine.store;
   return s.locked('approval:'+decision.proposal_id,async()=>{
     const p=await s.get('publication_review:'+decision.proposal_id);identity(p,decision);
+    if(p.evidence_support_status==='NOT EVIDENCE-SUPPORTED')queue=false;
     const prior=await s.get('receipt:'+p.publication_key);
     const old=await s.get('publication_approval:'+p.proposal_id);
     if(old&&(old.review_hash!==p.review_hash||(old.asset_hash&&old.asset_hash!==digest(p.asset))))fail('APPROVED_ARTIFACT_CHANGED');
@@ -22,8 +23,9 @@ export async function approveExact(engine,decision){
     if(approval.review_hash!==p.review_hash||approval.asset_hash!==digest(p.asset))fail('APPROVED_ARTIFACT_CHANGED');
     const key='distribution_work:'+p.proposal_id,existing=await s.get(key);
     const work=existing||{proposal_id:p.proposal_id,review_hash:p.review_hash,asset_hash:approval.asset_hash,campaign_id:p.input.campaign_id,publication_key:p.publication_key,status:done.has(prior?.execution_status)?prior.execution_status:'QUEUED',created_at:at(),receipt_id:prior?.id||null};
-    await s.approveAndQueue('publication_approval:'+p.proposal_id,approval,key,work);
-    return {status:'OWNER_APPROVED',proposal_id:p.proposal_id,review_hash:p.review_hash,distribution_status:existing?.status||(done.has(prior?.execution_status)?prior.execution_status:'QUEUED'),receipt:prior||null};
+    if(queue)await s.approveAndQueue('publication_approval:'+p.proposal_id,approval,key,work);
+    else await s.put('publication_approval:'+p.proposal_id,approval);
+    return {status:'OWNER_APPROVED',proposal_id:p.proposal_id,review_hash:p.review_hash,distribution_status:existing?.status||(done.has(prior?.execution_status)?prior.execution_status:queue?'QUEUED':'NOT_QUEUED'),receipt:prior||null};
   });
 }
 // One-time recovery uses only the exact owner-reviewed identities recorded in authority.

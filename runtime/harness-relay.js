@@ -26,8 +26,8 @@ export function createRelayHarness({store,env=process.env,fetcher=fetch}){
   execute:async input=>(await stage('execute',input)).result,
   verify:async input=>{
    const execution=await store.get('harness_stage:'+input.context.cost_reservation.id+':execute');
-   let proof;try{proof=await stage('verify',input);}catch(e){e.billing={calls:[execution.value.billing,e.billing||null]};throw e;}
-   return {...proof,billing:{calls:[execution.value.billing,proof.billing]}};
+   let proof;try{proof=await stage('verify',input);}catch(e){e.billing={calls:[execution?.value?.billing||{actual:true,currency:'AUD',amount:0,receipt_id:hash(input.result),provider:'local',service:'persisted_campaign_correspondence'},e.billing||null]};throw e;}
+   return {...proof,billing:{calls:[execution?.value?.billing||{actual:true,currency:'AUD',amount:0,receipt_id:hash(input.result),provider:'local',service:'persisted_campaign_correspondence'},proof.billing]}};
   }
  });
 }

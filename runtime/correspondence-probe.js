@@ -11,8 +11,9 @@ export function correspondenceProbe(){
  const qualifications=signal.source_uncertainty.map((text,source_index)=>({text,source_index}));
  const body=[correspondence.development+' '+correspondence.insight,correspondence.proposition,correspondence.question,correspondence.next_step].join('\n\n');
  const proposition={subject:'Sierra Gorda: the work between investment and more copper',body,correspondence,language:'en',signal_state:signal.state,evidence_refs:signal.evidence,qualifications,claims:[{text:correspondence.development,evidence_refs:['SG0']},{text:correspondence.insight,evidence_refs:['SG1']}],capability_claims:[{text:correspondence.next_step,capability:'campaign_specific_finished_sourced_draft'}]};
- const identity={approved:true,name:'Sean Walker',address:'oroknows@gmail.com'};
+ const identity={approved:true,name:'Sean Walker',address:'sean@emradar.net'};
  const email=humanReadyEmail({proposition,signal,route,identity,product:'EMRADAR'});
  const gate=validateHumanEmail(email,signal,route,identity);
  return {status:gate.status,version:emailVersion,worker:'human_ready_email',mode:'TEST_ONLY_NOT_SENT',external_actions:0,artifact_hash:crypto.createHash('sha256').update(JSON.stringify(email)).digest('hex'),email,signal,route,identity};
 }
+

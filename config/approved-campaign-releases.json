@@ -1,0 +1,58 @@
+[
+  {
+    "campaign_id": "EMRADAR_2026_10_07_LAUNCH",
+    "authority": "EXPLICIT_OWNER_DISTRIBUTION_AUTHORIZATION_2026_10_09",
+    "proposals": [
+      {
+        "proposal_id": "d93bef0282085e7e42dbe68c998ae99e9396809a54ecf296902400e1299ea180",
+        "review_hash": "12db8e3a27795225a9b0622311b410c558018f232dea409ab5f9eadd2beed3c4"
+      },
+      {
+        "proposal_id": "47796a8c528725beaabb80ea9eb98b550f03884efec08a09ea8c86a0ee193b63",
+        "review_hash": "ab4e65f6d0a8fca1dcfdbee0dca2498eb52fd9d7a0897e3e3140755ea5fd1af3"
+      },
+      {
+        "proposal_id": "8a5dacd99ed3535ab61b2ef41e91f1bee33eab2557825ffdfad7ba4bf1711df0",
+        "review_hash": "103059a6f28fc1e7e404c7f6b0b7a2f598d4c7461848cc26ddb7bf92be7995f8"
+      },
+      {
+        "proposal_id": "90224033c50984a10a2a23b880baeaded30bac896ddae19e8528d57cc4766b0a",
+        "review_hash": "20b5ad2151668ebbf196d022fe136033725464e3d195fc74aac128e837a669a5"
+      },
+      {
+        "proposal_id": "d2bb391373d5752ef7139a371692313426813919fb6c0ca1b789b19105973183",
+        "review_hash": "5977c01a3b822c7d7532ed9fe066c1c83aaedb534c0f931beab4c22be834bfe2"
+      },
+      {
+        "proposal_id": "2196c128e284cb2956e04f0f99e4647106def3d7c905bdfe65ceaddc5f2dfe40",
+        "review_hash": "f9c144aa6e14895b0181814978136ac3609123601e2a2582f74a9f224cacc789"
+      },
+      {
+        "proposal_id": "2944f19cdf534dac1da9c27348c3f5da11df2706eaa93905c8218065261ce095",
+        "review_hash": "6be3bc6eca07a518d585bf31f0341b1284250fce7d8e0fc462a2a4759f4e485e"
+      },
+      {
+        "proposal_id": "25e6f03f9ccccc4fd8198cb8a2a8582e7ae59d8b332bde64e77fe6ce534bfd89",
+        "review_hash": "d7a8857e175bf1e182374ffe4db093fe9c3dc53f3fb6d074c9f8a57cc2fde016"
+      }
+    ]
+  },
+  {
+    "campaign_id": "EMRADAR_2026_10_08_LAUNCH",
+    "authority": "EXPLICIT_OWNER_DISTRIBUTION_AUTHORIZATION_2026_10_09",
+    "proposals": [
+      {
+        "proposal_id": "751ecc50c8958173c226378499a7e8b17b20228a87f50eb8aa1f88eaadd67ff6",
+        "review_hash": "c659f65a262a88d9033583c861ec5b90457ca06848793995349c72ee2b875423"
+      },
+      {
+        "proposal_id": "ee6c5437a3b411fef42b7f3ad3d4566456b4f73886d5ae6da86613d3615393c6",
+        "review_hash": "1149538efbab33677be00d8e0c07d4ad02166449071c6c54a6b693d40781fcd4"
+      },
+      {
+        "proposal_id": "c057959b370f12253a303fc392e5916f9e906dadab39fbab4e0c66e98f882bff",
+        "review_hash": "0d75ff9b8c0597d5df98ff2b4ee4c4d5df74c77fe8928fac9bf28d19590f9234"
+      }
+    ]
+  }
+]

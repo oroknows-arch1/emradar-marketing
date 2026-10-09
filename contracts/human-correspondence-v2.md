@@ -6,7 +6,7 @@ graph and feedback loop. No additional provider call or distribution path.
 
 Every initial publication email uses six functions: verified named or neutral
  greeting; concise Sean Walker/EMRADAR identity; one short scan finding paragraph
-with exact evidence state and what stood out; one evidence-backed contribution
+describing source-supported developments in plain language (keep exact evidence state in internal metadata, never in the email); one destination-specific contribution
 paragraph summarizing material unresolved questions; a natural question giving
 this publication agency over a destination-native contribution; a bounded sourced
 draft offer and natural sign-off. The approved reference sets structure, rhythm,

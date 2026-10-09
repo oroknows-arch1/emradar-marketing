@@ -1,4 +1,11 @@
+import {createReviewAuth} from './runtime/review-auth.js';
+import {ownerOverride} from './runtime/owner-override.js';
+import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
+import sentenceCorrection from './config/october7-sentence-correction.json' with {type:'json'};
+import {applySentenceCorrection} from './runtime/sentence-correction.js';
+import {recoverIdlePreparationLock} from './runtime/preparation-recovery.js';
 import http from "node:http";
+import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
 import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
 import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
@@ -14,6 +21,7 @@ import { createClient } from "redis";
 import fs from 'node:fs/promises';
 import { GraphEngine } from './runtime/graph.js';
 import { RedisStore } from './runtime/store.js';
+import {billingAudit} from './runtime/billing-audit.js';
 import {ProductIntake,loadPolicies,emradarSource,signSource} from './runtime/intake.js';
 import {applyAuthority} from './runtime/authority.js';
 import {loadHarness} from './runtime/harness.js';
@@ -26,7 +34,7 @@ import {createXAuthorization} from './runtime/x-authorization.js';
 import {xDiscoveryConnector} from './runtime/x-discovery.js';
 import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
-import {editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication} from './runtime/editorial-outreach-gmail.js';
+import {editorialRouteStatus,editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication} from './runtime/editorial-outreach-gmail.js';
 import {createV2Runtime} from './runtime/v2-integration.js';
 
 const PORT=Number(process.env.PORT||10000);
@@ -38,6 +46,7 @@ const PUBLIC_BASE_URL=(process.env.PUBLIC_BASE_URL||"").replace(/\/$/,"");
 const KEY_VALUE_URL=process.env.KEY_VALUE_URL||"";
 const sessions=new Map();
 let kv=null,kvConnecting=null;
+let cutoverState={status:'STARTING',external_submissions:0};
 async function store(){
   if(!KEY_VALUE_URL) throw new Error("KEY_VALUE_URL_NOT_CONFIGURED");
   if(!kv){kv=createClient({url:KEY_VALUE_URL});kv.on("error",e=>console.error("Key Value error",e.message));}
@@ -81,11 +90,9 @@ function authorizedRequest(req){
   const expected='Bearer '+secret;
   return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
 }
-function authorizedPublicationReview(req){
-  const secret=process.env.MARKETING_PUBLICATION_REVIEW_TOKEN;
-  const actual=String(req.headers.authorization||'');const expected='Bearer '+secret;
-  return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
-}
+const reviewAuth=createReviewAuth({secret:()=>process.env.MARKETING_PUBLICATION_REVIEW_TOKEN,origin:req=>PUBLIC_BASE_URL||'https://'+req.headers.host});
+function authorizedPublicationReview(req){return reviewAuth.authorized(req);}
+
 async function publishX(asset,key,product){
   const auth=await currentAuth(product);if(!auth?.access_token){const error=new Error('X authorization required');error.status=401;throw error;}
   let media;
@@ -125,9 +132,24 @@ async function v2Runtime(){
   if(process.env.MARKETING_V2_ENABLED!=='true')throw new Error('V2_NOT_ACTIVATED');
   return createV2Runtime({redisClient:await store(),integrationModulePath:process.env.MARKETING_V2_INTEGRATION_MODULE,editorialModulePath:process.env.MARKETING_EDITORIAL_OUTREACH_MODULE});
 }
+async function v2Preflight(){
+  const s=new RedisStore(await store()),campaigns=['EMRADAR_2026_10_07_LAUNCH','EMRADAR_2026_10_08_LAUNCH','EMRADAR_2026_10_09_LAUNCH'];
+  const summary={campaigns:{},receipt_count:0,decision_count:0,unresolved_delivery_count:0};
+  const allJobs=await Promise.all((await s.keys('distribution_work:')).map(k=>s.get(k)));
+  for(const campaign of campaigns){
+    const pkg=await s.get('review_package:'+campaign),jobs=allJobs.filter(v=>v?.campaign_id===campaign),receipts=[];
+    for(const job of jobs){const p=await s.get('publication_review:'+job.proposal_id),r=p&&await s.get('receipt:'+p.publication_key);if(r)receipts.push(r);}
+    summary.campaigns[campaign]={review_package:!!pkg,proposal_count:pkg?.proposals?.length||0,receipt_count:receipts.length,identity_hash:crypto.createHash('sha256').update(JSON.stringify(receipts.map(r=>[r.id,r.execution_status,r.review_hash||r.publication_review?.review_hash]).sort())).digest('hex')};
+    summary.receipt_count+=receipts.length;summary.decision_count+=jobs.length;summary.unresolved_delivery_count+=receipts.filter(r=>['IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)).length;
+  }
+  const email=await editorialRouteStatus();
+  const historyPresent=campaigns.every(c=>summary.campaigns[c].review_package),ownerConfigured=reviewAuth.configured(),emailReady=['PASS','CONFIGURED'].includes(email.status);
+  return {status:historyPresent&&ownerConfigured&&emailReady&&!summary.unresolved_delivery_count?'PASS':'BLOCKED',engine:'V2',v1_execution:'INACTIVE',persistent_store:'REDIS',owner_auth:ownerConfigured?'CONFIGURED':'BLOCKED',email:{status:email.status,identity:editorialSenderStatus().expected,relay_preserved:!!process.env.EMRADAR_EMAIL_RELAY_URL},history:summary,external_distribution:'DISABLED',external_submissions:0,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'};
+}
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
+  if(req.method==='POST'&&['/PRODUCT_INPUT','/SCHEDULED_CYCLE','/OUTCOME_REVIEW','/PUBLICATION_REVIEW','/PUBLICATION_REVIEW/revise','/PUBLICATION_REVIEW/recover-connection-timeout','/RUN_MARKETING','/COLLECT_PERFORMANCE','/CYCLE'].includes(u.pathname))return json(res,410,{ok:false,status:'RETIRED',reason:'V1_EXECUTION_PERMANENTLY_RETIRED',replacement:'/V2/PREPARE'});
   if(u.pathname==='/V2/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
@@ -143,6 +165,7 @@ const server=http.createServer(async(req,res)=>{
   }
   if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
+    if(u.pathname==='/V2/DISTRIBUTE'&&process.env.MARKETING_V2_DISTRIBUTION_ENABLED!=='true')return json(res,423,{ok:false,status:'BLOCKED',reason:'EXTERNAL_DISTRIBUTION_DISABLED'});
     try{const runtime=await v2Runtime(),input=JSON.parse(await readBody(req));const result=u.pathname==='/V2/PREPARE'?await runtime.prepare(input):u.pathname==='/V2/DISTRIBUTE'?await runtime.distribute():await runtime.feedback(input);return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
@@ -156,7 +179,8 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/"){const states=await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token]));return html(res,`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Marketing Engine</title><style>body{font-family:system-ui;margin:0;background:#0b0d10;color:#f4f4f4}main{max-width:760px;margin:auto;padding:40px 20px}h1{font-size:32px}.sub{color:#9aa3ad}.grid{display:grid;gap:16px;margin-top:32px}.card{border:1px solid #2b3037;border-radius:16px;padding:22px;background:#12161b}.row{display:flex;justify-content:space-between;align-items:center;gap:16px}.status{color:#9aa3ad}.on{color:#9fe3b1}a,button{display:inline-block;margin-top:18px;padding:11px 14px;border-radius:9px;border:1px solid #3b424c;background:#fff;color:#111;text-decoration:none;font-weight:650}.secondary{background:transparent;color:#fff}</style></head><body><main><h1>Marketing Engine</h1><div class="sub">Products, connections and execution.</div><div class="grid">${states.map(([p,on])=>`<section class="card"><div class="row"><div><h2>${p}</h2><div class="status">X <span class="${on?"on":""}">● ${on?"Connected":"Not connected"}</span></div></div><div>Adapter ● Ready</div></div><a href="/oauth/x/start?product=${encodeURIComponent(p)}">${on?"Reconnect X":"Connect X"}</a> <a class="secondary" href="/product?name=${encodeURIComponent(p)}">Open product</a></section>`).join("")}</div><a class="secondary" href="/onboarding">+ Add product</a></main></body></html>`);}
   if(req.method==="GET"&&u.pathname==="/onboarding") return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><h1>Add product</h1><p>The first onboarding contract captures identity, source of truth, channels, rules and goal. Atlasoquence is already registered through its adapter.</p><p><a href="/">Back to products</a></p></body></html>`);
   if(req.method==="GET"&&u.pathname==="/product"){const p=u.searchParams.get("name");if(!PRODUCTS.includes(p))return json(res,404,{ok:false,error:"unknown_product"});const auth=await currentAuth(p).catch(()=>null);return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><a href="/">← Products</a><h1>${p}</h1><p>Adapter: Ready</p><p>X: ${auth?.access_token?"Connected":"Not connected"}</p><p>Additional spend: owner approval required</p><p>Execution endpoint: POST /RUN_MARKETING</p></body></html>`);}
-  if(req.method==="GET"&&u.pathname==="/health"){const states=Object.fromEntries(await Promise.all(PRODUCTS.map(async p=>[p,!!(await currentAuth(p).catch(()=>null))?.access_token])));return json(res,200,{ok:true,service:"MARKETING_ENGINE_X_EXECUTOR_V0_2",runtime_commit:process.env.RENDER_GIT_COMMIT||"UNKNOWN",correspondence:{version:emailVersion,worker:"human_ready_email",identity:correspondentName,transport_identity:"oroknows@gmail.com",quality_verification_required:true},products:states,auth_store:KEY_VALUE_URL?"persistent":"memory_only",editorial_outreach_configured:!!process.env.MARKETING_EDITORIAL_OUTREACH_MODULE,autonomous:{enabled:!intakeHeld(),emergency_stop:intakeHeld(),source_path:'signed_native_published_scan',harness_configured:!!process.env.MARKETING_HARNESS_MODULE||relayHarnessConfigured(),harness_transport_configured:!!(process.env.MARKETING_HARNESS_EXECUTOR_URL&&process.env.MARKETING_HARNESS_EXECUTOR_TOKEN)||relayHarnessConfigured(),required_stop:'PUBLICATION_REVIEW'},cost_gate:{additional_spend_without_owner_approval:0,api_billing:"UNKNOWN"}});}
+  if(req.method==="GET"&&u.pathname==="/branding/probe"){const p=correspondenceProbe();return json(res,200,{...p,sender:await editorialRouteStatus()});}
+  if(req.method==="GET"&&u.pathname==="/health")return json(res,200,{ok:cutoverState.status==='PASS',service:'EMRADAR_MARKETING_ENGINE_V2',runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN',v2_active:process.env.MARKETING_V2_ENABLED==='true',v1_execution:'INACTIVE',external_distribution:'DISABLED',owner_review:'/V2/PUBLICATION_REVIEW',cutover:cutoverState});
   if(req.method==="GET"&&u.pathname==="/integrations/status"){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
     const xAuthorized=!!(await currentAuth('EMRADAR').catch(()=>null))?.access_token;
@@ -278,11 +302,35 @@ const server=http.createServer(async(req,res)=>{
     try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
+  if(u.pathname==='/PUBLICATION_REVIEW/session'&&['GET','POST'].includes(req.method)){
+    if(req.method==='POST'&&!reviewAuth.establish(req,res))return json(res,403,{reason:reviewAuth.configured()?'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED':'OWNER_REVIEW_AUTH_CONFIGURATION_MISSING'});
+    return json(res,200,{authenticated:authorizedPublicationReview(req),configured:reviewAuth.configured()});
+  }
+  if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/owner-override'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{const input=JSON.parse(await readBody(req)),s=new RedisStore(await store()),awaitIntake=await productIntake();
+      const result=await ownerOverride({store:s,input,resume:(campaign_id,affectedDestinations)=>autonomousScanCycle({intake:awaitIntake,store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id,affectedDestinations})});
+      return json(res,result.status==='BLOCKED'?409:200,result);
+    }catch(e){return json(res,409,{reason:e.message});}
+  }
+  if(req.method==='GET'&&u.pathname==='/CAMPAIGN_REVIEW'){
+    try{
+      const campaign=u.searchParams.get('campaign_id');
+      if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+      const s=new RedisStore(await store());
+      const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');
+      if(!record)return json(res,404,{reason:'REVIEW_PACKAGE_NOT_FOUND'});
+      const owner_decisions=Object.fromEntries(await Promise.all(record.proposals.map(async p=>{const current=await s.get('publication_review:'+p.proposal_id),approval=await s.get('publication_approval:'+p.proposal_id);return [p.proposal_id,{status:approval?.review_hash===p.review_hash?approval.status:current?.status||p.status,distribution:approval?await s.get('distribution_work:'+p.proposal_id):null}];})));
+      return html(res,campaignReviewHtml({...record,owner_decisions,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)},campaign));
+    }catch(e){return json(res,409,{reason:e.message});}
+  }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
-    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    // Viewing the saved package does not grant approval or distribution authority.
+    const packageRead=req.method==='GET'&&u.searchParams.get('package')==='EMRADAR';
+    if(!packageRead&&!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
-        if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record||{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
+        if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record?{...record,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)}:{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
         const id=u.searchParams.get('proposal_id');if(!id||!/^[a-f0-9]{64}$/.test(id))return json(res,400,{ok:false,reason:'PROPOSAL_ID_REQUIRED'});
         const proposal=await new RedisStore(await store()).get('publication_review:'+id);
         return json(res,proposal?200:404,proposal||{ok:false,reason:'PUBLICATION_REVIEW_NOT_FOUND'});
@@ -320,10 +368,13 @@ const server=http.createServer(async(req,res)=>{
   return json(res,404,{ok:false,error:"not_found"});
 });
 server.listen(PORT,()=>{
-  console.log("EMRADAR X executor listening");
-  distributionCycle().catch(e=>console.error('APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:e.message})));
-  try{const probe=correspondenceProbe();console.log('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:probe.status,version:probe.version,worker:probe.worker,mode:probe.mode,external_actions:probe.external_actions,artifact_hash:probe.artifact_hash,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'}));}catch(e){console.error('HUMAN_CORRESPONDENCE_RUNTIME '+JSON.stringify({status:'BLOCKED',reason:e.message}));}
-  normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0})));
+  console.log('EMRADAR Marketing Engine V2 listening; V1 execution inactive; external distribution disabled');
+  // Read-only bounded billing visibility; no generation, settlement or transport.
+  if(KEY_VALUE_URL)store().then(client=>billingAudit(new RedisStore(client))).then(audit=>{
+    console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
+    for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
+  }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
+  v2Preflight().then(result=>{cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));}).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_PREFLIGHT '+JSON.stringify(cutoverState));});
 });
 
 async function runPendingSourceRelease(){
@@ -365,7 +416,7 @@ async function runPendingCampaign(connectedClient=null){
     const receipts=await s.get('receipt_index')||[];
     if(receipts.some(r=>r.campaign_id===input.campaign_id&&['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)))throw new Error('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     const proposalKeys=await s.client.keys('marketing:graph:publication_review:*');
-    for(const proposalKey of proposalKeys){const proposal=JSON.parse(await s.client.get(proposalKey));if(proposal?.input?.campaign_id===input.campaign_id){const result={product:input.product,campaign_id:input.campaign_id,status:'AWAITING_REVIEW',blocker:'PUBLICATION_REVIEW_REQUIRED',review:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs}};await s.put(key,{status:'COMPLETE',input,recovered_at:new Date().toISOString(),result});console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));return;}}
+    for(const proposalKey of proposalKeys){const proposal=await s.get(proposalKey.slice('marketing:graph:'.length));if(proposal?.input?.campaign_id===input.campaign_id){const result={product:input.product,campaign_id:input.campaign_id,status:'AWAITING_REVIEW',blocker:'PUBLICATION_REVIEW_REQUIRED',review:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs}};await s.put(key,{status:'COMPLETE',input,recovered_at:new Date().toISOString(),result});console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));return;}}
     const history=await s.get(key+':history')||[];history.push({...prior,status:'INTERRUPTED_BEFORE_PUBLICATION'});await s.put(key+':history',history.slice(-20));
     await s.client.del('marketing:graph:lock:engine');await s.put(key,null);prior=null;
     console.log('MARKETING_CAMPAIGN_RECOVERY '+JSON.stringify({campaign_id:input.campaign_id,status:'STALE_LOCK_CLEARED'}));
@@ -398,15 +449,24 @@ async function normalCycle(){
   if(normalCyclePromise)return normalCyclePromise;
   normalCyclePromise=(async()=>{
     const s=new RedisStore(await store());
+    console.log('GRAPH_STATE_COMPACTION '+JSON.stringify(await s.compact()));
     let preparation;
+    const lockRecovery=await recoverIdlePreparationLock(s);
+    console.log('PREPARATION_LOCK_RECOVERY '+JSON.stringify(lockRecovery));
+    const recovered=[];
+    // Resume only existing, attested campaigns; keep the latest signed intake intact.
+    for(const campaign_id of ['EMRADAR_2026_10_08_LAUNCH']){
+      if(!await s.get('review_package:'+campaign_id))continue;
+      try{recovered.push(await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id}));}
+      catch(error){const blocked={campaign_id,status:'BLOCKED',blocker:error.message,external_actions:0};recovered.push(blocked);console.error('CAMPAIGN_RESUME_BLOCKED '+JSON.stringify(blocked));}
+    }
     try{preparation=await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});}
     catch(error){preparation={status:'BLOCKED',blocker:error.message,external_actions:0};console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify(preparation));await s.put('autonomous_scan_latest_blocker:EMRADAR',{...preparation,at:new Date().toISOString()});}
     const feedback=await (await marketingEngine()).tick({feedbackOnly:true});
-    return {preparation,feedback};
+    return {preparation,recovered,feedback};
   })().finally(()=>{normalCyclePromise=null;});
   return normalCyclePromise;
 }
-setInterval(()=>normalCycle().catch(e=>console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0}))),Math.max(60000,Number(process.env.MARKETING_CYCLE_INTERVAL_MS)||300000)).unref();
 
 // Durable reviewed work has its own bounded runtime wake-up; no connected Work caller.
 let distributionPromise=null;
@@ -415,7 +475,10 @@ async function distributionCycle(){
   distributionPromise=(async()=>{
     const engine=await marketingEngine();
     const excludeCampaigns=[];
-    try{await engine.recoverApprovedCampaign(approvedRecovery);}catch(e){excludeCampaigns.push(approvedRecovery.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:approvedRecovery.campaign_id,reason:e.message}));}
+    try{const correction=await applySentenceCorrection(engine,sentenceCorrection);if(correction.status==='COMPLETE')console.log('OCTOBER7_SENTENCE_CORRECTION '+JSON.stringify({status:correction.status,campaign_id:correction.campaign_id,results:correction.results.map(({body,...r})=>r),external_actions:0}));}catch(e){excludeCampaigns.push(sentenceCorrection.campaign_id);console.error('OCTOBER7_SENTENCE_CORRECTION_BLOCKED '+JSON.stringify({reason:e.message,external_actions:0}));}
+    for(const manifest of [approvedRecovery,...approvedReleases]){
+      try{await engine.recoverApprovedCampaign(manifest);}catch(e){excludeCampaigns.push(manifest.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:manifest.campaign_id,reason:e.message}));}
+    }
     await releaseVerifiedUnsent(engine,repairRecovery);
     const results=await engine.distributeApproved({limit:8,excludeCampaigns});
     for(const result of results)console.log('APPROVED_DISTRIBUTION_RECEIPT '+JSON.stringify(result));
@@ -423,4 +486,3 @@ async function distributionCycle(){
   })().finally(()=>{distributionPromise=null;});
   return distributionPromise;
 }
-setInterval(()=>distributionCycle().catch(e=>console.error('APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:e.message}))),60000).unref();

@@ -44,6 +44,7 @@ function assertScan(scan){
 function routeExecutable(route){
   return route?.editorial_relevance===true&&route.evidence_suitable===true&&route.endpoint?.verification_state==='VERIFIED'&&route.delivery?.supported===true&&route.connector?.authorized===true&&route.finished_contribution_supported===true;
 }
+const routeDecision=(value,scan,route)=>typeof value==='function'?value(scan,route)===true:value===true;
 
 function reviewView(p){
   return {proposal_id:p.proposal_id,review_hash:p.review_hash,destination:p.destination,evidence_summary:p.evidence_summary,asset:p.asset,required_visual_or_attachment:p.required_visual_or_attachment,route:p.route,delivery_capability:p.delivery_capability,uncertainty:p.uncertainty,controls:['APPROVE','REJECT']};
@@ -62,10 +63,11 @@ export class StreamlinedMarketingEngineV2 {
       if(prior?.status==='AWAITING_OWNER_REVIEW'||prior?.status==='COMPLETE')return prior;
       const trace=[{node:'SCAN',status:'PASS',at:now()}],matches=[],opportunities=[],dispositions=[];
       for(const route of this.destinations){
-        const relevant=route.editorial_relevance===true&&route.evidence_suitable===true;
+        const evaluated={...route,editorial_relevance:routeDecision(route.editorial_relevance,scan,route),evidence_suitable:routeDecision(route.evidence_suitable,scan,route)};
+        const relevant=evaluated.editorial_relevance&&evaluated.evidence_suitable;
         if(!relevant){dispositions.push({destination:route.id,status:'NOT_RELEVANT'});continue;}
-        if(!routeExecutable(route)){opportunities.push({destination:route.id,status:'RESEARCH_OPPORTUNITY',reason:'ROUTE_NOT_EXECUTABLE'});dispositions.push({destination:route.id,status:'UNSUPPORTED'});continue;}
-        matches.push(route);dispositions.push({destination:route.id,status:'EXECUTABLE'});
+        if(!routeExecutable(evaluated)){opportunities.push({destination:route.id,status:'RESEARCH_OPPORTUNITY',reason:'ROUTE_NOT_EXECUTABLE'});dispositions.push({destination:route.id,status:'UNSUPPORTED'});continue;}
+        matches.push(evaluated);dispositions.push({destination:route.id,status:'EXECUTABLE'});
       }
       trace.push({node:'MATCH',status:'PASS',executable:matches.length,research_opportunities:opportunities.length,at:now()});
       const proposals=[];

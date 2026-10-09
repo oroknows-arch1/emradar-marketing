@@ -1,0 +1,279 @@
+{
+  "version": 10,
+  "snapshot_date": "2026-10-09",
+  "previous_scan_date": "2026-10-08",
+  "contract": "causal-chain-evolution-v1",
+  "publication_state": "PUBLISHED",
+  "run_mode": "SCHEDULED",
+  "started_at": "2026-10-09T09:07:49+11:00",
+  "completed_at": "2026-10-09T09:09:12+11:00",
+  "timezone": "Australia/Sydney",
+  "rule": "Blank global candidate set first. Prior holdings, watchlists, themes and findings did not constrain discovery.",
+  "scope_note": "Fresh world-change-first scan. Twelve candidates were evaluated across battery and metals manufacturing, infrastructure finance, rail electrification, private transmission, industrial import substitution, cross-border grids and rail, bilateral industrial localisation, critical minerals and climate resilience; seven survived. The 8 October scan was consulted only after classification for stable-ID comparison.",
+  "scan_statistics": {
+    "surviving_findings": 7,
+    "discarded_count": 5,
+    "total_candidates_reviewed": 12,
+    "by_status": {"CONFIRMED": 1, "FORMING": 2, "INVESTIGATE": 4},
+    "note": "Discarded candidates included an Australian rare-earth construction milestone without a direct emerging-market transmission mechanism, a small Pacific coastal-resilience grant, a Japanese committee meeting without an implemented program, a future Vietnamese semiconductor coordination roadmap without committed projects, and an Ecuador power-market technical-assistance announcement that did not yet disclose transactions."
+  },
+  "scan_report": {
+    "headline": "Industrial policy is moving from upstream resource ownership toward operating downstream factories, while governments experiment with new ways to finance the grids, railways and corridors that connect them.",
+    "summary": "Indonesia launched first EV-battery exports and eleven industrial projects worth about Rp180 trillion at Weda Bay, with four projects already in commercial operation. Kenya's National Infrastructure Fund began deploying KSh340 billion into government bonds to generate income and crowd in infrastructure capital. ADB approved US$350 million to electrify and modernise Azerbaijan's 192-kilometre Bilajari-Yalama railway. Argentina completed an investor roadshow for the first of sixteen privately financed transmission concessions. Kazakhstan approved an investment agreement for an Aktobe glass-container plant. Saudi Arabia and the UAE signed a rail-and-power interconnection MoU, while Egypt and South Korea elevated cooperation around industrial localisation, energy and infrastructure. The final three remain INVESTIGATE because binding project economics are still absent.",
+    "narrative": [
+      "Indonesia has moved beyond announcing a nickel-downstreaming ambition. At Weda Bay, the government launched the country's first EV-battery exports and eleven projects valued at about Rp180 trillion, spanning nickel battery materials, separators, battery electronics, electronic-grade aluminium, electric heavy equipment and photovoltaic glass. Four projects are already operating commercially. The co-location of materials, components, machinery and export activity makes the industrial-cluster mechanism CONFIRMED, while environmental, power-source and commodity-cycle risks remain material.",
+      "Kenya's new infrastructure fund has begun deploying KSh340 billion of seed capital by purchasing domestic government bonds. The portfolio is expected to generate about KSh42 billion annually and support a longer-term KSh3.6 trillion mobilisation target across energy, transport, water, digital and agriculture projects. This is FORMING: the financing engine is operating, but direct project allocations, leverage and fiscal risk still need proof.",
+      "Azerbaijan's north-south railway corridor now has approved multilateral finance. ADB's US$350 million loan covers electrification, signalling and telecommunications on the 192-kilometre Bilajari-Yalama double track, linking Baku toward the Russian border. Procurement documentation and environmental work exist, so the chain is FORMING; contract awards, execution and freight outcomes remain open.",
+      "Argentina has taken AMBA I from regulation into investor marketing. Government, IDB officials and investors completed a roadshow for the first of sixteen private transmission concessions, with tender documents and bid evaluation expected in coming weeks. The mechanism is INVESTIGATE until terms, risk allocation, bidders and tariffs are public.",
+      "Kazakhstan approved an investment agreement with Aktobe Steklo for a domestic glass-container plant. The project fits an explicit import-substitution and manufacturing-localisation strategy, but the current announcement does not disclose capacity, financing or customers. It remains INVESTIGATE.",
+      "Saudi Arabia and the UAE signed a new MoU covering cross-border electricity exchange and rail connectivity. Existing GCC grid infrastructure and recent measured savings make the direction credible, but the new bilateral document has no disclosed capex, route or timetable. It remains INVESTIGATE.",
+      "Egypt and South Korea upgraded their relationship to a strategic partnership spanning shipbuilding, electric vehicles, energy, infrastructure, smart cities and industrial localisation. The policy fit is strong and a bilateral CEO process exists, but the 8 October agreements do not yet reveal investable project commitments. It remains INVESTIGATE."
+    ],
+    "unresolved_questions": [
+      "How much of Weda Bay's Rp180 trillion pipeline is operating, financed and powered with lower-carbon electricity?",
+      "Which Kenyan projects receive direct NIF capital, and does bond accumulation reduce or merely recycle sovereign risk?",
+      "Who wins Azerbaijan's railway systems contracts and when does commissioning occur?",
+      "What tariffs, guarantees and risk-sharing terms appear in Argentina's AMBA I tender?",
+      "What are Aktobe Steklo's capacity, investors, customers and construction schedule?",
+      "Will the Saudi-UAE MoU produce a defined rail route or expanded electricity-trading assets?",
+      "Which Korean-Egyptian cooperation areas become signed projects with finance, local content and delivery dates?"
+    ]
+  },
+  "what_is_forming": [
+    {"id": "indonesia-weda-bay-downstream-cluster", "status": "CONFIRMED", "summary": "Weda Bay now combines first battery exports, four operating plants and eleven new downstream projects."},
+    {"id": "kenya-national-infrastructure-fund-deployment", "status": "FORMING", "summary": "Kenya's new infrastructure fund has started deploying KSh340 billion to build an income and co-investment base."},
+    {"id": "azerbaijan-bilajari-yalama-rail-modernisation", "status": "FORMING", "summary": "ADB approved US$350 million for electrification, signalling and telecoms along a 192 km freight corridor."}
+  ],
+  "current_scene": [
+    {"name": "REPT BATTERO Energy", "location": "Weda Bay, Indonesia", "role": "Operating battery manufacturer and first-export participant", "ticker": "0666", "exchange": "HKEX", "why_now": "Its Indonesian unit is one of four Weda Bay projects entering commercial operation."},
+    {"name": "XCMG Construction Machinery", "location": "Weda Bay, Indonesia", "role": "Electric heavy-equipment manufacturer", "ticker": "000425", "exchange": "SZSE", "why_now": "Its Indonesian manufacturing project is among the newly commercial operations."},
+    {"name": "Indonesia Investment and Downstreaming Ministry", "location": "North Maluku, Indonesia", "role": "Industrial-cluster sponsor", "ticker": null, "exchange": null, "why_now": "Coordinating eleven projects across battery, aluminium, equipment and solar supply chains."},
+    {"name": "Kenya National Infrastructure Fund", "location": "Kenya", "role": "Infrastructure capital aggregator", "ticker": null, "exchange": null, "why_now": "Began deploying KSh340 billion of seed capital through domestic bonds."},
+    {"name": "Azerbaijan Railways", "location": "Bilajari-Yalama, Azerbaijan", "role": "Railway project owner", "ticker": null, "exchange": null, "why_now": "Recipient of ADB-backed systems modernisation for the north-south corridor."},
+    {"name": "Argentine Energy Secretariat", "location": "Buenos Aires metropolitan region", "role": "Private transmission concession sponsor", "ticker": null, "exchange": null, "why_now": "Completed the AMBA I investor roadshow before tender documents."},
+    {"name": "Aktobe Steklo", "location": "Aktobe, Kazakhstan", "role": "Glass-container project developer", "ticker": null, "exchange": null, "why_now": "Received approval for an investment agreement under import-substitution policy."},
+    {"name": "GCC Interconnection Authority", "location": "Saudi Arabia / UAE", "role": "Regional electricity interconnection platform", "ticker": null, "exchange": null, "why_now": "Provides the operating base for deeper bilateral power exchange."},
+    {"name": "Egyptian and Korean industrial ministries and companies", "location": "Egypt / South Korea", "role": "Industrial-localisation and infrastructure partners", "ticker": null, "exchange": null, "why_now": "Strategic partnership now explicitly includes shipbuilding, EVs, energy and smart infrastructure."}
+  ],
+  "records": [
+    {
+      "id": "indonesia-weda-bay-downstream-cluster",
+      "theme": "Indonesia's nickel strategy is becoming a multi-layer operating manufacturing cluster",
+      "status": "CONFIRMED",
+      "new_to_radar": true,
+      "location": "Indonesia Weda Bay Industrial Park, Central Halmahera, North Maluku",
+      "why_surfaced": "First EV-battery exports, four operating projects and eleven launched projects jointly demonstrate a functioning downstream cluster rather than an isolated processing announcement.",
+      "causal_chain": {
+        "world_change": ["Indonesia launched first EV-battery exports and eleven downstream industrial projects worth about Rp180 trillion at Weda Bay on 8 October."],
+        "pressure": ["Indonesia seeks to capture more value from nickel resources, reduce component imports and build an export manufacturing base."],
+        "bottleneck_or_scarcity": ["Reliable power, environmental performance, nickel-price economics, technology transfer, export demand, logistics and community licence."],
+        "formation": ["Co-located battery materials, separators, electronics, aluminium, electric equipment and photovoltaic glass are creating an integrated industrial ecosystem."],
+        "industries": ["Nickel processing", "EV batteries", "Battery components", "Aluminium", "Electric heavy equipment", "Solar glass"],
+        "connected_companies_and_tickers": ["REPT BATTERO Energy (HKEX:0666)", "XCMG Construction Machinery (SZSE:000425)", "Tsingshan/IWIP (private)"],
+        "consequences": ["More Indonesian value addition and exports", "New demand for power, ports and skilled labour", "Greater exposure to commodity cycles and environmental scrutiny"],
+        "evidence": ["Presidential launch", "Four named commercial operations", "First battery export", "Independent Reuters confirmation"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "CONFIRMED", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "Commercial operations and exports provide realised evidence across multiple linked industrial layers, not only planned capacity.", "strengthening_evidence": ["Four projects entered commercial operation.", "The cluster shipped Indonesia's first EV-battery exports.", "Eleven additional projects span several connected value-chain stages."], "weakening_evidence": ["The aggregate investment figure mixes operating and newly launched projects.", "Power-source and environmental impacts remain insufficiently disclosed."], "break_conditions": ["Export demand fails materially", "Plants operate persistently below capacity", "Power or environmental constraints block expansion"], "actual_breaks": [], "unresolved_evidence": ["Plant-by-plant capacity and capex", "Customer contracts", "Power mix and emissions", "Local ownership and value capture"], "new_links": ["PV glass and electric mining equipment extend the cluster beyond battery cells and nickel chemicals."], "removed_links": []},
+      "listed_players": [{"name": "REPT BATTERO Energy", "ticker": "0666", "exchange": "HKEX", "role": "Battery manufacturer with Indonesian commercial operation"}, {"name": "XCMG Construction Machinery", "ticker": "000425", "exchange": "SZSE", "role": "Electric heavy-equipment manufacturing participant"}],
+      "valuation": null,
+      "valuation_research": "Project-level capacity, ownership, utilisation and earnings contribution are not fully disclosed. Listed exposure is contextual until subsidiary economics are reconciled.",
+      "evidence": [
+        {"fact": "Indonesia's president launched eleven downstream projects valued at Rp180 trillion, covering nickel battery materials, separators, electronics, aluminium, electric heavy equipment and photovoltaic glass.", "source": "Sekretariat Negara Republik Indonesia", "url": "https://www.setneg.go.id/baca/index/presiden_prabowo_luncurkan_11_proyek_hilirisasi_dengan_total_investasi_senilai_rp180_triliun_di_maluku_utara", "date": "2026-10-08", "language": "Indonesian", "english_summary": "The presidential secretariat describes the value, location and linked industrial products in the Weda Bay launch."},
+        {"fact": "Four projects—Blue Sparking Energy, REPT Battero Indonesia, Pioneer Aluminium Industries and XCMG Indonesia Manufacturing—entered commercial operation alongside the first EV-battery exports.", "source": "ANTARA", "url": "https://en.antaranews.com/news/434642/indonesia-launches-11-industrial-projects-worth-us102-billion", "date": "2026-10-08", "language": "English"},
+        {"fact": "Reuters independently confirmed the battery, solar and aluminium launches and named investing companies.", "source": "Reuters", "url": "https://www.reuters.com/world/asia-pacific/indonesia-vows-protect-investment-launch-battery-solar-aluminium-plants-2026-10-08/", "date": "2026-10-08", "language": "English"}
+      ],
+      "contradictions": ["Commercial operation does not establish profitable utilisation.", "Downstream value addition may still rely heavily on imported technology and capital.", "Coal-intensive power could weaken the low-carbon value proposition."],
+      "missing_evidence": ["Capacity and utilisation by plant", "Offtake contracts", "Power mix", "Environmental and community outcomes"],
+      "what_to_check_next": ["Export volumes", "Plant utilisation", "Renewable power additions", "Subsidiary financial disclosures"]
+    },
+    {
+      "id": "kenya-national-infrastructure-fund-deployment",
+      "theme": "Kenya is using a sovereign investment vehicle to create an income-bearing base for infrastructure co-investment",
+      "status": "FORMING",
+      "new_to_radar": true,
+      "location": "Kenya",
+      "why_surfaced": "The National Infrastructure Fund moved from legislation and fundraising into actual deployment of KSh340 billion, with a disclosed income and mobilisation mechanism.",
+      "causal_chain": {
+        "world_change": ["Kenya's National Infrastructure Fund began buying domestic government bonds with KSh340 billion of seed capital."],
+        "pressure": ["High public debt constrains conventional borrowing for energy, transport, water, digital and agricultural infrastructure."],
+        "bottleneck_or_scarcity": ["Governance, project selection, sovereign-risk concentration, co-investor confidence, leverage and transparent returns."],
+        "formation": ["Bond income could finance project preparation and anchor co-investment, turning state assets and savings into a revolving infrastructure capital pool."],
+        "industries": ["Infrastructure finance", "Government bonds", "Energy", "Transport", "Water", "Digital infrastructure"],
+        "connected_companies_and_tickers": ["No project-level listed beneficiary selected"],
+        "consequences": ["Alternative infrastructure funding channel", "Potential crowd-in of pension and private capital", "Risk of circular exposure to Kenyan sovereign debt"],
+        "evidence": ["Fund law", "KPC sale proceeds deposited", "CEO disclosure of bond deployment and annual-income target"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "FORMING", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "The vehicle is legally established and deploying capital, but direct infrastructure commitments and leverage outcomes are not yet public.", "strengthening_evidence": ["KSh340 billion is being deployed.", "The bond portfolio is expected to generate about KSh42 billion annually.", "The fund targets KSh3.6 trillion over a decade through debt and co-investment."], "weakening_evidence": ["Initial deployment into government bonds may recycle sovereign exposure rather than diversify it.", "No named project allocation is disclosed."], "break_conditions": ["Governance or fiscal rules are weakened", "Bond losses or sovereign stress impair the capital base", "Private co-investment fails to materialise"], "actual_breaks": [], "unresolved_evidence": ["Bond portfolio composition", "Direct-project pipeline", "Leverage and co-investors", "Fee and governance arrangements"], "new_links": ["Privatisation proceeds and domestic bond income are now linked to a national project-finance vehicle."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "valuation_research": "No investable project, vehicle units or listed beneficiary has been disclosed.",
+      "evidence": [
+        {"fact": "The fund began deploying KSh340 billion in seed capital through domestic government bonds, targeting about KSh42 billion of annual income and KSh3.6 trillion of mobilisation over ten years.", "source": "Reuters", "url": "https://www.reuters.com/world/africa/kenya-infrastructure-fund-begins-deploying-26-billion-seed-capital-by-buying-2026-10-07/", "date": "2026-10-07", "language": "English"},
+        {"fact": "Kenya's parliament says the 2026 law created a framework intended to attract private investment while reducing reliance on public debt.", "source": "Parliament of Kenya", "url": "https://www.parliament.go.ke/node/25363", "date": "2026-03-09", "language": "English"},
+        {"fact": "Government deposited Kenya Pipeline Company sale proceeds into the NIF.", "source": "Public Investment and Assets Management, Kenya", "url": "https://www.publicinvestment.go.ke/government-marks-closure-kpc-ipo-deposits-sale-proceeds-nif", "date": "2026-04-23", "language": "English"}
+      ],
+      "contradictions": ["Government bonds provide income but concentrate exposure to the same sovereign the fund is meant to relieve.", "Target mobilisation is not committed capital.", "Asset-sale funding can finance infrastructure or merely reshuffle public balance-sheet claims."],
+      "missing_evidence": ["Audited portfolio", "Project approvals", "Private commitments", "Risk and return policy"],
+      "what_to_check_next": ["First direct infrastructure allocation", "Co-investment agreements", "Fund audit", "Bond-market and fiscal effects"]
+    },
+    {
+      "id": "azerbaijan-bilajari-yalama-rail-modernisation",
+      "theme": "Azerbaijan's north-south freight corridor is moving into financed railway systems modernisation",
+      "status": "FORMING",
+      "new_to_radar": true,
+      "location": "Bilajari to Yalama, Azerbaijan",
+      "why_surfaced": "ADB approved US$350 million for a defined 192 km double-track railway systems package with procurement and safeguard records.",
+      "causal_chain": {
+        "world_change": ["ADB approved financing for electrification, signalling and telecommunications along the Bilajari-Yalama railway."],
+        "pressure": ["Azerbaijan needs higher-capacity, safer and more efficient freight movement on the International North-South Transport Corridor."],
+        "bottleneck_or_scarcity": ["Design-build procurement, systems integration, construction access, resettlement, border interoperability and freight demand."],
+        "formation": ["Financed railway systems upgrades could convert a strategic corridor into higher-throughput electrified logistics infrastructure."],
+        "industries": ["Rail electrification", "Signalling", "Telecommunications", "Freight logistics", "Engineering"],
+        "connected_companies_and_tickers": ["No contractor selected"],
+        "consequences": ["Equipment and engineering demand", "Potential freight-time and capacity gains", "Dependence on cross-border traffic and execution"],
+        "evidence": ["ADB board approval", "Project procurement plan", "Environmental and resettlement frameworks"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "FORMING", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "Approved financing and a defined scope establish the mechanism; implementation and realised corridor traffic remain future evidence.", "strengthening_evidence": ["US$350 million is approved.", "The scope covers 192 km of double track.", "Procurement and safeguard documents are public."], "weakening_evidence": ["No major systems contractor or construction result is yet disclosed."], "break_conditions": ["Procurement fails", "Cost or timetable overruns become material", "Cross-border freight volumes fail to support the corridor"], "actual_breaks": [], "unresolved_evidence": ["Awarded contractors", "Disbursement schedule", "Commissioning date", "Traffic and revenue impact"], "new_links": ["Multilateral finance now joins corridor strategy to a specific electrification and digital-control package."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "valuation_research": "Supplier exposure cannot be assigned before contract awards.",
+      "evidence": [
+        {"fact": "ADB approved a US$350 million loan for electrification, signalling and telecommunications on the 192 km Bilajari-Yalama double track.", "source": "Asian Development Bank", "url": "https://www.adb.org/news/adb-supports-modernization-azerbaijan-bilajari-yalama-railway-line", "date": "2026-10-06", "language": "English"},
+        {"fact": "The project page records the financing source and procurement framework.", "source": "Asian Development Bank", "url": "https://www.adb.org/projects/59329-001/main", "date": "2026-10-06", "language": "English"},
+        {"fact": "A land-acquisition and resettlement framework is published.", "source": "Asian Development Bank", "url": "https://www.adb.org/projects/documents/aze-59329-001-rf", "date": "2026-04-01", "language": "English"}
+      ],
+      "contradictions": ["Approved finance is not completed infrastructure.", "Corridor value depends on border processes and traffic beyond Azerbaijan.", "Construction and resettlement can delay systems work."],
+      "missing_evidence": ["Contract awards", "Implementation schedule", "Border interoperability", "Freight forecasts and realised volumes"],
+      "what_to_check_next": ["Tender results", "ADB disbursements", "Construction notices", "Commissioning and corridor traffic"]
+    },
+    {
+      "id": "argentina-amba-private-transmission",
+      "theme": "Argentina is testing private concessions as a replacement financing model for high-voltage transmission",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Buenos Aires metropolitan area, Argentina",
+      "why_surfaced": "Government completed a formal investor roadshow for AMBA I, the first of sixteen planned transmission concessions, and says tender documents will follow within weeks.",
+      "causal_chain": {
+        "world_change": ["Argentina presented AMBA I's technical, financial and regulatory structure to domestic and international investors."],
+        "pressure": ["Transmission underinvestment constrains reliability and new generation while fiscal space is limited."],
+        "bottleneck_or_scarcity": ["Tariff and revenue model, currency and sovereign risk, bidder confidence, permits, land and construction capacity."],
+        "formation": ["A bankable private concession could establish a repeatable format for sixteen high-voltage expansion projects."],
+        "industries": ["Electric transmission", "Grid equipment", "Concessions", "Project finance", "Engineering and construction"],
+        "connected_companies_and_tickers": ["No bidder or awardee disclosed"],
+        "consequences": ["Potential new private grid-capex market", "Reliability and connection gains", "High exposure to regulatory and currency risk"],
+        "evidence": ["Official investor conference", "Existing concession authorisation", "Sixteen-project plan"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "INVESTIGATE", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "Investor engagement is real, but tender documents, bids, tariffs and financing are not yet available.", "strengthening_evidence": ["Government and IDB officials presented the project to investors.", "AMBA I is legally authorised as the first of sixteen initiatives."], "weakening_evidence": ["The roadshow precedes tender publication.", "Macroeconomic and regulatory risks are material."], "break_conditions": ["Tender terms fail to attract qualified bids", "Currency or tariff rules prevent financing", "Procurement or permits stall"], "actual_breaks": [], "unresolved_evidence": ["Tender documents", "Revenue and guarantee structure", "Bidders", "Award timetable"], "new_links": ["The transmission plan now has an investor-facing concession process."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "valuation_research": "No awarded concession or listed beneficiary exists.",
+      "evidence": [
+        {"fact": "Argentina completed an investor conference for AMBA I and expects tender documents and bid evaluation to begin in coming weeks.", "source": "Government of Argentina", "url": "https://www.argentina.gob.ar/noticias/el-gobierno-nacional-reunio-inversores-nacionales-e-internacionales-para-presentar-la", "date": "2026-10-08", "language": "Spanish", "english_summary": "The government describes the investor roadshow, participants and near-term tender sequence."},
+        {"fact": "Resolution 202/2026 authorises the national and international concession tender for construction, operation and maintenance of AMBA I.", "source": "Boletín Oficial de la República Argentina", "url": "https://www.boletinoficial.gob.ar/detalleAviso/primera/345837/20260812", "date": "2026-08-12", "language": "Spanish", "english_summary": "The official resolution establishes the legal concession process."},
+        {"fact": "Independent sector reporting corroborates the technical, financial and regulatory investor presentation.", "source": "Latin Energy Group", "url": "https://www.lenergygroup.com/el-gobierno-reunio-a-inversores-nacionales-e-internacionales-para-promover-la-licitacion-de-amba-i/", "date": "2026-10-08", "language": "Spanish", "english_summary": "Sector reporting confirms the roadshow and investor audience."}
+      ],
+      "contradictions": ["Private financing can reduce immediate fiscal needs but may require tariffs or guarantees that transfer risk back to users or the state.", "Investor attendance does not indicate bid appetite.", "A repeatable sixteen-project model depends on the first tender clearing."],
+      "missing_evidence": ["Tender terms", "Tariff and indexation", "Guarantees", "Qualified bidders"],
+      "what_to_check_next": ["Published pliegos", "Bidder questions", "Offers", "Award and financial close"]
+    },
+    {
+      "id": "kazakhstan-aktobe-glass-localisation",
+      "theme": "Kazakhstan is using investment agreements to localise industrial packaging inputs",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Aktobe, Kazakhstan",
+      "why_surfaced": "The government approved an investment agreement with Aktobe Steklo for a glass-container plant as part of import substitution and manufacturing localisation.",
+      "causal_chain": {
+        "world_change": ["Kazakhstan approved an investment agreement for a new glass-container plant in Aktobe."],
+        "pressure": ["Food, beverage and pharmaceutical producers need reliable domestic packaging supply and lower import exposure."],
+        "bottleneck_or_scarcity": ["Furnace energy cost, feedstock, capacity scale, financing, construction and anchor customers."],
+        "formation": ["A local container-glass plant could anchor packaging supply and related manufacturing in western Kazakhstan."],
+        "industries": ["Glass manufacturing", "Food and beverage packaging", "Industrial gas and energy", "Logistics"],
+        "connected_companies_and_tickers": ["Aktobe Steklo (private)"],
+        "consequences": ["Import substitution", "Regional manufacturing jobs", "Energy-intensive industrial demand"],
+        "evidence": ["Government-approved agreement", "Russian and Kazakh official releases", "Earlier regional project estimate"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "INVESTIGATE", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "The agreement and policy mechanism are real, but key commercial and technical terms are missing.", "strengthening_evidence": ["Government approval names the ministry, company and city.", "The project is explicitly connected to localisation and import substitution."], "weakening_evidence": ["Current release omits capacity, financing and construction schedule."], "break_conditions": ["Agreement does not reach financing or construction", "Energy economics are uncompetitive", "Anchor demand is insufficient"], "actual_breaks": [], "unresolved_evidence": ["Capex and ownership", "Plant capacity", "Technology and energy source", "Customers and completion date"], "new_links": ["Industrial policy is connected to a specific packaging input and developer."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "valuation_research": "The developer is private and project economics are undisclosed.",
+      "evidence": [
+        {"fact": "Kazakhstan approved an investment agreement between the industry ministry and Aktobe Steklo for a glass-container plant.", "source": "Prime Minister of Kazakhstan", "url": "https://primeminister.kz/ru/news/soglashenie-ob-investiciyah-v-aktobe-budet-postroen-zavod-po-proizvodstvu-steklotary-31973", "date": "2026-10-08", "language": "Russian", "english_summary": "The official release identifies the developer, location and import-substitution purpose."},
+        {"fact": "The Kazakh-language official release provides the same approval and localisation rationale.", "source": "Prime Minister of Kazakhstan", "url": "https://primeminister.kz/news/investiciyalar-turaly-kelisim-aktobede-shyny-ydys-shygaratyn-zauyt-salynady-31973", "date": "2026-10-08", "language": "Kazakh", "english_summary": "The government approved signing the investment agreement for glass-container production in Aktobe."},
+        {"fact": "Earlier regional planning material estimated a glass project at KSh35 billion-equivalent local currency and a 2027 horizon, but linkage to final terms requires confirmation.", "source": "Prime Minister of Kazakhstan", "url": "https://primeminister.kz/news/reviews/2025-zhyly-aktobe-oblysynda-khalykty-sapaly-auyz-sumen-kamtu-maselesi-tolygymen-sheshiledi-29509", "date": "2025-02-18", "language": "Kazakh", "english_summary": "Earlier official regional material listed an Aktobe glass project; current agreement terms may differ."}
+      ],
+      "contradictions": ["Investment-agreement approval is not construction.", "Earlier cost and schedule data may not describe the final project.", "Glass production is energy intensive and may not be competitive without favourable inputs."],
+      "missing_evidence": ["Final agreement", "Capacity", "Financing", "Construction and offtake"],
+      "what_to_check_next": ["Signed agreement", "Groundbreaking", "Equipment contracts", "Customer commitments"]
+    },
+    {
+      "id": "saudi-uae-rail-power-integration",
+      "theme": "Saudi Arabia and the UAE are extending Gulf integration from an operating power pool toward bilateral rail and electricity exchange",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Saudi Arabia and United Arab Emirates",
+      "why_surfaced": "The two governments signed a new MoU covering railway connectivity, electricity interconnection, exchange and sale, against an already operating GCC power platform.",
+      "causal_chain": {
+        "world_change": ["Saudi and UAE ministers signed a rail-and-electricity integration MoU on 8 October."],
+        "pressure": ["Rapid load growth, industrial expansion and cross-border trade require more efficient regional infrastructure."],
+        "bottleneck_or_scarcity": ["Defined routes, network compatibility, investment allocation, regulatory rules, power-market settlement and delivery timetable."],
+        "formation": ["Bilateral rail and electricity links could deepen the GCC's physical market integration."],
+        "industries": ["Railways", "Power transmission", "Electricity trading", "Logistics", "Grid equipment"],
+        "connected_companies_and_tickers": ["No project company or contractor disclosed"],
+        "consequences": ["More cross-border freight and power exchange", "Potential infrastructure procurement", "Execution risk from undefined scope"],
+        "evidence": ["Ministerial MoU", "Independent Gulf reporting", "Existing GCC interconnection savings data"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "INVESTIGATE", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "Policy direction and an operating regional grid base are credible, but the new MoU lacks quantified projects.", "strengthening_evidence": ["The agreement explicitly covers rail, electricity exchange and infrastructure integration.", "GCC grid savings exceeded US$952 million in 2025."], "weakening_evidence": ["No route, capex, capacity or timetable is disclosed."], "break_conditions": ["Feasibility work is not commissioned", "Projects are not funded", "Regulatory or network-integration issues prevent implementation"], "actual_breaks": [], "unresolved_evidence": ["Rail alignment", "Grid capacity", "Trading rules", "Project companies and finance"], "new_links": ["Rail and electricity cooperation are now bundled in one bilateral integration framework."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "valuation_research": "No awarded asset or listed beneficiary supports valuation.",
+      "evidence": [
+        {"fact": "Saudi Arabia and the UAE signed an MoU covering railway connectivity, electricity interconnection, exchange and sale.", "source": "Saudi Gazette", "url": "https://saudigazette.com.sa/article/665223/saudi-arabia/saudi-arabia-uae-sign-mou-on-electricity-interconnection-and-rail-connectivity", "date": "2026-10-08", "language": "English"},
+        {"fact": "Independent UAE reporting confirms the bilateral rail and infrastructure-integration scope.", "source": "Aletihad", "url": "https://en.aletihad.ae/news/uae/4697478/uae--saudi-arabia-sign-agreement-to-strengthen-railway-and-e", "date": "2026-10-08", "language": "English"},
+        {"fact": "The GCC's operating electricity interconnection generated more than US$952 million of savings in 2025 and US$5.2 billion cumulatively.", "source": "Saudi Press Agency", "url": "https://www.spa.gov.sa/en/N2693589", "date": "2026-10-05", "language": "English"}
+      ],
+      "contradictions": ["The GCC already has interconnection, so the incremental asset scope is unclear.", "MoUs can remain diplomatic frameworks without procurement.", "Rail integration may overlap with wider regional corridor plans."],
+      "missing_evidence": ["Feasibility studies", "Route and capacity", "Budget", "Implementation entities"],
+      "what_to_check_next": ["Technical committees", "Tender notices", "Grid-trading rules", "Rail project definition"]
+    },
+    {
+      "id": "egypt-korea-industrial-localisation",
+      "theme": "Egypt is using a strategic partnership with South Korea to seek industry localisation across transport, energy and advanced manufacturing",
+      "status": "INVESTIGATE",
+      "new_to_radar": true,
+      "location": "Egypt and South Korea",
+      "why_surfaced": "The countries upgraded ties and explicitly identified shipbuilding, EVs, energy, infrastructure, smart cities and the Suez Canal Economic Zone for localisation and investment.",
+      "causal_chain": {
+        "world_change": ["Egypt and South Korea elevated relations to a strategic partnership with industrial-localisation priorities."],
+        "pressure": ["Egypt needs foreign capital, technology, exports and hard-currency earnings; Korean firms seek manufacturing and infrastructure markets."],
+        "bottleneck_or_scarcity": ["Project finance, foreign-exchange availability, local supplier capability, power, land and binding company commitments."],
+        "formation": ["Bilateral policy support could turn the Suez Canal Economic Zone and Egyptian industry into a Korean-linked manufacturing and export platform."],
+        "industries": ["Shipbuilding", "Electric vehicles", "Power infrastructure", "Renewable energy", "Smart cities", "Advanced technology"],
+        "connected_companies_and_tickers": ["No binding listed-company project disclosed"],
+        "consequences": ["Potential technology transfer and local manufacturing", "New infrastructure and export capacity", "High dependence on project finance and FX stability"],
+        "evidence": ["Joint presidential statement", "CEO roundtable", "Korean presidential briefing"]
+      },
+      "chain_evolution": {"previous_scan_state": null, "current_scan_state": "INVESTIGATE", "what_changed": "New stable formation ID in the blank 9 October scan.", "why_state_changed": "The partnership and priority sectors are official, but investable contracts are not yet identified.", "strengthening_evidence": ["The joint statement names localisation, Suez Canal Economic Zone development, energy and infrastructure.", "An Egyptian-Korean CEO roundtable discussed specific clean-energy and industrial sectors."], "weakening_evidence": ["Most commitments remain policy-level MoUs."], "break_conditions": ["No company projects reach contract", "FX or sovereign constraints prevent financing", "Localisation targets remain aspirational"], "actual_breaks": [], "unresolved_evidence": ["Named projects", "Capital commitments", "Local-content terms", "Delivery schedules"], "new_links": ["Shipbuilding, EVs, energy and smart infrastructure are joined under one strategic localisation framework."], "removed_links": []},
+      "listed_players": [],
+      "valuation": null,
+      "valuation_research": "No named binding listed-company exposure or contract value is public.",
+      "evidence": [
+        {"fact": "The joint statement identifies manufacturing, shipbuilding, EVs, energy, infrastructure, smart cities, the Suez Canal Economic Zone and industrial localisation as priority areas.", "source": "Presidency of Egypt", "url": "https://www.presidency.eg/en/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1-%D8%B1%D8%A6%D8%A7%D8%B3%D9%8A%D8%A9/news08102026-3/", "date": "2026-10-08", "language": "English"},
+        {"fact": "Egypt's president told Korean business leaders the partnership should extend beyond trade into localisation, technology transfer, renewable energy, smart grids and storage.", "source": "Presidency of Egypt", "url": "https://www.presidency.eg/EN/%D9%82%D8%B3%D9%85-%D8%A7%D9%84%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1/%D8%A3%D8%AE%D8%A8%D8%A7%D8%B1-%D8%B1%D8%A6%D8%A7%D8%B3%D9%8A%D8%A9/news07102026/", "date": "2026-10-07", "language": "English"},
+        {"fact": "South Korea's presidential office published a summit briefing on 8 October.", "source": "Office of the President, Republic of Korea", "url": "https://www.president.go.kr/briefings/MKHeT9SG", "date": "2026-10-08", "language": "Korean", "english_summary": "The Korean presidency records the summit and upgraded bilateral partnership."}
+      ],
+      "contradictions": ["Broad sector coverage can signal diplomatic ambition rather than project focus.", "Egypt's FX and sovereign-financing conditions can delay localisation investments.", "No signed company-level capital commitment is disclosed."],
+      "missing_evidence": ["Project list", "Company commitments", "Finance and guarantees", "Local-content and export terms"],
+      "what_to_check_next": ["Company announcements", "Suez Canal Zone agreements", "Export-credit finance", "Groundbreaking or contract awards"]
+    }
+  ],
+  "absent_from_current_scan": [
+    {"id": "brazil-pre-salt-acreage-expansion", "previous_scan_state": "FORMING", "current_scan_state": "ABSENT", "reason": "No new qualification, contract or exploration milestone independently entered today's blank scan."},
+    {"id": "ethiopia-djibouti-products-pipeline", "previous_scan_state": "FORMING", "current_scan_state": "ABSENT", "reason": "No financing, EPC or cross-border implementation milestone was newly disclosed."},
+    {"id": "gabon-orinko-gas-power-financing", "previous_scan_state": "FORMING", "current_scan_state": "ABSENT", "reason": "Secondary reporting added a financing estimate but no signed lender commitment or financial close."},
+    {"id": "mexico-state-led-power-buildout", "previous_scan_state": "FORMING", "current_scan_state": "ABSENT", "reason": "No project-level award or commissioning milestone independently promoted the chain today."},
+    {"id": "asean-petroleum-security-reset", "previous_scan_state": "INVESTIGATE", "current_scan_state": "ABSENT", "reason": "No binding ASEAN stock, procurement or grid decision entered today's candidate set."},
+    {"id": "cote-divoire-ifc-value-chain-structuring", "previous_scan_state": "INVESTIGATE", "current_scan_state": "ABSENT", "reason": "No named IFC transaction or disbursement was newly disclosed."},
+    {"id": "south-africa-independent-transmission-procurement", "previous_scan_state": "WEAKENING", "current_scan_state": "ABSENT", "reason": "No new guarantee or procurement milestone followed the Q2 2027 delay evidence."}
+  ]
+}

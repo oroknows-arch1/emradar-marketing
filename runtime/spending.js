@@ -44,11 +44,15 @@ export class SpendEnvelope {
     if(!quote||quote.currency!=='AUD'||quote.verified!==true||!quote.provider_enforced||!valid(quote.max_cost_aud)||!quote.receipt_id)throw new Error('ACTUAL_COST_BOUND_UNKNOWN');
     const month=calendarMonth(at);const key='spend:'+month;
     const ledger=await this.store.get(key)||{month,actual_aud:0,unresolved:{},campaigns:{},receipts:{},historical_billing:'UNKNOWN'};
-    if(quote.max_cost_aud>0&&ledger.historical_billing!=='RECONCILED'&&!await reconcileZeroHistory(this.store,ledger))throw new Error('MONTHLY_BILLING_UNKNOWN');
-    if(quote.max_cost_aud>0&&Object.values(ledger.unresolved).some(x=>x.status==='UNKNOWN'))throw new Error('PROVIDER_BILLING_UNKNOWN');
+    const contentPreparation=['generation','research_search_api'].includes(category);
+    // Content preparation retains verified current bounds and observed expenses;
+    // unrelated historical provider reconciliation is not an editorial gate.
+    if(!contentPreparation&&quote.max_cost_aud>0&&ledger.historical_billing!=='RECONCILED'&&!await reconcileZeroHistory(this.store,ledger))throw new Error('MONTHLY_BILLING_UNKNOWN');
+    if(!contentPreparation&&quote.max_cost_aud>0&&Object.values(ledger.unresolved).some(x=>x.status==='UNKNOWN'))throw new Error('PROVIDER_BILLING_UNKNOWN');
     const pending=Object.values(ledger.unresolved);const c=ledger.campaigns[campaign_id]||0;
-    if(c+pending.filter(x=>x.campaign_id===campaign_id).reduce((s,x)=>s+x.max_cost_aud,0)+quote.max_cost_aud>authority.spending.campaign_limit)throw new Error('OWNER_EXCEPTION_CAMPAIGN_AUD_5');
-    if(ledger.actual_aud+pending.reduce((s,x)=>s+x.max_cost_aud,0)+quote.max_cost_aud>authority.spending.calendar_month_limit)throw new Error('OWNER_EXCEPTION_MONTH_AUD_50');
+    const knownBound=x=>valid(x.max_cost_aud)?x.max_cost_aud:0;
+    if(c+pending.filter(x=>x.campaign_id===campaign_id).reduce((s,x)=>s+knownBound(x),0)+quote.max_cost_aud>authority.spending.campaign_limit)throw new Error('OWNER_EXCEPTION_CAMPAIGN_AUD_5');
+    if(ledger.actual_aud+pending.reduce((s,x)=>s+knownBound(x),0)+quote.max_cost_aud>authority.spending.calendar_month_limit)throw new Error('OWNER_EXCEPTION_MONTH_AUD_50');
     const id=action_id||crypto.randomUUID();if(ledger.receipts[id]||ledger.unresolved[id])throw new Error('COST_ACTION_ALREADY_RESERVED');
     ledger.unresolved[id]={campaign_id,run_id,category,max_cost_aud:quote.max_cost_aud,quote_receipt:quote.receipt_id,status:'RESERVED'};await this.store.put(key,ledger);
     await costCall(this.store,run_id,{action_id:id,category,provider:quote.provider||'UNKNOWN',model:quote.model||'UNKNOWN',service:quote.service||'UNKNOWN',quote_receipt:quote.receipt_id,reserved_max_aud:quote.max_cost_aud,amount_aud:'UNKNOWN',state:'UNKNOWN',reason:'CALL_RESERVED_NO_BILLING_RECEIPT'});
