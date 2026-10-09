@@ -51,7 +51,7 @@ export async function publishedSource(fetcher=fetch,snapshotDate=null){
 
 // This admits source truth and prepares exact review artifacts through GraphEngine.
 // It never invokes approval or transport. No browser or ChatGPT-held secret is used.
-export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys,fetcher=fetch,env=process.env,log=console.log,resumeCampaign=null}){
+export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys,fetcher=fetch,env=process.env,log=console.log,resumeCampaign=null,affectedDestinations=null}){
   if(intakeHeld(env))return {status:'HELD',reason:'MARKETING_EMERGENCY_STOP',external_actions:0};
   if(resumeCampaign&&!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(resumeCampaign))throw Error('RESUME_CAMPAIGN_INVALID');
   const snapshotDate=resumeCampaign?resumeCampaign.slice(8,18).replaceAll('_','-'):null;
@@ -107,20 +107,21 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
     routePlan={...open,valid_until:routePlan.valid_until,proposed_assets:prepareRouteAssets({formation,candidates:open.candidates}),commercial_evidence:commercialEvidenceBranch(formation),stop:'PUBLICATION_REVIEW'};
     await store.put(planKey,routePlan);
   }
-  if(boundedPreparation&&state.preparation_revision===preparationRevision){const pkg=await store.get('review_package:'+state.campaign_id);if(pkg)return {status:pkg.status,duplicate:true,campaign_id:state.campaign_id,package:pkg,external_actions:0};}
-  if(state.status==='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision){
+  if(!affectedDestinations&&boundedPreparation&&state.preparation_revision===preparationRevision){const pkg=await store.get('review_package:'+state.campaign_id);if(pkg?.proposals?.length===openRouteDirectory.destinations.length&&!pkg.blockers?.length)return {status:pkg.status,duplicate:true,campaign_id:state.campaign_id,package:pkg,external_actions:0};}
+  if(!affectedDestinations&&state.status==='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision){
     const pkg=await store.get('review_package:'+state.campaign_id),receipt=await store.get(routingReceiptKey(state.campaign_id));
     // A repaired runtime must revisit rejected incomplete routes; valid proposals remain reusable.
     const repairedIncomplete=state.runtime_commit!==(env.RENDER_GIT_COMMIT||'UNKNOWN')&&(pkg?.rejected_routes||[]).length>0;
     if(!repairedIncomplete&&completeReviewCheckpoint(state,pkg,receipt))return {status:'AWAITING_REVIEW',duplicate:true,handoff,campaign_id:state.campaign_id,package:pkg,external_actions:0};
   }
-  if(state.status!=='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision&&state.runtime_commit===(env.RENDER_GIT_COMMIT||'UNKNOWN')&&state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
+  if(!affectedDestinations&&state.status!=='AWAITING_REVIEW'&&state.review_contract_revision===reviewContractRevision&&state.runtime_commit===(env.RENDER_GIT_COMMIT||'UNKNOWN')&&state.next_due&&Date.parse(state.next_due)>Date.now())return {status:state.status,duplicate:true,handoff,campaign_id:state.campaign_id,external_actions:0};
   const runtime=env.RENDER_GIT_COMMIT||'UNKNOWN';
   // Bounded failures retry after a runtime repair, or at most three times per runtime.
   const contractChanged=state.review_contract_revision!==reviewContractRevision;
   const runtimeChanged=state.runtime_commit!==runtime||contractChanged;
   if(runtimeChanged){state.attempts=0;state.runtime_commit=runtime;state.routes=Object.fromEntries(Object.entries(state.routes).filter(([,r])=>r.proposal_id||executed.has(r.status)));}
-  if(state.attempts>=3)return {status:'BLOCKED',blocker:state.blocker,handoff,campaign_id:state.campaign_id,external_actions:0};
+  if(!affectedDestinations&&state.attempts>=3)return {status:'BLOCKED',blocker:state.blocker,handoff,campaign_id:state.campaign_id,external_actions:0};
+  if(affectedDestinations)for(const d of affectedDestinations){if(!openRouteDirectory.destinations.some(r=>r.destination_id===d))throw Error('REGISTERED_DESTINATION_REQUIRED');if(!state.routes[d]?.proposal_id&&!executed.has(state.routes[d]?.status))delete state.routes[d];}
   state.attempts++;state.status='PREPARING';await store.put(key,state);
   const existingProposals=[];
   for(const r of matching){const id=r.proposal_id||r.review?.proposal_id||r.publication_review?.proposal_id;if(id){const p=await store.get('publication_review:'+id);if(p?.status==='AWAITING_REVIEW'&&(p.input?.campaign_id===state.campaign_id||r.campaign_id===state.campaign_id)&&p.signal_revision===state.signal_revision&&JSON.stringify(p.source_receipt)===JSON.stringify(product.source_receipt))existingProposals.push(p);}}
@@ -172,6 +173,7 @@ export async function autonomousScanCycle({intake,store,engineFactory,sourceKeys
   const xEvaluation=await store.get('route_evaluation:EMRADAR:'+state.signal_id+':'+state.signal_revision);
   const optional=[...new Set(selected)].filter(id=>id!=='EMRADAR-X-OROKNOWS');
   for(const destination of ['EMRADAR-X-OROKNOWS',...optional]){
+    if(affectedDestinations&&!affectedDestinations.includes(destination))continue;
     if(state.routes[destination]?.proposal_id||state.routes[destination]?.status==='OPTIONAL_REJECTED'||executed.has(state.routes[destination]?.status)||results.some(r=>r.review?.destination===destination||r.selection?.options?.find(o=>o.key===r.selection.selected)?.id===destination))continue;
     await run(destination);
   }

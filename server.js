@@ -1,3 +1,4 @@
+import {ownerOverride} from './runtime/owner-override.js';
 import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
 import sentenceCorrection from './config/october7-sentence-correction.json' with {type:'json'};
 import {applySentenceCorrection} from './runtime/sentence-correction.js';
@@ -262,6 +263,13 @@ const server=http.createServer(async(req,res)=>{
     try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
+  if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/owner-override'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    try{const input=JSON.parse(await readBody(req)),s=new RedisStore(await store()),awaitIntake=await productIntake();
+      const result=await ownerOverride({store:s,input,resume:(campaign_id,affectedDestinations)=>autonomousScanCycle({intake:awaitIntake,store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id,affectedDestinations})});
+      return json(res,result.status==='BLOCKED'?409:200,result);
+    }catch(e){return json(res,409,{reason:e.message});}
+  }
   if(req.method==='GET'&&u.pathname==='/CAMPAIGN_REVIEW'){
     try{
       const campaign=u.searchParams.get('campaign_id');
@@ -269,7 +277,8 @@ const server=http.createServer(async(req,res)=>{
       const s=new RedisStore(await store());
       const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');
       if(!record)return json(res,404,{reason:'REVIEW_PACKAGE_NOT_FOUND'});
-      return html(res,campaignReviewHtml(record,campaign));
+      const owner_overrides=[];for(const key of await s.keys('owner_override:')){const audit=await s.get(key);if(audit?.campaign_id===record.campaign_id)owner_overrides.push(audit);}
+      return html(res,campaignReviewHtml({...record,owner_overrides,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)},campaign));
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
@@ -366,7 +375,7 @@ async function runPendingCampaign(connectedClient=null){
     const receipts=await s.get('receipt_index')||[];
     if(receipts.some(r=>r.campaign_id===input.campaign_id&&['PUBLISHED','SUBMITTED','IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)))throw new Error('AMBIGUOUS_PUBLICATION_RECOVERY_REQUIRED');
     const proposalKeys=await s.client.keys('marketing:graph:publication_review:*');
-    for(const proposalKey of proposalKeys){const proposal=JSON.parse(await s.client.get(proposalKey));if(proposal?.input?.campaign_id===input.campaign_id){const result={product:input.product,campaign_id:input.campaign_id,status:'AWAITING_REVIEW',blocker:'PUBLICATION_REVIEW_REQUIRED',review:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs}};await s.put(key,{status:'COMPLETE',input,recovered_at:new Date().toISOString(),result});console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));return;}}
+    for(const proposalKey of proposalKeys){const proposal=await s.get(proposalKey.slice('marketing:graph:'.length));if(proposal?.input?.campaign_id===input.campaign_id){const result={product:input.product,campaign_id:input.campaign_id,status:'AWAITING_REVIEW',blocker:'PUBLICATION_REVIEW_REQUIRED',review:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,decision:'AWAITING_REVIEW',expires_at:proposal.expires_at,product:proposal.product,signal_state:proposal.signal_state,destination:proposal.destination,format:proposal.format,copy:proposal.copy,evidence_refs:proposal.evidence_refs}};await s.put(key,{status:'COMPLETE',input,recovered_at:new Date().toISOString(),result});console.log('MARKETING_CAMPAIGN_LAUNCH '+JSON.stringify(result));return;}}
     const history=await s.get(key+':history')||[];history.push({...prior,status:'INTERRUPTED_BEFORE_PUBLICATION'});await s.put(key+':history',history.slice(-20));
     await s.client.del('marketing:graph:lock:engine');await s.put(key,null);prior=null;
     console.log('MARKETING_CAMPAIGN_RECOVERY '+JSON.stringify({campaign_id:input.campaign_id,status:'STALE_LOCK_CLEARED'}));
@@ -399,6 +408,7 @@ async function normalCycle(){
   if(normalCyclePromise)return normalCyclePromise;
   normalCyclePromise=(async()=>{
     const s=new RedisStore(await store());
+    console.log('GRAPH_STATE_COMPACTION '+JSON.stringify(await s.compact()));
     let preparation;
     const lockRecovery=await recoverIdlePreparationLock(s);
     console.log('PREPARATION_LOCK_RECOVERY '+JSON.stringify(lockRecovery));
