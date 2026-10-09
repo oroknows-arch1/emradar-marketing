@@ -69,3 +69,19 @@ test('worker fit cannot veto review, but failed factual entailment cannot pass',
  assert.equal((await bridge.work(unit,context)).proof.status,'VERIFIED');
  facts='FAIL';await assert.rejects(bridge.work(unit,context),/HARNESS_OUTPUT_NOT_VERIFIED/);
 });
+
+test('interrupted limitation checkpoint restores Riviera without generation or changed hashes',async()=>{
+ const f=await setup(),r=await autonomousScanCycle(f.args),pkg=r.package;
+ const p=pkg.proposals.find(p=>p.destination==='RIVIERA-TANKER-EDITORIAL'),x=pkg.proposals.find(p=>p.platform==='X');
+ assert.equal(p.format,'evidence_limitation');
+ const key='autonomous_scan:'+scan.snapshot_date+':'+pkg.source_sha256,state=await f.store.get(key);
+ await f.store.put('publication_review:'+p.proposal_id,{...p,status:'SUPERSEDED',superseded_reason:'OCTOBER9_UNSUPPORTED_TANKER_CRUDE_CLAIMS'});
+ assert.equal(state.preparation_revision,'october9-bounded-preparation-v1');
+ await f.store.put('review_package:'+r.campaign_id,{...pkg,proposals:pkg.proposals.filter(v=>v.proposal_id!==p.proposal_id)});
+ const calls=f.calls(),resumed=await autonomousScanCycle({...f.args,resumeCampaign:r.campaign_id});
+ assert.equal(resumed.package.proposals.length,18);
+ assert.equal(resumed.package.proposals.find(v=>v.destination===p.destination).review_hash,p.review_hash);
+ assert.deepEqual(resumed.package.proposals.find(v=>v.platform==='X').asset,x.asset);
+ assert.equal(f.calls(),calls);assert.equal(f.actions(),0);
+ assert.equal((await autonomousScanCycle({...f.args,resumeCampaign:r.campaign_id})).package.proposals.length,18);
+});
