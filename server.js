@@ -328,7 +328,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='GET'&&u.pathname==='/V2/CAMPAIGN_REVIEW'){
     try{
       const campaign=u.searchParams.get('campaign_id');
-      if(!/^EMRADAR_2026_10_(08|09)_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+      if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
       const record=await new RedisStore(await store()).get('v2:review_package:'+campaign);
       if(!record)return json(res,404,{reason:'V2_REVIEW_PACKAGE_NOT_FOUND'});
       return html(res,campaignReviewHtml(record,campaign,{decisionPath:'/V2/PUBLICATION_REVIEW',v2:true}));

@@ -6,16 +6,14 @@ const strings=value=>Array.isArray(value)?value.filter(v=>typeof v==='string'&&v
 const flattenChain=chain=>Object.values(chain||{}).flatMap(strings);
 
 export function v2ScanFromPublished({scan,source_sha256}){
-  const record=scan?.records?.[0];
-  if(!record)throw new Error('SOURCE_SIGNAL_MISSING');
-  const uncertainty=[...strings(record.contradictions),...strings(record.chain_evolution?.unresolved_evidence)];
-  return {
-    publication_state:'PUBLISHED',
-    snapshot_date:scan.snapshot_date,
-    source_revision:source_sha256,
-    formation:{
+  const records=scan?.records||[];
+  if(!records.length)throw new Error('SOURCE_SIGNAL_MISSING');
+  const formation=record=>{
+    const uncertainty=[...strings(record.contradictions),...strings(record.chain_evolution?.unresolved_evidence)];
+    return {
       id:record.id,title:record.theme||record.id,state:record.status,
       causal_chain:flattenChain(record.causal_chain),
+      causal_chain_source:record.causal_chain||{},
       evidence:(record.evidence||[]).map(e=>({id:digest(e),url:e.url||null,claim:e.fact||e.claim||e.text})),
       uncertainty,
       strengthening_evidence:strings(record.chain_evolution?.strengthening_evidence),
@@ -25,7 +23,14 @@ export function v2ScanFromPublished({scan,source_sha256}){
       tickers:(record.listed_players||[]).map(v=>v.ticker).filter(Boolean),
       industries:strings(record.causal_chain?.industries),
       geography:[record.location].filter(Boolean)
-    }
+    };
+  };
+  const formations=records.map(formation);
+  return {
+    publication_state:'PUBLISHED',
+    snapshot_date:scan.snapshot_date,
+    source_revision:source_sha256,
+    formation:formations[0],formations
   };
 }
 
