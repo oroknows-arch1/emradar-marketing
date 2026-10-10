@@ -13,7 +13,7 @@ export const destinations=directory.destinations
   .filter(route=>String(route.verification_state||'').startsWith('VERIFIED'))
   .map(route=>{
     const x=route.destination_id==='EMRADAR-X-OROKNOWS',email=/email/i.test(route.access_method||'')&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(route.public_contact_point||''),method=x?'X':email?'EMAIL':'MANUAL';
-    return {id:route.destination_id,organisation:route.organisation||route.destination_name,industries:route.industries||[],geography:route.geography||[],editorial_relevance:(scan,current)=>x||relevant(scan,current),evidence_suitable:scan=>scan.formation.evidence.length>0,endpoint:{address:route.public_contact_point||route.public_submission_url||'UNAVAILABLE',verification_state:route.verification_state},delivery:{method,supported:email},connector:{authorized:email},finished_contribution_supported:true,delivery_record:route};
+    return {id:route.destination_id,organisation:route.organisation||route.destination_name,industries:route.industries||[],geography:route.geography||[],editorial_relevance:(scan,current)=>x||relevant(scan,current),evidence_suitable:scan=>scan.formation.evidence.length>0,endpoint:{address:route.public_contact_point||route.public_submission_url||'UNAVAILABLE',verification_state:route.verification_state},delivery:{method,supported:email||x},connector:{authorized:email||x},finished_contribution_supported:true,delivery_record:route};
   });
 
 export async function assetBuilder({scan,route}){

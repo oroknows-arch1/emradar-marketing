@@ -132,7 +132,8 @@ async function marketingEngine(){
 }
 async function v2Runtime(){
   if(process.env.MARKETING_V2_ENABLED!=='true')throw new Error('V2_NOT_ACTIVATED');
-  return createV2Runtime({redisClient:await store(),integrationModulePath:process.env.MARKETING_V2_INTEGRATION_MODULE,editorialModulePath:process.env.MARKETING_EDITORIAL_OUTREACH_MODULE});
+  const x=xAdapter({publish:publishX,authorized:async product=>!!(await currentAuth(product))?.access_token,fetchMetrics:async(id,product)=>{const auth=await currentAuth(product);if(!auth?.access_token)throw new Error('X authorization required');return xFetch(`https://api.x.com/2/tweets/${encodeURIComponent(id)}?tweet.fields=public_metrics`,auth.access_token);}});
+  return createV2Runtime({redisClient:await store(),integrationModulePath:process.env.MARKETING_V2_INTEGRATION_MODULE,editorialModulePath:process.env.MARKETING_EDITORIAL_OUTREACH_MODULE,xAdapter:x});
 }
 async function v2Preflight(){
   const s=new RedisStore(await store()),campaigns=['EMRADAR_2026_10_07_LAUNCH','EMRADAR_2026_10_08_LAUNCH','EMRADAR_2026_10_09_LAUNCH'];
@@ -164,6 +165,11 @@ const server=http.createServer(async(req,res)=>{
       if(!/^[a-f0-9]{64}$/.test(input?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(input?.review_hash||'')||!['APPROVE','REJECT'].includes(input?.decision))return json(res,400,{reason:'V2_OWNER_DECISION_INVALID'});
       return json(res,200,await runtime.decide(input,'Bearer '+process.env.MARKETING_PUBLICATION_REVIEW_TOKEN));
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
+  }
+  if(req.method==='GET'&&u.pathname==='/V2/DELIVERY_STATE'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    const campaign=u.searchParams.get('campaign_id');if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+    try{return json(res,200,{campaign_id:campaign,deliveries:await (await v2Runtime()).deliveryState(campaign)});}catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});

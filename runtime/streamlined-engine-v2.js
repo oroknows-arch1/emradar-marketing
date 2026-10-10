@@ -30,7 +30,23 @@ export function existingEditorialTransport(adapter){
       const result=await adapter.publish(asset,idempotency_key,'EMRADAR',{proposal:{proposal_id:approval.proposal_id,review_hash:approval.review_hash,asset},approval});
       if(result.status!=='SUBMITTED')fail('PROVIDER_ACCEPTANCE_REQUIRED');
       return {id:result.id,status:'ACCEPTED',receipt:result.provider_receipt,actual_cost_aud:0};
-    }
+    },
+    collect:receipt=>adapter.collect(receipt)
+  };
+}
+
+// Compatibility boundary for the existing authenticated X adapter. Unknown
+// provider spend remains fail-closed in V2 until separately authorised.
+export function existingXTransport(adapter){
+  return {
+    quote:async()=>({currency:'AUD',max_cost_aud:'UNKNOWN'}),
+    async send({asset,idempotency_key}){
+      if(!adapter?.publish||!await adapter.authorized?.('EMRADAR'))fail('TRANSPORT_UNAVAILABLE');
+      const result=await adapter.publish(asset,idempotency_key,'EMRADAR');
+      if(result.status!=='PUBLISHED'||!result.id)fail('PROVIDER_ACCEPTANCE_REQUIRED');
+      return {id:result.id,status:'ACCEPTED',receipt:{provider:'X',status:result.status,url:result.url||null},actual_cost_aud:result.actual_cost_aud};
+    },
+    collect:receipt=>adapter.collect(receipt)
   };
 }
 
@@ -162,5 +178,13 @@ export class StreamlinedMarketingEngineV2 {
     learning.version++;learning.updated_at=now();await this.store.put('v2:learning',learning);
     await this.store.put('v2:feedback-work:'+receipt_id,{receipt_id,status:'OBSERVED',collection,updated_at:now()});
     return {receipt,learning,reentry_events:events.filter(e=>['EDITORIAL_REPLY','ASSET_REQUEST'].includes(e.type)).length};
+  }
+
+  async collect(receiptId){
+    const receipt=await this.store.get('v2:receipt:'+receiptId);if(!receipt)fail('RECEIPT_NOT_FOUND');
+    const proposal=await this.store.get('v2:review:'+receipt.proposal_id),transport=this.transports[proposal?.asset?.delivery_method];
+    if(!transport?.collect)fail('OUTCOME_COLLECTION_UNAVAILABLE');
+    const outcome=await transport.collect(receipt);
+    return this.learn({receipt_id:receiptId,events:outcome.events||[],collection:outcome.collection||{status:outcome.status,source:outcome.source}});
   }
 }
