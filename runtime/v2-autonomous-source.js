@@ -3,6 +3,7 @@ import {intakeHeld,publishedSource} from './autonomous-source.js';
 
 const digest=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const reviewCoverageRevision='evidence-broadening-v1';
+const editorialRepairRevision='sfy-human-correspondence-v2';
 const strings=value=>Array.isArray(value)?value.filter(v=>typeof v==='string'&&v):[];
 const flattenChain=chain=>Object.values(chain||{}).flatMap(strings);
 
@@ -70,4 +71,21 @@ export async function recoverV2ReviewCoverage({store,runtime,campaign_id,fetcher
   await store.put(intakeKey,receipt);
   log('V2_REVIEW_COVERAGE_RECOVERY '+JSON.stringify({campaign_id,proposal_count:preparation.proposals.length,disposition_count:preparation.route_dispositions.length,external_actions:0}));
   return {campaign_id,status:preparation.status,proposal_count:preparation.proposals.length,disposition_count:preparation.route_dispositions.length,external_actions:0};
+}
+
+export async function repairV2EditorialReview({store,runtime,campaign_id,fetcher=fetch,log=console.log}){
+  if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign_id||''))throw new Error('CAMPAIGN_ID_INVALID');
+  const existing=await store.get('v2:review_package:'+campaign_id);
+  if(existing?.editorial_repair_revision===editorialRepairRevision)return {campaign_id,status:existing.status,proposal_count:existing.proposals.length,corrected_count:existing.editorial_repair?.superseded_count||0,valid_assets_preserved:existing.editorial_repair?.approved_assets_preserved||0,duplicate:true,external_actions:0};
+  const snapshotDate=campaign_id.slice(8,18).replaceAll('_','-'),published=await publishedSource(fetcher,snapshotDate);
+  if(published.attestation.campaign_authority.campaign_id!==campaign_id)throw new Error('CAMPAIGN_SOURCE_CHANGED');
+  const intakeKey='v2:intake:'+campaign_id,prior=await store.get(intakeKey);
+  if(!prior||prior.source_sha256!==published.source_sha256)throw new Error('PERSISTED_V2_INTAKE_REQUIRED');
+  const repaired=await runtime.prepare({campaign_id,scan:v2ScanFromPublished(published),expand_review:true,supersede_unapproved_editorial:true});
+  if(repaired.external_actions!==0)throw new Error('V2_EDITORIAL_REPAIR_DISTRIBUTION_VIOLATION');
+  const preparation={...repaired,coverage_revision:existing?.coverage_revision||reviewCoverageRevision,editorial_repair_revision:editorialRepairRevision};
+  await store.put('v2:campaign:'+campaign_id,preparation);await store.put('v2:review_package:'+campaign_id,preparation);
+  await store.put(intakeKey,{...prior,status:'PREPARED',preparation_status:preparation.status,proposal_count:preparation.proposals.length,editorial_repair_revision:editorialRepairRevision,editorial_repaired_at:new Date().toISOString()});
+  const result={campaign_id,status:preparation.status,proposal_count:preparation.proposals.length,corrected_count:preparation.editorial_repair?.superseded_count||0,valid_assets_preserved:preparation.editorial_repair?.approved_assets_preserved||0,external_actions:0};
+  log('V2_EDITORIAL_REVIEW_REPAIR '+JSON.stringify(result));return result;
 }

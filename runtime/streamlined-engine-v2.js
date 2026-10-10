@@ -73,7 +73,7 @@ export class StreamlinedMarketingEngineV2 {
     this.store=store;this.destinations=destinations;this.transports=transports;this.assetBuilder=assetBuilder;this.maxSteps=maxSteps;this.campaignLimitAud=campaignLimitAud;this.monthLimitAud=monthLimitAud;
   }
 
-  async prepare({campaign_id,scan,expand_review=false}){
+  async prepare({campaign_id,scan,expand_review=false,supersede_unapproved_editorial=false}){
     assertScan(scan);
     return this.store.locked('v2:campaign:'+campaign_id,async()=>{
       const scanHash=hash(scan),prior=await this.store.get('v2:campaign:'+campaign_id);
@@ -91,12 +91,12 @@ export class StreamlinedMarketingEngineV2 {
         matches.push({route:evaluated,scan:formationScan,executable});dispositions.push({formation_id:formation.id,destination:route.id,status:executable?'EXECUTABLE':'REVIEW_ONLY'});
       }
       trace.push({node:'MATCH',status:'PASS',executable:matches.length,research_opportunities:opportunities.length,at:now()});
-      const proposals=[],savedReviews=(await Promise.all((await this.store.keys('v2:review:')).map(key=>this.store.get(key)))).filter(p=>p?.campaign_id===campaign_id);
+      const proposals=[],superseded=[],savedReviews=(await Promise.all((await this.store.keys('v2:review:')).map(key=>this.store.get(key)))).filter(p=>p?.campaign_id===campaign_id&&p.status!=='SUPERSEDED'),decisions=new Map((await Promise.all(savedReviews.map(async proposal=>[proposal.proposal_id,await this.store.get('v2:decision:'+proposal.proposal_id)]))).filter(([,decision])=>decision));
       for(const match of matches){
         const {route,scan:formationScan,executable}=match;
         if(Number.isFinite(this.maxSteps)&&trace.length>=this.maxSteps)fail('STEP_BOUND');
         const scanWide=route.id==='EMRADAR-X-OROKNOWS',formation=formationScan.formation,formationId=scanWide?'OCTOBER_10_SCAN':formation.id,deliveryKey=hash([formationId,scan.source_revision,route.id,route.delivery.method]);
-        const reusable=savedReviews.find(p=>p.delivery_key===deliveryKey&&p.binding?.evidence?.source_revision===scan.source_revision&&p.asset?.consolidated_scan===scanWide);
+        const reusable=savedReviews.find(p=>p.delivery_key===deliveryKey&&p.binding?.evidence?.source_revision===scan.source_revision&&Boolean(p.asset?.consolidated_scan)===scanWide&&(!supersede_unapproved_editorial||scanWide||decisions.has(p.proposal_id)||p.asset?.editorial_version==='human-correspondence-v2'));
         if(reusable){proposals.push(reviewView(reusable));continue;}
         const asset=await this.assetBuilder({scan:structuredClone(formationScan),route:structuredClone(route)});
         if(!asset?.subject||!asset?.body||asset.to!==route.endpoint.address||asset.delivery_method!==route.delivery.method)fail('FINISHED_ASSET_REQUIRED');
@@ -105,17 +105,19 @@ export class StreamlinedMarketingEngineV2 {
         if(scanWide)evidenceBinding.formations=formations.map(f=>({id:f.id,state:f.state,evidence:f.evidence,uncertainty:f.uncertainty,causal_chain:f.causal_chain}));
         const binding={campaign_id,scan_hash:scanHash,evidence:evidenceBinding,destination:route,asset};
         const reviewHash=hash(binding),proposalId=hash([deliveryKey,reviewHash]);
-        const proposal={proposal_id:proposalId,review_hash:reviewHash,delivery_key:deliveryKey,campaign_id,formation_id:formationId,formation_state:scanWide?'SCAN_WIDE':formation.state,status:'AWAITING_OWNER_REVIEW',destination:route.id,evidence_summary:asset.evidence_summary,asset,required_visual_or_attachment:asset.required_visual_or_attachment||'NONE',route:{method:route.delivery.method,recipient:route.endpoint.address,verification:route.endpoint.verification_state},delivery_capability:executable?'VERIFIED_EXECUTABLE':'UNAVAILABLE_REVIEW_ONLY',uncertainty:scanWide?formations.flatMap(f=>f.uncertainty):[...formation.uncertainty],binding,created_at:now()};
+        const replaced=[];
+        if(supersede_unapproved_editorial&&!scanWide)for(const old of savedReviews.filter(p=>p.delivery_key===deliveryKey&&!decisions.has(p.proposal_id)&&p.proposal_id!==proposalId)){old.status='SUPERSEDED';old.superseded_reason='OWNER_REJECTED_DEFICIENT_EDITORIAL_CORRESPONDENCE';old.superseded_at=now();old.replaced_by=proposalId;await this.store.put('v2:review:'+old.proposal_id,old);replaced.push(old.proposal_id);superseded.push(old.proposal_id);}
+        const proposal={proposal_id:proposalId,review_hash:reviewHash,delivery_key:deliveryKey,campaign_id,formation_id:formationId,formation_state:scanWide?'SCAN_WIDE':formation.state,status:'AWAITING_OWNER_REVIEW',destination:route.id,evidence_summary:asset.evidence_summary,asset,required_visual_or_attachment:asset.required_visual_or_attachment||'NONE',route:{method:route.delivery.method,recipient:route.endpoint.address,verification:route.endpoint.verification_state},delivery_capability:executable?'VERIFIED_EXECUTABLE':'UNAVAILABLE_REVIEW_ONLY',uncertainty:scanWide?formations.flatMap(f=>f.uncertainty):[...formation.uncertainty],binding,...(replaced.length?{replaces_proposal_ids:replaced}:{}),created_at:now()};
         await this.store.put('v2:review:'+proposalId,proposal);proposals.push(reviewView(proposal));
       }
-      for(const saved of savedReviews){
+      for(const saved of savedReviews.filter(proposal=>proposal.status!=='SUPERSEDED')){
         if(proposals.some(proposal=>proposal.proposal_id===saved.proposal_id))continue;
         proposals.push(reviewView(saved));
         const disposition=dispositions.find(item=>item.formation_id===saved.binding?.evidence?.formation_id&&item.destination===saved.destination);
         if(disposition){disposition.status=saved.status==='REJECTED'?'OWNER_REJECTED':saved.status==='OWNER_APPROVED'?'OWNER_APPROVED':'REVIEW_ONLY';disposition.reason='PERSISTED_REVIEW_PRESERVED';}
       }
       trace.push({node:'PREPARE',status:'PASS',count:proposals.length,at:now()},{node:'VERIFY',status:'PASS',count:proposals.length,at:now()},{node:'OWNER_REVIEW',status:'WAITING',at:now()});
-      const record={engine:'EMRADAR_MARKETING_ENGINE_V2',campaign_id,scan_hash:scanHash,source_revision:scan.source_revision,status:'AWAITING_OWNER_REVIEW',findings:formations.map(f=>({id:f.id,state:f.state,title:f.title,evidence_count:f.evidence.length,uncertainty:f.uncertainty})),proposals,opportunities,route_dispositions:dispositions,trace,external_actions:0,updated_at:now()};
+      const record={engine:'EMRADAR_MARKETING_ENGINE_V2',campaign_id,scan_hash:scanHash,source_revision:scan.source_revision,status:'AWAITING_OWNER_REVIEW',findings:formations.map(f=>({id:f.id,state:f.state,title:f.title,evidence_count:f.evidence.length,uncertainty:f.uncertainty})),proposals,opportunities,route_dispositions:dispositions,trace,...(supersede_unapproved_editorial?{editorial_repair:{superseded_count:superseded.length,superseded_proposal_ids:superseded,approved_assets_preserved:decisions.size,external_actions:0}}:{}),external_actions:0,updated_at:now()};
       await this.store.put('v2:campaign:'+campaign_id,record);return record;
     });
   }

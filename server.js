@@ -10,7 +10,7 @@ import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
-import {autonomousV2ScanCycle,recoverV2ReviewCoverage} from './runtime/v2-autonomous-source.js';
+import {autonomousV2ScanCycle,recoverV2ReviewCoverage,repairV2EditorialReview} from './runtime/v2-autonomous-source.js';
 import {recoverOctober10Capacity} from './runtime/v2-capacity-recovery.js';
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
@@ -341,9 +341,10 @@ const server=http.createServer(async(req,res)=>{
     try{
       const campaign=u.searchParams.get('campaign_id');
       if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
-      const record=await new RedisStore(await store()).get('v2:review_package:'+campaign);
+      const s=new RedisStore(await store()),record=await s.get('v2:review_package:'+campaign);
       if(!record)return json(res,404,{reason:'V2_REVIEW_PACKAGE_NOT_FOUND'});
-      return html(res,campaignReviewHtml(record,campaign,{decisionPath:'/V2/PUBLICATION_REVIEW',v2:true}));
+      const owner_decisions=Object.fromEntries(await Promise.all(record.proposals.map(async proposal=>{const decision=await s.get('v2:decision:'+proposal.proposal_id),distribution=await s.get('v2:work:'+proposal.proposal_id);return [proposal.proposal_id,{status:decision?.decision==='APPROVE'?'OWNER_APPROVED':decision?.decision==='REJECT'?'REJECTED':proposal.status,distribution}];})));
+      return html(res,campaignReviewHtml({...record,owner_decisions},campaign,{decisionPath:'/V2/PUBLICATION_REVIEW',v2:true}));
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
@@ -396,13 +397,16 @@ server.listen(PORT,()=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
     for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
   }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
+  let editorialRepair;
   store().then(client=>recoverOctoberCampaignsToV2(new RedisStore(client))).then(async records=>{
     console.log('V2_OCTOBER_RECOVERY '+JSON.stringify(records.map(record=>({campaign_id:record.campaign_id,status:record.status,review_count:record.review_count,proposal_count:record.proposals.length,exclusions:record.exclusions,external_actions:record.external_actions}))));
     const s=new RedisStore(await store());
     await recoverV2ReviewCoverage({store:s,runtime:await v2Runtime(),campaign_id:'EMRADAR_2026_10_10_LAUNCH'});
+    editorialRepair=await repairV2EditorialReview({store:s,runtime:await v2Runtime(),campaign_id:'EMRADAR_2026_10_10_LAUNCH'});
     return v2Preflight();
   }).then(async result=>{
     cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
+    if(editorialRepair&&!editorialRepair.duplicate&&editorialRepair.corrected_count>0)return console.log('V2_DISTRIBUTION_HELD_FOR_EDITORIAL_REVIEW '+JSON.stringify({campaign_id:editorialRepair.campaign_id,corrected_count:editorialRepair.corrected_count,external_actions:0}));
     const deliveries=await (await v2Runtime()).distribute({campaign_ids:['EMRADAR_2026_10_10_LAUNCH']});
     for(const delivery of deliveries)console.log('V2_AUTOMATIC_DISTRIBUTION '+JSON.stringify(delivery));
   }).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_OR_DISTRIBUTION_BLOCKED '+JSON.stringify(cutoverState));});
