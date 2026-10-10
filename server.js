@@ -226,7 +226,7 @@ const server=http.createServer(async(req,res)=>{
     try{
       await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));
       const result=await normalCycle();
-      const v2_distribution=process.env.MARKETING_V2_DISTRIBUTION_ENABLED==='true'?await (await v2Runtime()).distribute():[];
+      const v2_distribution=process.env.MARKETING_V2_DISTRIBUTION_ENABLED==='true'&&process.env.MARKETING_V2_AUTOMATIC_DISTRIBUTION_ENABLED==='true'?await (await v2Runtime()).distribute():[];
       return json(res,200,{...result,v2_distribution});
     }
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}

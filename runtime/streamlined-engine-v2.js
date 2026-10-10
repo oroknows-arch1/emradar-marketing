@@ -39,7 +39,7 @@ export function existingEditorialTransport(adapter){
 // provider spend remains fail-closed in V2 until separately authorised.
 export function existingXTransport(adapter){
   return {
-    quote:async()=>({currency:'AUD',max_cost_aud:'UNKNOWN'}),
+    quote:async()=>({currency:'AUD',max_cost_aud:'UNKNOWN',owner_authorized_unknown_spend:true,accounting:'OBSERVE_ACTUAL'}),
     async send({asset,idempotency_key}){
       if(!adapter?.publish||!await adapter.authorized?.('EMRADAR'))fail('TRANSPORT_UNAVAILABLE');
       const result=await adapter.publish(asset,idempotency_key,'EMRADAR');
@@ -143,8 +143,9 @@ export class StreamlinedMarketingEngineV2 {
         const quote=await transport.quote?.(proposal.asset)??{currency:'AUD',max_cost_aud:'UNKNOWN'};
         const month=calendarMonth(),ledger=await this.store.get('v2:spend:'+month)||{month,actual_aud:0,campaigns:{}};
         const campaignSpent=ledger.campaigns[proposal.campaign_id]||0;
-        if(quote.currency!=='AUD'||!Number.isFinite(quote.max_cost_aud)){work.status='BLOCKED';work.error='OWNER_AUTHORIZATION_REQUIRED_UNKNOWN_SPEND';await this.store.put(key,work);results.push(work);continue;}
-        if(campaignSpent+quote.max_cost_aud>this.campaignLimitAud||ledger.actual_aud+quote.max_cost_aud>this.monthLimitAud){work.status='BLOCKED';work.error='SPENDING_LIMIT_EXCEEDED';await this.store.put(key,work);results.push(work);continue;}
+        const xUnknownSpendAuthorized=proposal.destination==='EMRADAR-X-OROKNOWS'&&proposal.asset.delivery_method==='X'&&quote.currency==='AUD'&&quote.owner_authorized_unknown_spend===true;
+        if(quote.currency!=='AUD'||(!Number.isFinite(quote.max_cost_aud)&&!xUnknownSpendAuthorized)){work.status='BLOCKED';work.error='OWNER_AUTHORIZATION_REQUIRED_UNKNOWN_SPEND';await this.store.put(key,work);results.push(work);continue;}
+        if(Number.isFinite(quote.max_cost_aud)&&(campaignSpent+quote.max_cost_aud>this.campaignLimitAud||ledger.actual_aud+quote.max_cost_aud>this.monthLimitAud)){work.status='BLOCKED';work.error='SPENDING_LIMIT_EXCEEDED';await this.store.put(key,work);results.push(work);continue;}
         const inFlight={id:proposal.delivery_key,proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,delivery_hash:hash(proposal.asset),campaign_id:proposal.campaign_id,destination:proposal.destination,idempotency_key:proposal.delivery_key,execution_status:'IN_FLIGHT',attempts:work.attempts+1,timestamp:now(),provider_receipt:null};
         if(!await this.store.claimReceipt('v2:receipt:'+proposal.delivery_key,inFlight)){const existing=await this.store.get('v2:receipt:'+proposal.delivery_key);work.status=existing?.execution_status||'AMBIGUOUS';await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:existing,duplicate:true});continue;}
         work.status='IN_FLIGHT';work.attempts=inFlight.attempts;await this.store.put(key,work);
@@ -152,9 +153,10 @@ export class StreamlinedMarketingEngineV2 {
         try{
           const sent=await transport.send({asset:structuredClone(proposal.asset),idempotency_key:proposal.delivery_key,approval:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash}});
           if(!sent?.id||sent.status!=='ACCEPTED')fail('PROVIDER_ACCEPTANCE_REQUIRED');
-          receipt={...inFlight,execution_status:'SUBMITTED',external_id:String(sent.id),provider_receipt:sent.receipt||null,actual_cost_aud:sent.actual_cost_aud??quote.max_cost_aud,timestamp:now()};
-          const cost=receipt.actual_cost_aud;if(!Number.isFinite(cost)||cost<0)fail('PROVIDER_COST_RECEIPT_REQUIRED');
-          ledger.actual_aud+=cost;ledger.campaigns[proposal.campaign_id]=campaignSpent+cost;await this.store.put('v2:spend:'+month,ledger);
+          const observedCost=sent.actual_cost_aud??quote.max_cost_aud;
+          receipt={...inFlight,execution_status:'SUBMITTED',external_id:String(sent.id),provider_receipt:sent.receipt||null,actual_cost_aud:Number.isFinite(observedCost)?observedCost:'UNKNOWN',cost_observation:Number.isFinite(observedCost)?'PROVIDER_REPORTED':'NOT_AVAILABLE',timestamp:now()};
+          if(Number.isFinite(observedCost)){if(observedCost<0)fail('PROVIDER_COST_RECEIPT_REQUIRED');ledger.actual_aud+=observedCost;ledger.campaigns[proposal.campaign_id]=campaignSpent+observedCost;await this.store.put('v2:spend:'+month,ledger);}
+          else if(!xUnknownSpendAuthorized)fail('PROVIDER_COST_RECEIPT_REQUIRED');
         }catch(error){receipt={...inFlight,execution_status:error.definitely_unsent===true?'FAILED':'AMBIGUOUS',error:error.message,timestamp:now()};}
         await this.store.put('v2:receipt:'+proposal.delivery_key,receipt);work.status=receipt.execution_status;work.receipt_id=receipt.id;work.completed_at=now();await this.store.put(key,work);
         await this.store.put('v2:feedback-work:'+receipt.id,{receipt_id:receipt.id,status:receipt.execution_status==='SUBMITTED'?'QUEUED':'WAITING',created_at:now()});results.push({proposal_id:proposal.proposal_id,status:work.status,receipt});
