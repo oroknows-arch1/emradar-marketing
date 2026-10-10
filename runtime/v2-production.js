@@ -7,10 +7,13 @@ const values=value=>(Array.isArray(value)?value:[]).map(v=>String(v).toLowerCase
 const overlap=(a,b)=>values(a).some(x=>values(b).includes(x)||x==='all');
 const words=value=>String(value||'').toLowerCase().match(/[a-z0-9]+/g)||[];
 const significant=value=>words(value).filter(w=>w.length>3&&!['africa','global','industry','market','markets'].includes(w));
-const relevant=(scan,route)=>{
+export const relevanceAssessment=(scan,route)=>{
   if(overlap(scan.formation.industries,route.industries)||overlap(scan.formation.geography,route.geography))return true;
   const source=[scan.formation.title,...(scan.formation.industries||[]),...(scan.formation.causal_chain||[]),...(scan.formation.evidence||[]).map(e=>e.claim)].join(' ').toLowerCase();
-  return [...(route.relevant_beat_topic||[]),...(route.industries||[])].some(term=>{const tokens=significant(term);return tokens.length>0&&tokens.every(token=>source.includes(token));});
+  const sourceTokens=new Set(significant(source));
+  const routeTokens=new Set([...(route.relevant_beat_topic||[]),...(route.industries||[])].flatMap(significant));
+  const shared=[...routeTokens].filter(token=>sourceTokens.has(token));
+  return shared.length>=2||routeTokens.size===1&&shared.length===1;
 };
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const escape=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
@@ -26,7 +29,7 @@ export const destinations=directory.destinations
   .map(route=>{
     const x=route.destination_id==='EMRADAR-X-OROKNOWS',verifiedEmail=route.verification_state==='VERIFIED'&&/email/i.test(route.access_method||'')&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(route.public_contact_point||''),manual=/form|portal|workflow|manual/i.test([route.access_method,route.public_submission_url].join(' ')),method=x?'X':verifiedEmail?'EMAIL':'MANUAL';
     const recipient_status=verifiedEmail?'VERIFIED_RECIPIENT':manual?'MANUAL_SUBMISSION_REQUIRED':/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(route.public_contact_point||'')?'UNVERIFIED_RECIPIENT':'TRANSPORT_UNAVAILABLE';
-    return {id:route.destination_id,organisation:route.organisation||route.destination_name,industries:route.industries||[],geography:route.geography||[],relevant_beat_topic:route.relevant_beat_topic||[],editorial_relevance:(scan,current)=>x||relevant(scan,current),evidence_suitable:scan=>scan.formation.evidence.length>0,endpoint:{address:route.public_contact_point||route.public_submission_url||'UNAVAILABLE',verification_state:route.verification_state,recipient_status},delivery:{method,supported:verifiedEmail||x},connector:{authorized:verifiedEmail||x},finished_contribution_supported:true,delivery_record:{...route,recipient_status}};
+    return {id:route.destination_id,organisation:route.organisation||route.destination_name,industries:route.industries||[],geography:route.geography||[],relevant_beat_topic:route.relevant_beat_topic||[],editorial_relevance:(scan,current)=>x||relevanceAssessment(scan,current),evidence_suitable:scan=>scan.formation.evidence.length>0,endpoint:{address:route.public_contact_point||route.public_submission_url||'UNAVAILABLE',verification_state:route.verification_state,recipient_status},delivery:{method,supported:verifiedEmail||x},connector:{authorized:verifiedEmail||x},finished_contribution_supported:true,delivery_record:{...route,recipient_status}};
   });
 
 export async function assetBuilder({scan,route}){

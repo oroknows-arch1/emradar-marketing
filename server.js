@@ -10,7 +10,7 @@ import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
-import {autonomousV2ScanCycle} from './runtime/v2-autonomous-source.js';
+import {autonomousV2ScanCycle,recoverV2ReviewCoverage} from './runtime/v2-autonomous-source.js';
 import {recoverOctober10Capacity} from './runtime/v2-capacity-recovery.js';
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
@@ -396,8 +396,10 @@ server.listen(PORT,()=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
     for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
   }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
-  store().then(client=>recoverOctoberCampaignsToV2(new RedisStore(client))).then(records=>{
+  store().then(client=>recoverOctoberCampaignsToV2(new RedisStore(client))).then(async records=>{
     console.log('V2_OCTOBER_RECOVERY '+JSON.stringify(records.map(record=>({campaign_id:record.campaign_id,status:record.status,review_count:record.review_count,proposal_count:record.proposals.length,exclusions:record.exclusions,external_actions:record.external_actions}))));
+    const s=new RedisStore(await store());
+    await recoverV2ReviewCoverage({store:s,runtime:await v2Runtime(),campaign_id:'EMRADAR_2026_10_10_LAUNCH'});
     return v2Preflight();
   }).then(async result=>{
     cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
