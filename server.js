@@ -217,7 +217,12 @@ const server=http.createServer(async(req,res)=>{
     try{const envelope=JSON.parse(await readBody(req));if(intakeHeld()&&envelope.product==='EMRADAR')return json(res,423,{reason:'NEXT_SCAN_HELD_BY_OWNER'});const result=await (await productIntake()).receive(envelope,req.headers['x-product-signature']);return json(res,200,result);}catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
-    try{await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));const result=await normalCycle();return json(res,200,result);}
+    try{
+      await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));
+      const result=await normalCycle();
+      const v2_distribution=process.env.MARKETING_V2_DISTRIBUTION_ENABLED==='true'?await (await v2Runtime()).distribute():[];
+      return json(res,200,{...result,v2_distribution});
+    }
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(u.pathname==='/OUTCOME_REVIEW'&&['GET','POST'].includes(req.method)){
