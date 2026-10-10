@@ -3,7 +3,6 @@ import {ownerOverride} from './runtime/owner-override.js';
 import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
 import sentenceCorrection from './config/october7-sentence-correction.json' with {type:'json'};
 import {applySentenceCorrection} from './runtime/sentence-correction.js';
-import {recoverIdlePreparationLock} from './runtime/preparation-recovery.js';
 import http from "node:http";
 import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
 import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
@@ -11,6 +10,7 @@ import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
+import {autonomousV2ScanCycle} from './runtime/v2-autonomous-source.js';
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
 import {evaluateX} from "./runtime/route-feedback.js";
@@ -150,7 +150,7 @@ async function v2Preflight(){
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
-  if(req.method==='POST'&&['/PRODUCT_INPUT','/SCHEDULED_CYCLE','/OUTCOME_REVIEW','/PUBLICATION_REVIEW','/PUBLICATION_REVIEW/revise','/PUBLICATION_REVIEW/recover-connection-timeout','/RUN_MARKETING','/COLLECT_PERFORMANCE','/CYCLE'].includes(u.pathname))return json(res,410,{ok:false,status:'RETIRED',reason:'V1_EXECUTION_PERMANENTLY_RETIRED',replacement:'/V2/PREPARE'});
+  if(req.method==='POST'&&['/PRODUCT_INPUT','/OUTCOME_REVIEW','/PUBLICATION_REVIEW','/PUBLICATION_REVIEW/revise','/PUBLICATION_REVIEW/recover-connection-timeout','/RUN_MARKETING','/COLLECT_PERFORMANCE','/CYCLE'].includes(u.pathname))return json(res,410,{ok:false,status:'RETIRED',reason:'V1_EXECUTION_PERMANENTLY_RETIRED',replacement:'/V2/PREPARE'});
   if(u.pathname==='/V2/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
@@ -464,19 +464,9 @@ async function normalCycle(){
     const s=new RedisStore(await store());
     console.log('GRAPH_STATE_COMPACTION '+JSON.stringify(await s.compact()));
     let preparation;
-    const lockRecovery=await recoverIdlePreparationLock(s);
-    console.log('PREPARATION_LOCK_RECOVERY '+JSON.stringify(lockRecovery));
-    const recovered=[];
-    // Resume only existing, attested campaigns; keep the latest signed intake intact.
-    for(const campaign_id of ['EMRADAR_2026_10_08_LAUNCH']){
-      if(!await s.get('review_package:'+campaign_id))continue;
-      try{recovered.push(await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id}));}
-      catch(error){const blocked={campaign_id,status:'BLOCKED',blocker:error.message,external_actions:0};recovered.push(blocked);console.error('CAMPAIGN_RESUME_BLOCKED '+JSON.stringify(blocked));}
-    }
-    try{preparation=await autonomousScanCycle({intake:await productIntake(),store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}')});}
+    try{preparation=await autonomousV2ScanCycle({store:s,runtime:await v2Runtime()});}
     catch(error){preparation={status:'BLOCKED',blocker:error.message,external_actions:0};console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify(preparation));await s.put('autonomous_scan_latest_blocker:EMRADAR',{...preparation,at:new Date().toISOString()});}
-    const feedback=await (await marketingEngine()).tick({feedbackOnly:true});
-    return {preparation,recovered,feedback};
+    return {preparation,recovered:[],feedback:null};
   })().finally(()=>{normalCyclePromise=null;});
   return normalCyclePromise;
 }
