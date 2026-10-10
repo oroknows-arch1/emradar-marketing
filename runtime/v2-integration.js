@@ -28,8 +28,13 @@ export async function createV2Runtime({store,redisClient,integrationModule,integ
     store:persistentStore,engine,
     prepare:input=>engine.prepare(input),
     async review(proposalId){return persistentStore.get('v2:review:'+proposalId);},
-    async decide(input,authorization){if(!authorizedV2Owner(authorization))fail('OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED');return engine.decide(input);},
-    distribute:()=>engine.distribute(),
+    async decide(input,authorization){
+      if(!authorizedV2Owner(authorization))fail('OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED');
+      const decision=await engine.decide(input);
+      const distribution=input.decision==='APPROVE'?await engine.distribute({proposal_ids:[input.proposal_id]}):[];
+      return {...decision,automatic_distribution:distribution[0]||null};
+    },
+    distribute:input=>engine.distribute(input),
     feedback:input=>engine.learn(input),
     collect:receiptId=>engine.collect(receiptId),
     async deliveryState(campaignId){

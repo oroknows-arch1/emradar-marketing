@@ -147,7 +147,7 @@ async function v2Preflight(){
   }
   const email=await editorialRouteStatus();
   const historyPresent=campaigns.every(c=>summary.campaigns[c].review_package),ownerConfigured=reviewAuth.configured(),emailReady=['PASS','CONFIGURED'].includes(email.status);
-  return {status:historyPresent&&ownerConfigured&&emailReady&&!summary.unresolved_delivery_count?'PASS':'BLOCKED',engine:'V2',v1_execution:'INACTIVE',persistent_store:'REDIS',owner_auth:ownerConfigured?'CONFIGURED':'BLOCKED',email:{status:email.status,identity:editorialSenderStatus().expected,relay_preserved:!!process.env.EMRADAR_EMAIL_RELAY_URL},history:summary,external_distribution:'DISABLED',external_submissions:0,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'};
+  return {status:historyPresent&&ownerConfigured&&emailReady&&!summary.unresolved_delivery_count?'PASS':'BLOCKED',engine:'V2',v1_execution:'INACTIVE',persistent_store:'REDIS',owner_auth:ownerConfigured?'CONFIGURED':'BLOCKED',email:{status:email.status,identity:editorialSenderStatus().expected,relay_preserved:!!process.env.EMRADAR_EMAIL_RELAY_URL},history:summary,external_distribution:'OWNER_APPROVAL_AUTOMATIC',external_submissions:0,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'};
 }
 
 const server=http.createServer(async(req,res)=>{
@@ -188,7 +188,7 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==="GET"&&u.pathname==="/onboarding") return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><h1>Add product</h1><p>The first onboarding contract captures identity, source of truth, channels, rules and goal. Atlasoquence is already registered through its adapter.</p><p><a href="/">Back to products</a></p></body></html>`);
   if(req.method==="GET"&&u.pathname==="/product"){const p=u.searchParams.get("name");if(!PRODUCTS.includes(p))return json(res,404,{ok:false,error:"unknown_product"});const auth=await currentAuth(p).catch(()=>null);return html(res,`<!doctype html><html><body style="font-family:system-ui;max-width:680px;margin:50px auto;padding:20px"><a href="/">← Products</a><h1>${p}</h1><p>Adapter: Ready</p><p>X: ${auth?.access_token?"Connected":"Not connected"}</p><p>Additional spend: owner approval required</p><p>Execution endpoint: POST /RUN_MARKETING</p></body></html>`);}
   if(req.method==="GET"&&u.pathname==="/branding/probe"){const p=correspondenceProbe();return json(res,200,{...p,sender:await editorialRouteStatus()});}
-  if(req.method==="GET"&&u.pathname==="/health")return json(res,200,{ok:cutoverState.status==='PASS',service:'EMRADAR_MARKETING_ENGINE_V2',runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN',v2_active:process.env.MARKETING_V2_ENABLED==='true',v1_execution:'INACTIVE',external_distribution:'DISABLED',owner_review:'/V2/PUBLICATION_REVIEW',cutover:cutoverState});
+  if(req.method==="GET"&&u.pathname==="/health")return json(res,200,{ok:cutoverState.status==='PASS',service:'EMRADAR_MARKETING_ENGINE_V2',runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN',v2_active:process.env.MARKETING_V2_ENABLED==='true',v1_execution:'INACTIVE',external_distribution:'OWNER_APPROVAL_AUTOMATIC',owner_review:'/V2/PUBLICATION_REVIEW',cutover:cutoverState});
   if(req.method==="GET"&&u.pathname==="/integrations/status"){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:"BLOCKED",reason:"ENGINE_AUTHORIZATION_REQUIRED"});
     const xAuthorized=!!(await currentAuth('EMRADAR').catch(()=>null))?.access_token;
@@ -226,7 +226,7 @@ const server=http.createServer(async(req,res)=>{
     try{
       await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));
       const result=await normalCycle();
-      const v2_distribution=process.env.MARKETING_V2_DISTRIBUTION_ENABLED==='true'&&process.env.MARKETING_V2_AUTOMATIC_DISTRIBUTION_ENABLED==='true'?await (await v2Runtime()).distribute():[];
+      const v2_distribution=await (await v2Runtime()).distribute();
       return json(res,200,{...result,v2_distribution});
     }
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
@@ -390,7 +390,7 @@ const server=http.createServer(async(req,res)=>{
   return json(res,404,{ok:false,error:"not_found"});
 });
 server.listen(PORT,()=>{
-  console.log('EMRADAR Marketing Engine V2 listening; V1 execution inactive; external distribution disabled');
+  console.log('EMRADAR Marketing Engine V2 listening; V1 execution inactive; owner-approved distribution automatic');
   // Read-only bounded billing visibility; no generation, settlement or transport.
   if(KEY_VALUE_URL)store().then(client=>billingAudit(new RedisStore(client))).then(audit=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
@@ -399,7 +399,11 @@ server.listen(PORT,()=>{
   store().then(client=>recoverOctoberCampaignsToV2(new RedisStore(client))).then(records=>{
     console.log('V2_OCTOBER_RECOVERY '+JSON.stringify(records.map(record=>({campaign_id:record.campaign_id,status:record.status,review_count:record.review_count,proposal_count:record.proposals.length,exclusions:record.exclusions,external_actions:record.external_actions}))));
     return v2Preflight();
-  }).then(result=>{cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));}).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_PREFLIGHT '+JSON.stringify(cutoverState));});
+  }).then(async result=>{
+    cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
+    const deliveries=await (await v2Runtime()).distribute({campaign_ids:['EMRADAR_2026_10_10_LAUNCH']});
+    for(const delivery of deliveries)console.log('V2_AUTOMATIC_DISTRIBUTION '+JSON.stringify(delivery));
+  }).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_OR_DISTRIBUTION_BLOCKED '+JSON.stringify(cutoverState));});
 });
 
 async function runPendingSourceRelease(){

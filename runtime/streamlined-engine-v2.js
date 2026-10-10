@@ -120,20 +120,28 @@ export class StreamlinedMarketingEngineV2 {
       const proposal=await this.store.get('v2:review:'+proposal_id);
       if(!proposal||proposal.review_hash!==review_hash||hash(proposal.binding)!==review_hash)fail('REVIEW_ASSET_CHANGED');
       const prior=await this.store.get('v2:decision:'+proposal_id);
-      if(prior){if(prior.decision!==decision)fail('OWNER_DECISION_IMMUTABLE');return prior;}
+      if(prior){
+        if(prior.decision!==decision)fail('OWNER_DECISION_IMMUTABLE');
+        if(decision==='APPROVE'&&proposal.delivery_capability==='VERIFIED_EXECUTABLE'&&!await this.store.get('v2:work:'+proposal_id))await this.store.put('v2:work:'+proposal_id,{proposal_id,review_hash,delivery_key:proposal.delivery_key,campaign_id:proposal.campaign_id,status:'QUEUED',attempts:0,created_at:now()});
+        return prior;
+      }
       const record={proposal_id,review_hash,decision,authority:'OWNER',decided_at:now()};
-      await this.store.put('v2:decision:'+proposal_id,record);
-      if(decision==='APPROVE')await this.store.put('v2:work:'+proposal_id,{proposal_id,review_hash,delivery_key:proposal.delivery_key,campaign_id:proposal.campaign_id,status:'QUEUED',attempts:0,created_at:now()});
+      if(decision==='APPROVE'&&proposal.delivery_capability==='VERIFIED_EXECUTABLE'){
+        const work={proposal_id,review_hash,delivery_key:proposal.delivery_key,campaign_id:proposal.campaign_id,status:'QUEUED',attempts:0,created_at:now()};
+        await this.store.approveAndQueue('v2:decision:'+proposal_id,record,'v2:work:'+proposal_id,work);
+      }else await this.store.put('v2:decision:'+proposal_id,record);
       proposal.status=decision==='APPROVE'?'OWNER_APPROVED':'REJECTED';await this.store.put('v2:review:'+proposal_id,proposal);return record;
     });
   }
 
-  async distribute({limit=8}={}){
+  async distribute({limit=8,proposal_ids=null,campaign_ids=null}={}){
     return this.store.leased('v2:distribution',async()=>{
-      const results=[];
+      const results=[],selected=proposal_ids?new Set(proposal_ids):null,campaigns=campaign_ids?new Set(campaign_ids):null;
       for(const key of (await this.store.keys('v2:work:')).sort()){
         if(results.length>=limit)break;
         const work=await this.store.get(key);if(work?.status!=='QUEUED')continue;
+        if(selected&&!selected.has(work.proposal_id))continue;
+        if(campaigns&&!campaigns.has(work.campaign_id))continue;
         const proposal=await this.store.get('v2:review:'+work.proposal_id),decision=await this.store.get('v2:decision:'+work.proposal_id);
         if(!proposal||decision?.decision!=='APPROVE'||decision.review_hash!==proposal.review_hash||hash(proposal.binding)!==proposal.review_hash){work.status='BLOCKED';work.error='APPROVAL_BINDING_INVALID';await this.store.put(key,work);results.push(work);continue;}
         const old=await this.store.get('receipt:'+proposal.delivery_key)||await this.store.get('v2:receipt:'+proposal.delivery_key);
