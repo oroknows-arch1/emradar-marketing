@@ -11,6 +11,7 @@ import approvedRecovery from "./config/approved-campaign-recovery.json" with {ty
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
 import {autonomousV2ScanCycle} from './runtime/v2-autonomous-source.js';
+import {recoverOctober10Capacity} from './runtime/v2-capacity-recovery.js';
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
 import {evaluateX} from "./runtime/route-feedback.js";
@@ -463,10 +464,11 @@ async function normalCycle(){
   normalCyclePromise=(async()=>{
     const s=new RedisStore(await store());
     console.log('GRAPH_STATE_COMPACTION '+JSON.stringify(await s.compact()));
+    const capacity=await recoverOctober10Capacity(s);console.log('V2_CAPACITY_RECOVERY '+JSON.stringify(capacity));
     let preparation;
     try{preparation=await autonomousV2ScanCycle({store:s,runtime:await v2Runtime()});}
     catch(error){preparation={status:'BLOCKED',blocker:error.message,external_actions:0};console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify(preparation));await s.put('autonomous_scan_latest_blocker:EMRADAR',{...preparation,at:new Date().toISOString()});}
-    return {preparation,recovered:[],feedback:null};
+    return {preparation,recovered:[capacity],feedback:null};
   })().finally(()=>{normalCyclePromise=null;});
   return normalCyclePromise;
 }
