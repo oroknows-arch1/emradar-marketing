@@ -13,14 +13,19 @@ export function createReviewAuth({secret,origin,clock=()=>Date.now()}){
   if(extra.length||!/^\d+$/.test(expiry)||! /^[a-f0-9]{32}$/.test(nonce||'')||Number(expiry)*1000<=clock()||Number(expiry)*1000>clock()+lifetime*1000)return false;
   return equal(sig,signature(expiry+'.'+nonce));
  };
+ const establishOwnerSession=res=>{
+   if(!key())return false;
+   const value=Math.floor(clock()/1000+lifetime)+'.'+crypto.randomBytes(16).toString('hex');
+   res.setHeader('Set-Cookie',cookieName+'='+value+'.'+signature(value)+'; Path=/; Max-Age='+lifetime+'; HttpOnly; Secure; SameSite=Strict');
+   return true;
+ };
  return {
+  establishOwnerSession,
   configured:()=>!!key(),
   authorized:req=>bearer(req)||(session(req)&&(['GET','HEAD'].includes(req.method)||req.headers.origin===origin(req))),
   establish(req,res){
    if(!bearer(req))return false;
-   const value=Math.floor(clock()/1000+lifetime)+'.'+crypto.randomBytes(16).toString('hex');
-   res.setHeader('Set-Cookie',cookieName+'='+value+'.'+signature(value)+'; Path=/; Max-Age='+lifetime+'; HttpOnly; Secure; SameSite=Strict');
-   return true;
+   return establishOwnerSession(res);
   }
  };
 }

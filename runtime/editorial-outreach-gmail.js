@@ -69,3 +69,18 @@ export async function collectEditorialOutcome(receipt){
   return relayRequest('collect',{receipt:{id:receipt.id,sender_identity:receipt.sender_identity,message_id:receipt.provider_receipt?.message_id,recipient:receipt.recipient,submitted_at:receipt.timestamp,publication_domain:receipt.publication_domain}});
 }
 
+
+// Owner notifications are administrative mail, never publication approvals or distribution.
+export async function sendOwnerReviewNotification({subject,text,idempotency_key},{createTransport=transport}={}){
+ if(!configured()){const e=Error('OWNER_NOTIFICATION_CANONICAL_SMTP_UNAVAILABLE');e.definitely_unsent=true;throw e;}
+ const smtp=createTransport();
+ try{
+  const info=await smtp.sendMail({from:{name:brand.identity.name,address:expectedEditorialSender},to:'oroknows@gmail.com',replyTo:expectedEditorialSender,subject,text,messageId:'<owner-review-'+idempotency_key+'@emradar.net>',headers:{'X-EMRADAR-Idempotency-Key':idempotency_key}});
+  if(!info.messageId||!info.accepted?.includes('oroknows@gmail.com')){const e=Error('OWNER_NOTIFICATION_NOT_ACCEPTED');e.definitely_unsent=!info.accepted?.length;throw e;}
+  return {message_id:info.messageId,accepted:['oroknows@gmail.com'],rejected:info.rejected||[],response:info.response||null};
+ }catch(e){
+  // Retry only confirmed pre-submission failures or explicit negative SMTP replies.
+  if(['ECONNECTION','EDNS','EAUTH'].includes(e.code)||e.command==='CONN'||Number(e.responseCode)>=400&&Number(e.responseCode)<600)e.definitely_unsent=true;
+  throw e;
+ }finally{smtp.close();}
+}

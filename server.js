@@ -1,3 +1,4 @@
+import {createOwnerReview,ownerReviewLanding,handleOwnerReviewAccess} from './runtime/owner-review.js';
 import {createReviewAuth} from './runtime/review-auth.js';
 import {ownerOverride} from './runtime/owner-override.js';
 import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
@@ -33,7 +34,7 @@ import {createXAuthorization} from './runtime/x-authorization.js';
 import {xDiscoveryConnector} from './runtime/x-discovery.js';
 import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
-import {editorialRouteStatus,editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication} from './runtime/editorial-outreach-gmail.js';
+import {editorialRouteStatus,editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication,sendOwnerReviewNotification} from './runtime/editorial-outreach-gmail.js';
 import {createV2Runtime} from './runtime/v2-integration.js';
 import {recoverOctoberCampaignsToV2} from './runtime/v2-campaign-recovery.js';
 
@@ -92,6 +93,16 @@ function authorizedRequest(req){
 }
 const reviewAuth=createReviewAuth({secret:()=>process.env.MARKETING_PUBLICATION_REVIEW_TOKEN,origin:req=>PUBLIC_BASE_URL||'https://'+req.headers.host});
 function authorizedPublicationReview(req){return reviewAuth.authorized(req);}
+async function ownerReview(){return createOwnerReview({store:new RedisStore(await store()),auth:reviewAuth,secret:()=>process.env.MARKETING_PUBLICATION_REVIEW_TOKEN,baseUrl:PUBLIC_BASE_URL||'https://emradar-x-executor.onrender.com',send:sendOwnerReviewNotification});}
+async function notifyReadyReviews(){
+ const service=await ownerReview(),s=service.store;
+ for(const key of await s.keys('v2:review_package:')){
+  const campaign=key.slice('v2:review_package:'.length);
+  if(campaign<'EMRADAR_2026_10_11_LAUNCH')continue;
+  try{const result=await service.notify(campaign);if(result&&!result.duplicate)console.log('OWNER_REVIEW_NOTIFICATION '+JSON.stringify(result));}
+  catch{console.error('OWNER_REVIEW_NOTIFICATION_CHECK_FAILED '+JSON.stringify({campaign_id:campaign}));}
+ }
+}
 
 async function publishX(asset,key,product){
   const auth=await currentAuth(product);if(!auth?.access_token){const error=new Error('X authorization required');error.status=401;throw error;}
@@ -313,6 +324,13 @@ const server=http.createServer(async(req,res)=>{
     try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
+  if(req.method==='GET'&&u.pathname==='/OWNER_REVIEW'){
+    res.setHeader('Referrer-Policy','no-referrer');
+    return html(res,ownerReviewLanding());
+  }
+  if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/access'){
+    return handleOwnerReviewAccess({req,res,service:await ownerReview(),origin:PUBLIC_BASE_URL||'https://'+req.headers.host,readBody,json});
+  }
   if(u.pathname==='/PUBLICATION_REVIEW/session'&&['GET','POST'].includes(req.method)){
     if(req.method==='POST'&&!reviewAuth.establish(req,res))return json(res,403,{reason:reviewAuth.configured()?'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED':'OWNER_REVIEW_AUTH_CONFIGURATION_MISSING'});
     return json(res,200,{authenticated:authorizedPublicationReview(req),configured:reviewAuth.configured()});
@@ -325,6 +343,7 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/CAMPAIGN_REVIEW'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       const campaign=u.searchParams.get('campaign_id');
       if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
@@ -336,6 +355,7 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/V2/CAMPAIGN_REVIEW'){
+    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       const campaign=u.searchParams.get('campaign_id');
       if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
@@ -348,7 +368,7 @@ const server=http.createServer(async(req,res)=>{
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     // Viewing the saved package does not grant approval or distribution authority.
     const packageRead=req.method==='GET'&&u.searchParams.get('package')==='EMRADAR';
-    if(!packageRead&&!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
         if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record?{...record,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)}:{reason:'REVIEW_PACKAGE_NOT_FOUND'});}
@@ -390,6 +410,8 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(PORT,()=>{
   console.log('EMRADAR Marketing Engine V2 listening; V1 execution inactive; owner-approved distribution automatic');
+  const notify=()=>notifyReadyReviews().catch(()=>console.error('OWNER_REVIEW_NOTIFICATION_STORE_UNAVAILABLE'));
+  notify();setInterval(notify,60000).unref();
   // Read-only bounded billing visibility; no generation, settlement or transport.
   if(KEY_VALUE_URL)store().then(client=>billingAudit(new RedisStore(client))).then(audit=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
@@ -486,6 +508,7 @@ async function normalCycle(){
     let preparation;
     try{preparation=await autonomousV2ScanCycle({store:s,runtime:await v2Runtime()});}
     catch(error){preparation={status:'BLOCKED',blocker:error.message,external_actions:0};console.error('AUTONOMOUS_SCAN_BLOCKED '+JSON.stringify(preparation));await s.put('autonomous_scan_latest_blocker:EMRADAR',{...preparation,at:new Date().toISOString()});}
+    await notifyReadyReviews();
     return {preparation,recovered:[capacity],feedback:null};
   })().finally(()=>{normalCyclePromise=null;});
   return normalCyclePromise;
