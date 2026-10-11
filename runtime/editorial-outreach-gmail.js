@@ -22,7 +22,7 @@ const relay=()=>process.env.EMRADAR_EMAIL_RELAY_URL;
 async function relayRequest(operation,payload={}){
   if(relay()!=='https://orok-studios-api.onrender.com'||!process.env.EMRADAR_EMAIL_RELAY_TOKEN)throw new Error('APPROVED_PAID_EMAIL_RELAY_REQUIRED');
   const response=await fetch(relay()+'/emradar/email/'+operation,{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+process.env.EMRADAR_EMAIL_RELAY_TOKEN},body:JSON.stringify({user:sender(),password:password(),...payload}),signal:AbortSignal.timeout(45000)});
-  const result=await response.json();if(!response.ok){const e=new Error(result.reason||'EMAIL_RELAY_FAILED');e.code=result.code;e.command=result.command;throw e;}return result;
+  const result=await response.json();if(!response.ok){const e=new Error(result.reason||'EMAIL_RELAY_FAILED');e.code=result.code;e.command=result.command;e.definitely_unsent=result.definitely_unsent===true||result.reason==='REVIEWED_EMAIL_ENVELOPE_REQUIRED';throw e;}return result;
 }
 export async function verifyEditorialAuthentication(){
   if(relay())return relayRequest('verify');
@@ -49,8 +49,12 @@ export async function sendEditorialEmail({idempotency_key,product,asset,route,ap
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to))throw new Error('EDITORIAL_EMAIL_CONTACT_INVALID');
   const mail=reviewedMail(asset,route);
   const binding=approvalBinding;
+  if(binding?.version==='EMRADAR_OWNER_APPROVED_DELIVERY_V2'){
+    const {proposal:p,approval:a}=binding,hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
+    if(a?.authority!=='OWNER'||a.decision!=='APPROVE'||a.proposal_id!==p?.proposal_id||a.review_hash!==p.review_hash||hash(p.binding)!==p.review_hash||hash(p.asset)!==hash(asset)||hash(p.binding.asset)!==hash(asset)||p.delivery_key!==idempotency_key||hash([p.delivery_key,p.review_hash])!==p.proposal_id||['REJECTED','SUPERSEDED'].includes(p.status))throw new Error('OWNER_APPROVED_EMAIL_BINDING_REQUIRED');
+  }
   if(relay()&&(!binding||binding.proposal.asset.email.to!==mail.to))throw new Error('OWNER_APPROVED_EMAIL_BINDING_REQUIRED');
-  const signature=binding?crypto.createHmac('sha256',process.env.EMRADAR_EMAIL_RELAY_TOKEN).update('EMRADAR_OWNER_APPROVED_DELIVERY_V1\n'+JSON.stringify({mail,idempotency_key,binding})).digest('hex'):null;
+  const signature=relay()&&binding?crypto.createHmac('sha256',process.env.EMRADAR_EMAIL_RELAY_TOKEN).update('EMRADAR_OWNER_APPROVED_DELIVERY_V1\n'+JSON.stringify({mail,idempotency_key,binding})).digest('hex'):null;
   const info=relay()?await relayRequest('submit',{mail,idempotency_key,binding,signature}):await transport().sendMail({
     ...mail,
     headers:{'X-EMRADAR-Idempotency-Key':idempotency_key}

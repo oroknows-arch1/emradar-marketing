@@ -4,7 +4,7 @@ import {calendarMonth} from './spending.js';
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const now=()=>new Date().toISOString();
 const fail=reason=>{throw new Error(reason);};
-const finalDelivery=new Set(['SUBMITTED','PUBLISHED','AMBIGUOUS','IN_FLIGHT']);
+const finalDelivery=new Set(['SUBMITTED','PUBLISHED','IN_FLIGHT']);
 
 export const V2_GRAPH=Object.freeze([
   'SCAN','MATCH','PREPARE','VERIFY','OWNER_REVIEW','DISTRIBUTE','RECORD','LEARN'
@@ -25,9 +25,9 @@ export const V2_WORKERS=Object.freeze({
 export function existingEditorialTransport(adapter){
   return {
     quote:async()=>({currency:'AUD',max_cost_aud:0}),
-    async send({asset,idempotency_key,approval}){
+    async send({asset,idempotency_key,approval,proposal}){
       if(!adapter?.publish)fail('TRANSPORT_UNAVAILABLE');
-      const result=await adapter.publish(asset,idempotency_key,'EMRADAR',{proposal:{proposal_id:approval.proposal_id,review_hash:approval.review_hash,asset},approval});
+      const result=await adapter.publish(asset,idempotency_key,'EMRADAR',{version:'EMRADAR_OWNER_APPROVED_DELIVERY_V2',proposal,approval});
       if(result.status!=='SUBMITTED')fail('PROVIDER_ACCEPTANCE_REQUIRED');
       return {id:result.id,status:'ACCEPTED',receipt:result.provider_receipt,actual_cost_aud:0};
     },
@@ -145,15 +145,34 @@ export class StreamlinedMarketingEngineV2 {
   async distribute({limit=8,proposal_ids=null,campaign_ids=null}={}){
     return this.store.leased('v2:distribution',async()=>{
       const results=[],selected=proposal_ids?new Set(proposal_ids):null,campaigns=campaign_ids?new Set(campaign_ids):null;
+      // Recover from persisted owner decisions, without repeating owner review.
+      for(const key of await this.store.keys('v2:decision:')){
+        const decision=await this.store.get(key),p=await this.store.get('v2:review:'+decision?.proposal_id);
+        if(decision?.authority!=='OWNER'||decision.decision!=='APPROVE'||!p||['REJECTED','SUPERSEDED'].includes(p.status)||p.delivery_capability!=='VERIFIED_EXECUTABLE')continue;
+        if(selected&&!selected.has(p.proposal_id)||campaigns&&!campaigns.has(p.campaign_id))continue;
+        if(decision.review_hash!==p.review_hash||hash(p.binding)!==p.review_hash||hash(p.asset)!==hash(p.binding.asset)||hash([p.delivery_key,p.review_hash])!==p.proposal_id)continue;
+        const workKey='v2:work:'+p.proposal_id,work=await this.store.get(workKey),receiptKey='v2:receipt:'+p.delivery_key;
+        const legacy=await this.store.get('receipt:'+p.delivery_key),receipt=await this.store.get(receiptKey);
+        if(legacy)continue; // Historical provider identity remains authoritative.
+        const recoverable=receipt&&!finalDelivery.has(receipt.execution_status)&&!receipt.external_id&&!receipt.provider_receipt&&receipt.proposal_id===p.proposal_id&&receipt.review_hash===p.review_hash&&receipt.delivery_hash===hash(p.asset)&&(p.asset.delivery_method==='EMAIL'||receipt.definitely_unsent===true||receipt.verified_unsent_recovery===true);
+        if(receipt&&!recoverable)continue;
+        if(receipt&&recoverable){
+          const recoveryKey='v2:delivery-recovery:'+p.delivery_key;
+          const previous=await this.store.get(recoveryKey);
+          await this.store.put(recoveryKey,{prior:receipt,previous,proposal_id:p.proposal_id,review_hash:p.review_hash,at:now()});
+          await this.store.put(receiptKey,{...receipt,execution_status:'FAILED',attempts:receipt.attempts,definitely_unsent:receipt.definitely_unsent===true});
+        }
+        if(!work||work.status!=='QUEUED')await this.store.put(workKey,{...work,proposal_id:p.proposal_id,review_hash:p.review_hash,delivery_key:p.delivery_key,campaign_id:p.campaign_id,status:'QUEUED',attempts:work?.attempts||0,created_at:work?.created_at||now()});
+      }
       for(const key of (await this.store.keys('v2:work:')).sort()){
         if(results.length>=limit)break;
         const work=await this.store.get(key);if(work?.status!=='QUEUED')continue;
         if(selected&&!selected.has(work.proposal_id))continue;
         if(campaigns&&!campaigns.has(work.campaign_id))continue;
         const proposal=await this.store.get('v2:review:'+work.proposal_id),decision=await this.store.get('v2:decision:'+work.proposal_id);
-        if(!proposal||decision?.decision!=='APPROVE'||decision.review_hash!==proposal.review_hash||hash(proposal.binding)!==proposal.review_hash){work.status='BLOCKED';work.error='APPROVAL_BINDING_INVALID';await this.store.put(key,work);results.push(work);continue;}
+        if(!proposal||decision?.authority!=='OWNER'||decision.decision!=='APPROVE'||['REJECTED','SUPERSEDED'].includes(proposal.status)||hash(proposal.asset)!==hash(proposal.binding.asset)||decision.review_hash!==proposal.review_hash||hash(proposal.binding)!==proposal.review_hash){work.status='BLOCKED';work.error='APPROVAL_BINDING_INVALID';await this.store.put(key,work);results.push(work);continue;}
         const old=await this.store.get('receipt:'+proposal.delivery_key)||await this.store.get('v2:receipt:'+proposal.delivery_key);
-        if(finalDelivery.has(old?.execution_status)){work.status=old.execution_status;work.receipt_id=old.id;await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:old,duplicate:true});continue;}
+        if(finalDelivery.has(old?.execution_status)||old?.external_id||old?.provider_receipt){work.status=old.execution_status;work.receipt_id=old.id;await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:old,duplicate:true});continue;}
         const transport=this.transports[proposal.asset.delivery_method];
         if(!transport?.send){work.status='FAILED';work.error='TRANSPORT_UNAVAILABLE';await this.store.put(key,work);results.push(work);continue;}
         const quote=await transport.quote?.(proposal.asset)??{currency:'AUD',max_cost_aud:'UNKNOWN'};
@@ -162,18 +181,18 @@ export class StreamlinedMarketingEngineV2 {
         const xUnknownSpendAuthorized=proposal.destination==='EMRADAR-X-OROKNOWS'&&proposal.asset.delivery_method==='X'&&quote.currency==='AUD'&&quote.owner_authorized_unknown_spend===true;
         if(quote.currency!=='AUD'||(!Number.isFinite(quote.max_cost_aud)&&!xUnknownSpendAuthorized)){work.status='BLOCKED';work.error='OWNER_AUTHORIZATION_REQUIRED_UNKNOWN_SPEND';await this.store.put(key,work);results.push(work);continue;}
         if(Number.isFinite(quote.max_cost_aud)&&(campaignSpent+quote.max_cost_aud>this.campaignLimitAud||ledger.actual_aud+quote.max_cost_aud>this.monthLimitAud)){work.status='BLOCKED';work.error='SPENDING_LIMIT_EXCEEDED';await this.store.put(key,work);results.push(work);continue;}
-        const inFlight={id:proposal.delivery_key,proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,delivery_hash:hash(proposal.asset),campaign_id:proposal.campaign_id,destination:proposal.destination,idempotency_key:proposal.delivery_key,execution_status:'IN_FLIGHT',attempts:work.attempts+1,timestamp:now(),provider_receipt:null};
-        if(!await this.store.claimReceipt('v2:receipt:'+proposal.delivery_key,inFlight)){const existing=await this.store.get('v2:receipt:'+proposal.delivery_key);work.status=existing?.execution_status||'AMBIGUOUS';await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:existing,duplicate:true});continue;}
+        const inFlight={id:proposal.delivery_key,proposal_id:proposal.proposal_id,review_hash:proposal.review_hash,delivery_hash:hash(proposal.asset),campaign_id:proposal.campaign_id,destination:proposal.destination,idempotency_key:proposal.delivery_key,execution_status:'IN_FLIGHT',attempts:work.attempts+1,timestamp:now(),provider_receipt:null,retry_idempotent_email:proposal.asset.delivery_method==='EMAIL'};
+        if(!await this.store.claimReceipt('v2:receipt:'+proposal.delivery_key,inFlight)){const existing=await this.store.get('v2:receipt:'+proposal.delivery_key);work.status=existing?.execution_status||'QUEUED';await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:existing,duplicate:true});continue;}
         work.status='IN_FLIGHT';work.attempts=inFlight.attempts;await this.store.put(key,work);
         let receipt=inFlight;
         try{
-          const sent=await transport.send({asset:structuredClone(proposal.asset),idempotency_key:proposal.delivery_key,approval:{proposal_id:proposal.proposal_id,review_hash:proposal.review_hash}});
+          const sent=await transport.send({asset:structuredClone(proposal.asset),idempotency_key:proposal.delivery_key,approval:structuredClone(decision),proposal:structuredClone(proposal)});
           if(!sent?.id||sent.status!=='ACCEPTED')fail('PROVIDER_ACCEPTANCE_REQUIRED');
           const observedCost=sent.actual_cost_aud??quote.max_cost_aud;
           receipt={...inFlight,execution_status:'SUBMITTED',external_id:String(sent.id),provider_receipt:sent.receipt||null,actual_cost_aud:Number.isFinite(observedCost)?observedCost:'UNKNOWN',cost_observation:Number.isFinite(observedCost)?'PROVIDER_REPORTED':'NOT_AVAILABLE',timestamp:now()};
           if(Number.isFinite(observedCost)){if(observedCost<0)fail('PROVIDER_COST_RECEIPT_REQUIRED');ledger.actual_aud+=observedCost;ledger.campaigns[proposal.campaign_id]=campaignSpent+observedCost;await this.store.put('v2:spend:'+month,ledger);}
           else if(!xUnknownSpendAuthorized)fail('PROVIDER_COST_RECEIPT_REQUIRED');
-        }catch(error){receipt={...inFlight,execution_status:error.definitely_unsent===true?'FAILED':'AMBIGUOUS',error:error.message,timestamp:now()};}
+        }catch(error){if(receipt.execution_status!=='SUBMITTED')receipt={...inFlight,execution_status:'FAILED',error:error.message,definitely_unsent:error.definitely_unsent===true,timestamp:now()};}
         await this.store.put('v2:receipt:'+proposal.delivery_key,receipt);work.status=receipt.execution_status;work.receipt_id=receipt.id;work.completed_at=now();await this.store.put(key,work);
         await this.store.put('v2:feedback-work:'+receipt.id,{receipt_id:receipt.id,status:receipt.execution_status==='SUBMITTED'?'QUEUED':'WAITING',created_at:now()});results.push({proposal_id:proposal.proposal_id,status:work.status,receipt});
       }

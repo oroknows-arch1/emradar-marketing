@@ -42,30 +42,6 @@ export async function recoverApprovedCampaign(engine,manifest){
   for(const d of manifest.proposals)await approveExact(engine,d);
   await s.put(key,{status:'OWNER_APPROVED',authority:manifest.authority,at:at(),proposals:manifest.proposals});
 }
-export async function releaseVerifiedUnsent(engine,manifest){
- const s=engine.store;
- return s.leased('distribution',async()=>{
-  const key='distribution_repair:'+manifest.campaign_id;if(await s.get(key))return;
-  const records=[];
-  for(const d of manifest.proposals){
-   const p=await s.get('publication_review:'+d.proposal_id);identity(p,d);
-   const approval=await s.get('publication_approval:'+p.proposal_id),job=await s.get('distribution_work:'+p.proposal_id),r=await s.get('receipt:'+p.publication_key);
-   if(p.input.campaign_id!==manifest.campaign_id||approval?.approved_by!=='OWNER'||approval.review_hash!==p.review_hash||approval.asset_hash!==digest(p.asset)||job?.asset_hash!==digest(p.asset))fail('APPROVED_ARTIFACT_CHANGED');
-   if(r?.proposal_id!==p.proposal_id||r.review_hash!==p.review_hash||r.delivery_hash!==digest(p.asset))fail('RECEIPT_ARTIFACT_BINDING_CHANGED');
-   if(['SUBMITTED','PUBLISHED','IN_FLIGHT'].includes(r?.execution_status))fail('REPAIR_ALREADY_ACCEPTED_OR_IN_FLIGHT');
-   if(p.platform==='X'){if(r?.execution_status!=='FAILED'||r.error!=='ACTUAL_COST_BOUND_UNKNOWN'||r.attempts!==0)fail('X_RECOVERY_STATE_CHANGED');}
-   else if(r?.execution_status!=='AMBIGUOUS'||r.error!=='REVIEWED_EMAIL_ENVELOPE_REQUIRED'||r.external_id||r.provider_receipt)fail('VERIFIED_UNSENT_STATE_CHANGED');
-   records.push({p,job,r});
-  }
-  for(const {p,job,r} of records){
-   const evidence={authority:'OWNER_VERIFIED_GMAIL_SENT_ABSENT_2026_10_07',proposal_id:p.proposal_id,review_hash:p.review_hash,asset_hash:digest(p.asset),prior:r,at:at()};
-   await s.put('delivery_recovery:'+p.publication_key,evidence);
-   await s.put('receipt:'+p.publication_key,{...r,execution_status:'FAILED',attempts:0,verified_unsent_recovery:true});
-   await s.put('distribution_work:'+p.proposal_id,{...job,status:'QUEUED',error:null,recovery_run_suffix:':verified-unsent-repair-v1',recovered_at:at()});
-  }
-  await s.put(key,{status:'RELEASED_ONCE',proposals:manifest.proposals,at:at()});
- });
-}
 export async function drainApproved(engine,workers,{limit=8,excludeCampaigns=[]}={}){
   const s=engine.store;
   return s.leased('distribution',async()=>{

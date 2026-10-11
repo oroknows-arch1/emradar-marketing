@@ -5,8 +5,6 @@ import sentenceCorrection from './config/october7-sentence-correction.json' with
 import {applySentenceCorrection} from './runtime/sentence-correction.js';
 import http from "node:http";
 import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
-import repairRecovery from './config/distribution-repair-recovery.json' with {type:'json'};
-import {releaseVerifiedUnsent} from './runtime/approved-distribution.js';
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
@@ -406,7 +404,6 @@ server.listen(PORT,()=>{
     return v2Preflight();
   }).then(async result=>{
     cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
-    if(editorialRepair&&!editorialRepair.duplicate&&editorialRepair.corrected_count>0)return console.log('V2_DISTRIBUTION_HELD_FOR_EDITORIAL_REVIEW '+JSON.stringify({campaign_id:editorialRepair.campaign_id,corrected_count:editorialRepair.corrected_count,external_actions:0}));
     const deliveries=await (await v2Runtime()).distribute({campaign_ids:['EMRADAR_2026_10_10_LAUNCH']});
     for(const delivery of deliveries)console.log('V2_AUTOMATIC_DISTRIBUTION '+JSON.stringify(delivery));
   }).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_OR_DISTRIBUTION_BLOCKED '+JSON.stringify(cutoverState));});
@@ -505,7 +502,6 @@ async function distributionCycle(){
     for(const manifest of [approvedRecovery,...approvedReleases]){
       try{await engine.recoverApprovedCampaign(manifest);}catch(e){excludeCampaigns.push(manifest.campaign_id);console.error('APPROVED_CAMPAIGN_RECOVERY_BLOCKED '+JSON.stringify({campaign_id:manifest.campaign_id,reason:e.message}));}
     }
-    await releaseVerifiedUnsent(engine,repairRecovery);
     const results=await engine.distributeApproved({limit:8,excludeCampaigns});
     for(const result of results)console.log('APPROVED_DISTRIBUTION_RECEIPT '+JSON.stringify(result));
     return results;
