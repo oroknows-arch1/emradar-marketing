@@ -1,0 +1,82 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {campaignReviewHtml,equivalentEmailGroups} from '../../runtime/campaign-review-html.js';
+import {FileStore} from '../../runtime/store.js';
+import {createV2Runtime} from '../../runtime/v2-integration.js';
+import {groupedReviewFixture} from './grouped-review-fixture.js';
+
+const options={v2:true,decisionPath:'/V2/PUBLICATION_REVIEW'};
+test('69 saved proposals become four equivalent email groups and one individual X asset without mutation',()=>{
+ const record=groupedReviewFixture(),before=JSON.stringify(record),groups=equivalentEmailGroups(record.proposals);
+ assert.equal(groups.filter(g=>g.email).length,4);assert.equal(groups.filter(g=>!g.email).length,1);assert.equal(groups.flatMap(g=>g.proposals).length,69);
+ assert.deepEqual(new Set(groups.flatMap(g=>g.proposals.map(p=>p.proposal_id))),new Set(record.proposals.map(p=>p.proposal_id)));
+ assert.deepEqual(groups.filter(g=>g.email).map(g=>g.proposals.length),[17,17,17,17]);
+ const html=campaignReviewHtml(record,record.campaign_id,options);assert.equal((html.match(/class="decisions"/g)||[]).length,69);assert.match(html,/Distinct email groups:<\/strong> 4/);assert.match(html,/Exact saved X text/);assert.match(html,/data:image\/png;base64,c2F2ZWQ=/);assert.match(html,/Uncertainty retained/);
+ for(const p of record.proposals){assert(html.includes('data-id="'+p.proposal_id+'"'));assert(html.includes('data-hash="'+p.review_hash+'"'));if(p.asset.email)assert(html.includes(p.asset.email.to));}
+ assert.equal(JSON.stringify(record),before);
+ const reversed=equivalentEmailGroups(record.proposals.slice().reverse()).filter(g=>g.email);assert.deepEqual(new Set(reversed.map(g=>g.id)),new Set(groups.filter(g=>g.email).map(g=>g.id)));
+ for(const g of reversed)assert.equal(g.proposals[0].proposal_id,groups.find(x=>x.id===g.id).proposals[0].proposal_id);
+});
+test('different claims, evidence, angles, requests, wording, presentation and attachments never coalesce',()=>{
+ const members=equivalentEmailGroups(groupedReviewFixture().proposals).find(g=>g.email).proposals;
+ for(const change of [p=>p.asset.email.body+=' New claim.',p=>p.binding.evidence.references=['different-source'],p=>p.asset.email.subject+=' Different angle',p=>p.asset.email.body=p.asset.email.body.replace('research contribution','interview'),p=>p.asset.email.html+='<p>Additional qualification</p>',p=>p.asset.attachments=[{filename:'evidence.pdf',content:'different-bytes'}]]){
+  const p=structuredClone(members[1]);change(p);assert.equal(equivalentEmailGroups([members[0],p]).length,2);
+ }
+ const first=structuredClone(members[0]),second=structuredClone(members[1]);first.asset.email.body+='\n\nPublication 0 reports a new investment.';second.asset.email.body+='\n\nPublication 4 reports a new investment.';assert.equal(equivalentEmailGroups([first,second]).length,2);
+});
+test('manual, non-email and X assets stay individually reviewable',()=>{
+ const p=groupedReviewFixture().proposals[0],manual={...p,asset:{...p.asset,delivery_method:'MANUAL'}},article={...p,asset:{...p.asset,article:{title:'Article',body:'Body'}}};
+ assert.equal(equivalentEmailGroups([manual,manual,article,article]).length,4);
+});
+
+// Execute the actual embedded browser handlers against a minimal DOM and local protected runtime.
+function browser(record,request){
+ const groupNodes=equivalentEmailGroups(record.proposals).filter(g=>g.email).map(g=>{
+  const group={dataset:{group:g.id},result:{textContent:''},reason:{value:''},members:{open:false},labels:new Map(),buttons:[],decisions:[]};
+  group.querySelector=selector=>selector==='.group-result'?group.result:selector==='.group-reason'?group.reason:selector==='.members'?group.members:group.labels.get(selector.match(/data-member-status="([^"]+)"/)?.[1]);
+  group.querySelectorAll=selector=>selector==='.decisions'?group.decisions:group.buttons;
+  group.buttons=['APPROVE','REJECT'].map(decision=>({dataset:{groupDecision:decision},disabled:false,closest:()=>group}));
+  group.decisions=g.proposals.map(p=>{
+   const status=record.owner_decisions[p.proposal_id]?.status,settled=['OWNER_APPROVED','REJECTED','SUBMITTED'].includes(status),d={dataset:{id:p.proposal_id,hash:p.review_hash,settled:String(settled)},result:{textContent:status||''},reason:{value:''}};
+   d.buttons=['APPROVE','REJECT'].map(decision=>({dataset:{decision},disabled:settled,closest:()=>d}));d.querySelector=selector=>selector==='.result'?d.result:d.reason;d.querySelectorAll=()=>d.buttons;d.closest=()=>group;group.labels.set(p.proposal_id,{textContent:status||''});return d;
+  });
+  if(group.decisions.every(d=>d.dataset.settled==='true'))group.buttons.forEach(b=>b.disabled=true);return group;
+ });
+ const nodes={authentication:{hidden:false},credential:{value:'',addEventListener(){}},'auth-status':{textContent:''}},requests=[];
+ const document={getElementById:id=>nodes[id],querySelectorAll:selector=>selector==='button[data-decision]'?groupNodes.flatMap(g=>g.decisions.flatMap(d=>d.buttons)):groupNodes.flatMap(g=>g.buttons)};
+ const fetch=async(url,init)=>{if(url==='/PUBLICATION_REVIEW/session')return {json:async()=>({authenticated:true,configured:true})};assert.equal(url,'/V2/PUBLICATION_REVIEW');assert.equal(init.credentials,'same-origin');const payload=JSON.parse(init.body);requests.push(payload);return request(payload);};
+ const html=campaignReviewHtml(record,record.campaign_id,options),script=html.slice(html.indexOf('<script>')+8,html.indexOf('</script>'));
+ vm.runInNewContext(script,{document,fetch,confirm:()=>true,Map,Set,Error});return {groups:groupNodes,requests};
+}
+async function local(record){
+ const store=new FileStore(await fs.mkdtemp(path.join(os.tmpdir(),'group-review-'))),deliveries=new Map();
+ for(const p of record.proposals)await store.put('v2:review:'+p.proposal_id,p);
+ const runtime=await createV2Runtime({store,integrationModule:{destinations:[],assetBuilder:()=>{throw Error('NO_GENERATION');}},editorialAdapter:{publish:async(asset,key)=>{deliveries.set(key,(deliveries.get(key)||0)+1);return {id:'fake-provider-'+key,status:'SUBMITTED',provider_receipt:{test_only:true}};}}});
+ const request=async payload=>{try{const value=await runtime.decide(payload,'Bearer fixture-owner');return {ok:true,json:async()=>value};}catch(e){return {ok:false,json:async()=>({reason:e.message})};}};
+ return {store,runtime,request,deliveries};
+}
+function smallRecord(){const r=groupedReviewFixture();r.proposals=equivalentEmailGroups(r.proposals).find(g=>g.email).proposals.slice(0,3);return r;}
+async function ownerTest(fn){const saved=process.env.MARKETING_PUBLICATION_REVIEW_TOKEN;process.env.MARKETING_PUBLICATION_REVIEW_TOKEN='fixture-owner';try{await fn();}finally{if(saved===undefined)delete process.env.MARKETING_PUBLICATION_REVIEW_TOKEN;else process.env.MARKETING_PUBLICATION_REVIEW_TOKEN=saved;}}
+
+test('group approval persists exact individual decisions, reports partial failures, resumes and protects rejection',()=>ownerTest(async()=>{
+ const record=smallRecord(),f=await local(record),rejected=record.proposals[0];await f.runtime.engine.decide({...rejected,decision:'REJECT'});record.owner_decisions[rejected.proposal_id]={status:'REJECTED'};const original=await f.store.get('v2:decision:'+rejected.proposal_id);let failed=false;
+ const ui=browser(record,async payload=>{if(payload.proposal_id===record.proposals[1].proposal_id&&!failed){failed=true;return {ok:false,json:async()=>({reason:'TEMPORARY_FAILURE'})};}return f.request(payload);}),g=ui.groups[0];
+ await g.buttons[0].onclick();assert.match(g.result.textContent,/1 saved; 1 already decided; 1 failed/);assert.equal(g.members.open,true);assert.equal(f.deliveries.size,1);
+ await g.buttons[0].onclick();assert.match(g.result.textContent,/1 saved; 2 already decided; 0 failed/);assert.equal(f.deliveries.size,2);assert([...f.deliveries.values()].every(n=>n===1));assert.deepEqual(await f.store.get('v2:decision:'+rejected.proposal_id),original);
+ for(const p of record.proposals.slice(1)){const d=await f.store.get('v2:decision:'+p.proposal_id);assert.equal(d.review_hash,p.review_hash);assert.equal(d.decision,'APPROVE');}
+ assert.equal(ui.requests.length,3);await g.buttons[0].onclick();assert.equal(ui.requests.length,3);
+ const refreshed={...record,owner_decisions:Object.fromEntries(record.proposals.map(p=>[p.proposal_id,{status:p===rejected?'REJECTED':'OWNER_APPROVED'}]))};const fresh=browser(refreshed,f.request);await fresh.groups[0].buttons[0].onclick();assert.equal(fresh.requests.length,0);
+}));
+test('individual approval and group rejection retain separate decisions and reject changed hashes',()=>ownerTest(async()=>{
+ const record=smallRecord(),f=await local(record),ui=browser(record,f.request),g=ui.groups[0];const first=g.decisions[0];await first.buttons[0].onclick();assert.equal(f.deliveries.size,1);
+ g.reason.value='Owner rejected this correspondence';await g.buttons[1].onclick();assert.equal(f.deliveries.size,1);const saved=await Promise.all(record.proposals.map(p=>f.store.get('v2:decision:'+p.proposal_id)));assert.equal(saved.filter(d=>d.decision==='APPROVE').length,1);assert.equal(saved.filter(d=>d.decision==='REJECT').length,2);assert(ui.requests.filter(p=>p.decision==='REJECT').every(p=>p.reason===g.reason.value));
+ const changed=smallRecord(),other=await local(changed),p=changed.proposals[1],persisted=await other.store.get('v2:review:'+p.proposal_id);persisted.binding.asset.email.body+=' changed';await other.store.put('v2:review:'+p.proposal_id,persisted);const second=browser(changed,other.request);await second.groups[0].buttons[0].onclick();assert.match(second.groups[0].result.textContent,/1 failed/);assert.equal(await other.store.get('v2:decision:'+p.proposal_id),null);assert.equal(other.deliveries.size,2);
+}));
+test('duplicate clicks and a lost response cannot repeat a provider-confirmed delivery',()=>ownerTest(async()=>{
+ const record=smallRecord(),f=await local(record);let lose=true;const ui=browser(record,async payload=>{const response=await f.request(payload);if(lose){lose=false;throw Error('response lost after persistence');}return response;}),g=ui.groups[0];
+ await Promise.all([g.buttons[0].onclick(),g.buttons[0].onclick()]);assert.match(g.result.textContent,/1 failed/);assert.equal(f.deliveries.size,3);await g.buttons[0].onclick();assert.equal(f.deliveries.size,3);assert([...f.deliveries.values()].every(n=>n===1));
+}));
