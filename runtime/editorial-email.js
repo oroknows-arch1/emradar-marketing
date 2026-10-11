@@ -1,4 +1,5 @@
 import brand from './email-brand.cjs';
+import {validateCorrespondenceText} from './correspondence-quality.js';
 import crypto from 'node:crypto';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 export const emailVersion='human-correspondence-v2';
@@ -158,6 +159,7 @@ export function validateHumanEmail(email,signal,route,identity){
   const greeting=recipientGreeting(route,email.language);
   const humanBody=email.brand_version?brand.correspondence(email.body):email.body;
   if(email.brand_version)brand.envelope(email);
+  validateCorrespondenceText(humanBody);
   if(!email.body.startsWith(greeting.text+'\n\n')||!/(?:I'm|My name is|Soy|Me llamo) Sean Walker/u.test(email.body)||!humanBody.endsWith('\n'+correspondentName+'\nEMRADAR'))fail('EMAIL_CORRESPONDENCE_REQUIRED');
   if(email.proposition.correspondence)validateCorrespondenceProposition(email.proposition,route);
   if(email.features?.version!==emailVersion||email.features.greeting_type!==greeting.type||email.features.email_length_words!==email.body.trim().split(/\s+/).length)fail('EMAIL_LEARNING_FEATURE_BINDING_REQUIRED');
@@ -176,3 +178,4 @@ export const draftCapability='campaign_specific_finished_sourced_draft';
 export const draftOffer=language=>language==='es-CL'?'Si les resulta útil, puedo enviar un borrador terminado y conciso con fuentes para su revisión.':'If useful, I can send a concise finished draft with sources for review.';
 export const evidenceBinding=signal=>({source_revision:signal.revision,signal_state:signal.state,evidence_refs:[...signal.evidence],source_facts:structuredClone(signal.source_facts||[]),source_uncertainty:[...(signal.source_uncertainty||[])]});
 export function validateInternalUncertainty(result,signal){if(!(signal.source_uncertainty||[]).every((text,i)=>result.qualifications?.some(q=>q.source_index===i&&q.text===text)))fail('EMAIL_UNCERTAINTY_NOT_PRESERVED');}
+

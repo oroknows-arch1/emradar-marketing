@@ -171,7 +171,7 @@ const server=http.createServer(async(req,res)=>{
         const proposal=await runtime.review(id);return json(res,proposal?200:404,proposal||{reason:'PUBLICATION_REVIEW_NOT_FOUND'});
       }
       const input=JSON.parse(await readBody(req));
-      if(!/^[a-f0-9]{64}$/.test(input?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(input?.review_hash||'')||!['APPROVE','REJECT'].includes(input?.decision))return json(res,400,{reason:'V2_OWNER_DECISION_INVALID'});
+      if(!/^[a-f0-9]{64}$/.test(input?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(input?.review_hash||'')||!(input?.action==='REQUEST_REVISION'||['APPROVE','REJECT'].includes(input?.decision)&&(!input.action||input.action==='OVERRIDE')))return json(res,400,{reason:'V2_OWNER_DECISION_INVALID'});
       return json(res,200,await runtime.decide(input,'Bearer '+process.env.MARKETING_PUBLICATION_REVIEW_TOKEN));
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
@@ -361,7 +361,7 @@ const server=http.createServer(async(req,res)=>{
       if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
       const s=new RedisStore(await store()),record=await s.get('v2:review_package:'+campaign);
       if(!record)return json(res,404,{reason:'V2_REVIEW_PACKAGE_NOT_FOUND'});
-      const owner_decisions=Object.fromEntries(await Promise.all(record.proposals.map(async proposal=>{const decision=await s.get('v2:decision:'+proposal.proposal_id),distribution=await s.get('v2:work:'+proposal.proposal_id);return [proposal.proposal_id,{status:decision?.decision==='APPROVE'?'OWNER_APPROVED':decision?.decision==='REJECT'?'REJECTED':proposal.status,distribution}];})));
+      const owner_decisions=Object.fromEntries(await Promise.all(record.proposals.map(async proposal=>{const decision=await s.get('v2:decision:'+proposal.proposal_id),distribution=await s.get('v2:work:'+proposal.proposal_id);return [proposal.proposal_id,{status:decision?.decision==='APPROVE'?'OWNER_APPROVED':decision?.decision==='REJECT'?'REJECTED':proposal.status,distribution,revision:await s.get('v2:revision-latest:'+proposal.proposal_id)}];})));
       return html(res,campaignReviewHtml({...record,owner_decisions},campaign,{decisionPath:'/V2/PUBLICATION_REVIEW',v2:true}));
     }catch(e){return json(res,409,{reason:e.message});}
   }
@@ -531,3 +531,4 @@ async function distributionCycle(){
   })().finally(()=>{distributionPromise=null;});
   return distributionPromise;
 }
+

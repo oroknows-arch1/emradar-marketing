@@ -4,7 +4,7 @@ const esc=value=>value.replace(/'/g,'&#39;');
 export function groupedReviewFixture(){
  const campaign_id='EMRADAR_2026_10_11_LAUNCH';
  const proposals=Array.from({length:69},(_,i)=>{
-  const group=i%4,name='Editor '+i,organisation='Publication '+i,to='editor'+i+'@example.test',destination='DESTINATION-'+i;
+  const group=i%4,name='Editor',organisation='Publication',to='editor'+i+'@example.test',destination='DESTINATION-'+i;
   const reason="I'm getting in touch because "+organisation+"'s coverage of topic "+group+' provides a useful context for this development.';
   const body='Hi '+name+',\n\n'+reason+'\n\nClaim '+group+': a published milestone, with scale still uncertain.\n\nWould an evidence-led article or research contribution developing this angle be useful for '+organisation+'?\n\nSean Walker\nEMRADAR';
   const email={from:{name:'Sean Walker',address:'sean@emradar.net'},to,subject:'Research contribution '+group,body,html:'<html><body>'+body.split('\n\n').map(p=>'<p>'+esc(p)+'</p>').join('')+'</body></html>',features:{destination_specific_reason:reason,email_length_words:body.split(/\s+/).length}};
@@ -15,3 +15,4 @@ export function groupedReviewFixture(){
  });
  return {campaign_id,status:'AWAITING_OWNER_REVIEW',proposals,owner_decisions:{}};
 }
+

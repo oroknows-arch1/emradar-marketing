@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import {reviewAction} from './v2-review-actions.js';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {RedisStore} from './store.js';
@@ -30,8 +31,8 @@ export async function createV2Runtime({store,redisClient,integrationModule,integ
     async review(proposalId){return persistentStore.get('v2:review:'+proposalId);},
     async decide(input,authorization){
       if(!authorizedV2Owner(authorization))fail('OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED');
-      const decision=await engine.decide(input);
-      const distribution=input.decision==='APPROVE'?await engine.distribute({proposal_ids:[input.proposal_id]}):[];
+      const decision=input.action?await reviewAction(engine,input):await engine.decide(input);
+      const distribution=input.action!=='REQUEST_REVISION'&&input.decision==='APPROVE'?await engine.distribute({proposal_ids:[input.proposal_id]}):[];
       return {...decision,automatic_distribution:distribution[0]||null};
     },
     distribute:input=>engine.distribute(input),
@@ -43,3 +44,4 @@ export async function createV2Runtime({store,redisClient,integrationModule,integ
     }
   };
 }
+

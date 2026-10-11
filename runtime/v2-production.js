@@ -2,6 +2,7 @@ import directory from '../state/open-route-directory.json' with {type:'json'};
 import brand from './email-brand.cjs';
 import crypto from 'node:crypto';
 import sharp from 'sharp';
+import {validateCorrespondenceText} from './correspondence-quality.js';
 
 const values=value=>(Array.isArray(value)?value:[]).map(v=>String(v).toLowerCase());
 const overlap=(a,b)=>values(a).some(x=>values(b).includes(x)||x==='all');
@@ -53,13 +54,39 @@ const october10Copy={
     'es-CL':{development:'La SADC y el Banco Africano de Desarrollo realizaron una misión estratégica sobre integración regional, industrialización, infraestructura y financiamiento sostenible, apoyándose en programas existentes de corredores y resiliencia.',insight:'La oportunidad consiste en conectar la preparación de proyectos con el financiamiento de infraestructura transfronteriza, pero los compromisos institucionales solo importarán si acortan los ciclos de desarrollo y movilizan proyectos ejecutables.',uncertainty:'Siguen sin especificarse la lista de proyectos prioritarios, el financiamiento de preparación, las fechas de aprobación, las compras y la coinversión privada.'}
   }
 };
-const fallbackCopy=(formation,language)=>{const evidence=formation.evidence?.[0]?.claim||'',change=formation.causal_chain_source?.world_change?.[0]||formation.causal_chain?.[0]||formation.title,formationText=formation.causal_chain_source?.formation?.[0]||formation.title,uncertainty=formation.uncertainty?.slice(0,2).join('; '),development=[sentence(change),evidence&&!String(change).includes(evidence)?sentence(evidence):''].filter(Boolean).join(' ');return language==='es-CL'?{development,insight:`La cuestión editorial es si este cambio puede traducirse en ${sentence(formationText).replace(/\.$/,'')}.`,uncertainty:`Todavía falta confirmar ${sentence(uncertainty).replace(/\.$/,'')}.`}:{development,insight:`The editorial question is whether this change can translate into ${sentence(formationText).replace(/\.$/,'')}.`,uncertainty:`What remains unresolved is ${sentence(uncertainty).replace(/\.$/,'')}.`};};
+const sourceSentence=value=>{
+ const text=String(value||'').replace(/\s+/g,' ').trim();
+ if(!text||/(?:^|\n)(?:Evidence|World change|Formation|Causal chain|Unresolved)\s*:|\b(?:FORMING|INVESTIGATE|CONFIRMED|UNKNOWN)\b/u.test(text))throw Error('EDITORIAL_SOURCE_PROSE_REQUIRED');
+ // Complete source statements stand alone. Noun phrases are identified as
+ // reported subjects, never appended after "whether" or "translate into".
+ const complete=/\b(?:is|are|was|were|has|have|had|will|can|could|plans?|said|says|announced|launched|approved|began|opened|finances?|funds?|remain[s]?|requires?|depends?|reports?)\b/iu.test(text);
+ return complete?sentence(text):'The reported development concerns '+text.charAt(0).toLowerCase()+text.slice(1).replace(/[.!?]+$/u,'')+'.';
+};
+const fallbackCopy=(formation,language)=>{
+ // Untranslated evidence cannot safely become Spanish correspondence.
+ // A language-qualified editorial interpretation is required for that route.
+ if(language!=='en')throw Error('EDITORIAL_SOURCE_LOCALIZATION_REQUIRED');
+ const facts=(formation.evidence||[]).map(e=>e.claim||e.text).filter(Boolean);
+ if(!facts.length)throw Error('FINISHED_ASSET_EVIDENCE_REQUIRED');
+ const development=[...new Set(facts)].slice(0,2).map(sourceSentence).join(' ');
+ const unresolved=formation.uncertainty||[],full=[],fragments=[];
+ for(const item of unresolved){
+  const text=String(item).trim();
+  if(/[.!?]$/u.test(text))full.push(sourceSentence(text));
+  else fragments.push(text.charAt(0).toLowerCase()+text.slice(1));
+ }
+ const uncertainty=[...full,fragments.length?'The available evidence does not yet establish '+fragments.join('; ')+'.':''].filter(Boolean).join(' ');
+ const variant=parseInt(hash(formation.id).slice(0,2),16)%2;
+ const insight=variant?'The distinction worth examining is what the reported development establishes, and what still needs evidence before its wider effects can be assessed.':'A useful contribution would separate the reported development from the wider effects that remain unproven.';
+ return {development,insight,uncertainty};
+};
 const editorialCopy=(formation,language)=>october10Copy[formation.id]?.[language]||fallbackCopy(formation,language);
 export function validateEditorialAsset({asset,scan,route}){
   if(route.delivery.method==='X')return true;
   const email=asset?.email,plain=email&&brand.correspondence(email.body),organisation=route.organisation;
   if(asset.editorial_version!==editorialVersion||!email||email.subject!==asset.subject||email.to!==asset.to||!plain.includes(organisation)||!plain.includes('Sean Walker')||!/[?？]/u.test(plain)||!/(?:article|research contribution|artículo|contribución de investigación)/iu.test(plain))throw new Error('EDITORIAL_EMAIL_CORRESPONDENCE_INCOMPLETE');
   if(/Our published scan classifies|The uncertainty remains explicit|(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|\b(?:FORMING|INVESTIGATE)\b/u.test(plain))throw new Error('INTERNAL_RESEARCH_FIELDS_EXPOSED');
+  validateCorrespondenceText(plain);
   brand.envelope(email);
   if(!scan.formation.evidence?.length||asset.editorial_binding?.source_revision!==scan.source_revision||asset.editorial_binding?.formation_id!==scan.formation.id)throw new Error('EDITORIAL_CLAIM_BINDING_REQUIRED');
   return true;
@@ -90,7 +117,8 @@ export async function assetBuilder({scan,route}){
   const question=language==='es-CL'?`¿Les sería útil un artículo o una contribución de investigación que desarrolle este enfoque para ${organisation}?`:`Would an evidence-led article or research contribution developing this angle be useful for ${organisation}?`;
   const paragraphs=compact?[greeting,introduction,copy.development,copy.insight,copy.uncertainty,question]:[greeting,introduction,reason,copy.development,copy.insight,copy.uncertainty,proposition,question];
   const body=[...paragraphs,language==='es-CL'?'Saludos,\nSean Walker\nEMRADAR':'Regards,\nSean Walker\nEMRADAR'].join('\n\n');
-  const delivery={...route.delivery_record},email=brand.brand({version:editorialVersion,to:route.endpoint.address,subject,body,language,features:{version:editorialVersion,destination_specific_reason:reason,development:copy.development,angle:copy.insight,question,source_revision:scan.source_revision}}),editorial_binding={source_revision:scan.source_revision,formation_id:formation.id,evidence_refs:formation.evidence.map(item=>item.id)};
+  const delivery={...route.delivery_record},email=brand.brand({version:editorialVersion,to:route.endpoint.address,subject,body,language,features:{version:editorialVersion,destination_specific_reason:reason,development:copy.development,angle:copy.insight,question,source_revision:scan.source_revision}}),editorial_binding={source_revision:scan.source_revision,formation_id:formation.id,evidence_refs:formation.evidence.map(item=>item.id),source_uncertainty:[...formation.uncertainty]};
   const asset={subject,email,body:email.body,to:email.to,delivery_method:route.delivery.method,copy:`Subject: ${subject}\n\n${email.body}`,delivery,evidence_summary:evidence.join(' '),required_visual_or_attachment:'NONE',recipient_status:route.endpoint.recipient_status,editorial_version:editorialVersion,editorial_binding};
   validateEditorialAsset({asset,scan,route});return asset;
 }
+
