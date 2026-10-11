@@ -71,7 +71,8 @@ export async function collectEditorialOutcome(receipt){
 
 
 // Owner notifications are administrative mail, never publication approvals or distribution.
-export async function sendOwnerReviewNotification({subject,text,idempotency_key},{createTransport=transport}={}){
+export async function sendOwnerReviewNotification({subject,text,idempotency_key,notification},{createTransport=transport}={}){
+ if(relay())return relayRequest('owner-notification',{notification,idempotency_key});
  if(!configured()){const e=Error('OWNER_NOTIFICATION_CANONICAL_SMTP_UNAVAILABLE');e.definitely_unsent=true;throw e;}
  const smtp=createTransport();
  try{

@@ -29,7 +29,7 @@ export function createOwnerReview({store,auth,secret,baseUrl,send,clock=()=>Date
     if(prior?.status==='SUBMITTED')return {campaign_id:campaign,status:'SUBMITTED',duplicate:true};
     // No retry after an uncertain SMTP acceptance, including a crash during submission.
     if(prior?.status==='SUBMITTING'||prior?.status==='RECEIPT_UNVERIFIED')return {campaign_id:campaign,status:'RECEIPT_UNVERIFIED',duplicate:true};
-    if(prior?.retry_at>clock())return null;
+    if(prior?.retry_at>clock()&&!(prior.reason==='OWNER_NOTIFICATION_CANONICAL_SMTP_UNAVAILABLE'&&process.env.EMRADAR_EMAIL_RELAY_URL==='https://orok-studios-api.onrender.com'&&process.env.EMRADAR_EMAIL_RELAY_TOKEN))return null;
     const record=await store.get('v2:review_package:'+campaign);
     if(!record||record.status!=='AWAITING_OWNER_REVIEW'||!record.proposals?.length||!['PREPARE','VERIFY'].every(node=>record.trace?.some(t=>t.node===node&&t.status==='PASS')))return null;
     const saved=await Promise.all(record.proposals.map(p=>store.get('v2:review:'+p.proposal_id)));
@@ -44,7 +44,7 @@ export function createOwnerReview({store,auth,secret,baseUrl,send,clock=()=>Date
     const attempt={campaign_id:campaign,status:'SUBMITTING',nonce,expires_at,attempts:(prior?.attempts||0)+1,started_at:clock(),proposal_count:record.proposals.length,email_group_count:groups};
     await store.put(notificationKey,attempt);
     try{
-     const receipt=await send({subject:'EMRADAR private campaign review — '+date,text:'Campaign '+date+' is ready for owner review.\n'+record.proposals.length+' saved proposals; '+groups+' distinct email groups.\n\nOpen your private review (single use; expires in 7 days):\n'+baseUrl+'/OWNER_REVIEW#access='+token+'\n\nNo publication is authorised until you approve its exact saved asset.',idempotency_key:hash('owner-review-notification:'+campaign)});
+     const receipt=await send({subject:'EMRADAR private campaign review — '+date,text:'Campaign '+date+' is ready for owner review.\n'+record.proposals.length+' saved proposals; '+groups+' distinct email groups.\n\nOpen your private review (single use; expires in 7 days):\n'+baseUrl+'/OWNER_REVIEW#access='+token+'\n\nNo publication is authorised until you approve its exact saved asset.',notification:{campaign_id:campaign,proposal_count:record.proposals.length,email_group_count:groups,private_review_url:baseUrl+'/OWNER_REVIEW#access='+token},idempotency_key:hash('owner-review-notification:'+campaign)});
      if(!receipt?.message_id||!receipt.accepted?.includes('oroknows@gmail.com'))throw Error('OWNER_NOTIFICATION_RECEIPT_REQUIRED');
      const completed={...attempt,status:'SUBMITTED',submitted_at:clock(),provider_receipt:receipt};await store.put(notificationKey,completed);
      return {campaign_id:campaign,status:'SUBMITTED',proposal_count:record.proposals.length,email_group_count:groups,provider_receipt:receipt};

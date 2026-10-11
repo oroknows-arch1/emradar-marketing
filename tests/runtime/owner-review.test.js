@@ -65,3 +65,9 @@ test('owner notification reuses canonical SMTP identity and stores actual accept
  assert.equal(mail.from.address,'sean@emradar.net');assert.equal(mail.to,'oroknows@gmail.com');assert.equal(receipt.message_id,'actual-mock-provider-id');assert.equal(receipt.response,'250 Accepted');assert(!mail.binding);assert(closed);
  }finally{for(const n of names)if(saved[n]===undefined)delete process.env[n];else process.env[n]=saved[n];}
 });
+test('existing SMTP-unavailable notification resumes once immediately when authorised relay is enabled',async()=>{
+ const f=await fixture(),url=process.env.EMRADAR_EMAIL_RELAY_URL,token=process.env.EMRADAR_EMAIL_RELAY_TOKEN;
+ await f.store.put('owner_review_notification:'+f.record.campaign_id,{status:'RETRYABLE',reason:'OWNER_NOTIFICATION_CANONICAL_SMTP_UNAVAILABLE',attempts:6,retry_at:Date.now()+3600000,nonce:'persisted-nonce',expires_at:Date.now()+86400000});
+ process.env.EMRADAR_EMAIL_RELAY_URL='https://orok-studios-api.onrender.com';process.env.EMRADAR_EMAIL_RELAY_TOKEN='local-test';
+ try{const result=await f.service.notify(f.record.campaign_id);assert.equal(result.status,'SUBMITTED');assert.equal(f.mail.length,1);const record=await f.store.get('owner_review_notification:'+f.record.campaign_id);assert.equal(record.nonce,'persisted-nonce');assert.equal(record.attempts,7);await f.service.notify(f.record.campaign_id);assert.equal(f.mail.length,1);}finally{for(const [key,value] of [['EMRADAR_EMAIL_RELAY_URL',url],['EMRADAR_EMAIL_RELAY_TOKEN',token]])if(value===undefined)delete process.env[key];else process.env[key]=value;}
+});
