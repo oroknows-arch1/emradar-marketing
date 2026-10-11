@@ -2,7 +2,9 @@ import directory from '../state/open-route-directory.json' with {type:'json'};
 import brand from './email-brand.cjs';
 import crypto from 'node:crypto';
 import sharp from 'sharp';
-import {validateCorrespondenceText} from './correspondence-quality.js';
+import {validateCorrespondenceText,validateSpanishCorrespondence} from './correspondence-quality.js';
+import {editorialContext,produceEditorial} from './editorial-copy.js';
+import {humanReadyEmail} from './editorial-email.js';
 
 const values=value=>(Array.isArray(value)?value:[]).map(v=>String(v).toLowerCase());
 const overlap=(a,b)=>values(a).some(x=>values(b).includes(x)||x==='all');
@@ -81,12 +83,42 @@ const fallbackCopy=(formation,language)=>{
  return {development,insight,uncertainty};
 };
 const editorialCopy=(formation,language)=>october10Copy[formation.id]?.[language]||fallbackCopy(formation,language);
+
+// Reuse the established writer, independent proof and branded renderer.
+// The graph's configured work callback retains model/cost authority. This
+// adapter never creates a provider, calls a relay or substitutes a translation.
+async function spanishEditorialAsset({scan,route,editorialWork}){
+ if(typeof editorialWork!=='function')throw Error('EDITORIAL_SOURCE_LOCALIZATION_REQUIRED');
+ const formation=scan.formation,record={...route.delivery_record,organisation:route.organisation,destination_class:'latam_trade_publication'},signal={
+  id:formation.id,revision:scan.source_revision,state:formation.state,
+  evidence:formation.evidence.map(e=>e.id),
+  source_facts:formation.evidence.map(e=>({id:e.id,text:e.claim||e.text,url:e.url,source:e.source})),
+  source_uncertainty:[...formation.uncertainty],causal_chain:structuredClone(formation.causal_chain),source_snapshot:scan.snapshot_date
+ };
+ const context=editorialContext({signal,input:{campaign_id:scan.campaign_id},product:{brand_system:brand.version},route:{id:route.id,destination:{route_record:record}},route_plan:{proposed_assets:[]}});
+ context.instructions+=' Every external sentence and the subject must be natural Spanish. Source evidence may be English or Spanish; keep original facts and uncertainty verbatim internally. Translate their meaning, not schema labels. No English sentence fragments in Spanish prose.';
+ context.input_hash=crypto.createHash('sha256').update(JSON.stringify(context)).digest('hex');
+ const output=await produceEditorial(context,async(request,attempt)=>{
+  const value=await editorialWork(request,attempt),proof=value?.proof;
+  if(!value?.result)throw Error('HARNESS_OUTPUT_NOT_VERIFIED');
+  const outputHash=crypto.createHash('sha256').update(JSON.stringify(value.result)).digest('hex');
+  if(proof?.status!=='VERIFIED'||proof.input_hash!==request.input_hash||proof.output_hash!==outputHash)throw Error('HARNESS_OUTPUT_NOT_VERIFIED');
+  validateSpanishCorrespondence(value.result.subject+'\n'+value.result.body,{names:[route.organisation,record.recipient_identity?.name]});
+  return value;
+ });
+ const email=humanReadyEmail({proposition:output.result,signal,route:record,identity:{...brand.identity,approved:true},product:'EMRADAR'});
+ if(!email)throw Error('EDITORIAL_SPANISH_EMAIL_ROUTE_REQUIRED');
+ const editorial_binding={source_revision:scan.source_revision,formation_id:formation.id,evidence_refs:[...signal.evidence],source_uncertainty:[...formation.uncertainty]};
+ const asset={subject:email.subject,email,body:email.body,to:email.to,delivery_method:route.delivery.method,copy:'Subject: '+email.subject+'\n\n'+email.body,delivery:{...route.delivery_record},evidence_summary:signal.source_facts.map(f=>f.text).join(' '),required_visual_or_attachment:'NONE',recipient_status:route.endpoint.recipient_status,editorial_version:editorialVersion,editorial_binding};
+ validateEditorialAsset({asset,scan,route});return asset;
+}
 export function validateEditorialAsset({asset,scan,route}){
   if(route.delivery.method==='X')return true;
   const email=asset?.email,plain=email&&brand.correspondence(email.body),organisation=route.organisation;
   if(asset.editorial_version!==editorialVersion||!email||email.subject!==asset.subject||email.to!==asset.to||!plain.includes(organisation)||!plain.includes('Sean Walker')||!/[?？]/u.test(plain)||!/(?:article|research contribution|artículo|contribución de investigación)/iu.test(plain))throw new Error('EDITORIAL_EMAIL_CORRESPONDENCE_INCOMPLETE');
   if(/Our published scan classifies|The uncertainty remains explicit|(?:^|\n)(?:Evidence|Unresolved|Causal chain|Sources?)\s*:|\b(?:FORMING|INVESTIGATE)\b/u.test(plain))throw new Error('INTERNAL_RESEARCH_FIELDS_EXPOSED');
   validateCorrespondenceText(plain);
+  if(email.language==='es-CL'&&email.proposition)validateSpanishCorrespondence(email.subject+'\n'+plain,{names:[organisation,route.delivery_record?.recipient_identity?.name]});
   brand.envelope(email);
   if(!scan.formation.evidence?.length||asset.editorial_binding?.source_revision!==scan.source_revision||asset.editorial_binding?.formation_id!==scan.formation.id)throw new Error('EDITORIAL_CLAIM_BINDING_REQUIRED');
   return true;
@@ -100,7 +132,7 @@ export const destinations=directory.destinations
     return {id:route.destination_id,organisation:route.organisation||route.destination_name,industries:route.industries||[],geography:route.geography||[],relevant_beat_topic:route.relevant_beat_topic||[],editorial_relevance:(scan,current)=>x||relevanceAssessment(scan,current),evidence_suitable:scan=>scan.formation.evidence.length>0,endpoint:{address:route.public_contact_point||route.public_submission_url||'UNAVAILABLE',verification_state:route.verification_state,recipient_status},delivery:{method,supported:verifiedEmail||x},connector:{authorized:verifiedEmail||x},finished_contribution_supported:true,delivery_record:{...route,recipient_status}};
   });
 
-export async function assetBuilder({scan,route}){
+export async function assetBuilder({scan,route,editorialWork}){
   const formation=scan.formation,organisation=route.organisation;
   const evidence=formation.evidence.slice(0,3).map(e=>e.claim||e.text).filter(Boolean);if(!evidence.length)throw new Error('FINISHED_ASSET_EVIDENCE_REQUIRED');
   if(route.delivery.method==='X'){
@@ -108,7 +140,9 @@ export async function assetBuilder({scan,route}){
     const asset={subject:`X post: EMRADAR ${scan.snapshot_date||'daily'} scan`,body:copy,to:route.endpoint.address,delivery_method:'X',copy,evidence_summary:formations.map(f=>`${f.id}:${f.state}`).join('; '),required_visual_or_attachment:'IMAGE_REQUIRED',format:'image',mime:'image/png',base64:bytes.toString('base64'),sha256:hash(bytes),svg,width:1200,height,lineage:{source_revision:scan.source_revision,formation_ids:formations.map(f=>f.id),evidence_refs:formations.flatMap(f=>f.evidence.map(e=>e.id))},generated:true,reviewed:false,combined_review_artifact:true,consolidated_scan:true,delivery:{...route.delivery_record}};
     return asset;
   }
-  const language=route.delivery_record.accepted_formats?.includes('latam_editor_pitch')?'es-CL':'en',compact=route.delivery_record.accepted_formats?.includes('financial_guest_view_pitch'),copy=editorialCopy(formation,language),topics=naturalList(route.relevant_beat_topic,language),name=route.delivery_record.recipient_identity?.name;
+  const language=route.delivery_record.accepted_formats?.includes('latam_editor_pitch')?'es-CL':'en';
+  if(language==='es-CL')return spanishEditorialAsset({scan,route,editorialWork});
+  const compact=route.delivery_record.accepted_formats?.includes('financial_guest_view_pitch'),copy=editorialCopy(formation,language),topics=naturalList(route.relevant_beat_topic,language),name=route.delivery_record.recipient_identity?.name;
   const subject=language==='es-CL'?`Propuesta editorial: ${spanishTitles[formation.id]||formation.title||formation.id}`:`Contribution idea: ${formation.title||formation.id}`;
   const greeting=language==='es-CL'?(name?`Hola ${name},`:'Hola,'):(name?`Hi ${name},`:'Hello,');
   const introduction=language==='es-CL'?'Soy Sean Walker, de EMRADAR.':compact?"I'm Sean Walker, working on EMRADAR.":"I'm Sean Walker, working on EMRADAR, where we examine how changes in the real economy affect industries and markets.";

@@ -24,7 +24,7 @@ export async function createV2Runtime({store,redisClient,integrationModule,integ
   if(!Array.isArray(config.destinations)||typeof config.assetBuilder!=='function')fail('V2_INTEGRATION_CONTRACT_INVALID');
   const adapter=editorialAdapter||await loadEditorialOutreach(editorialModulePath);if(!adapter)fail('V2_APPROVED_EMAIL_ADAPTER_REQUIRED');
   const transports={EMAIL:existingEditorialTransport(adapter)};if(xAdapter)transports.X=existingXTransport(xAdapter);
-  const engine=new StreamlinedMarketingEngineV2({store:persistentStore,destinations:config.destinations,assetBuilder:config.assetBuilder,transports});
+  const engine=new StreamlinedMarketingEngineV2({store:persistentStore,destinations:config.destinations,assetBuilder:config.editorialWork?input=>config.assetBuilder({...input,editorialWork:config.editorialWork}):config.assetBuilder,transports});
   return {
     store:persistentStore,engine,
     prepare:input=>engine.prepare(input),

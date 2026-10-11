@@ -12,3 +12,13 @@ export function validateCorrespondenceText(text){
  for(const p of prose)if(/(?:\b(?:and|or|because|whether|into|which)|[,;:])\s*$/iu.test(p))throw Error('EMAIL_INCOMPLETE_CLAUSE');
  return true;
 }
+
+// The approved brand footer is checked separately. Publication and verified
+// recipient names may legitimately be in English; correspondence may not.
+export function validateSpanishCorrespondence(text,{names=[]}={}){
+ let prose=String(text||'');
+ for(const name of names.filter(Boolean))prose=prose.split(name).join('');
+ if(/\b(?:the|whether|this|these|those|remains|remain|unconfirmed|announced|financing|would|could|should|into|unresolved|evidence-led|published|funding|supplier-linked|milestone|grid|capacity|delivered|supplier contracts|financial close|clean generation)\b/iu.test(prose))throw Error('EDITORIAL_MIXED_LANGUAGE_CONTAMINATION');
+ if(!/\b(?:el|la|los|las|un|una|para|porque|del|que|sobre|este|esta)\b/iu.test(prose))throw Error('EDITORIAL_SPANISH_CORRESPONDENCE_REQUIRED');
+ return true;
+}
