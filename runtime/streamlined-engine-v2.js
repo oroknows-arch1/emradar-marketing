@@ -181,6 +181,7 @@ export class StreamlinedMarketingEngineV2 {
         if(!proposal||decision?.authority!=='OWNER'||decision.decision!=='APPROVE'||['REJECTED','SUPERSEDED'].includes(proposal.status)||hash(proposal.asset)!==hash(proposal.binding.asset)||decision.review_hash!==proposal.review_hash||hash(proposal.binding)!==proposal.review_hash){work.status='BLOCKED';work.error='APPROVAL_BINDING_INVALID';await this.store.put(key,work);results.push(work);continue;}
         const old=await this.store.get('receipt:'+proposal.delivery_key)||await this.store.get('v2:receipt:'+proposal.delivery_key);
         if(finalDelivery.has(old?.execution_status)||old?.external_id||old?.provider_receipt){work.status=old.execution_status;work.receipt_id=old.id;await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:old,duplicate:true});continue;}
+        if(old){work.status='BLOCKED';work.error='EXISTING_DELIVERY_RECEIPT_REQUIRES_VERIFIED_RECOVERY';await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:old,duplicate:true});continue;}
         const transport=this.transports[proposal.asset.delivery_method];
         if(!transport?.send){work.status='FAILED';work.error='TRANSPORT_UNAVAILABLE';await this.store.put(key,work);results.push(work);continue;}
         const quote=await transport.quote?.(proposal.asset)??{currency:'AUD',max_cost_aud:'UNKNOWN'};
