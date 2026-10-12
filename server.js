@@ -9,7 +9,7 @@ import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
-import {autonomousV2ScanCycle,recoverV2ReviewCoverage,repairV2EditorialReview} from './runtime/v2-autonomous-source.js';
+import {autonomousV2ScanCycle} from './runtime/v2-autonomous-source.js';
 import {recoverOctober10Capacity} from './runtime/v2-capacity-recovery.js';
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
@@ -36,7 +36,6 @@ import {runDiscoveryPreview} from './scripts/run-x-discovery-preview.js';
 import {createLinkedInOAuth,linkedinCallbackUrl} from './runtime/linkedin-oauth.js';
 import {editorialRouteStatus,editorialSenderStatus,probeEditorialNetwork,verifyEditorialAuthentication,sendOwnerReviewNotification} from './runtime/editorial-outreach-gmail.js';
 import {createV2Runtime} from './runtime/v2-integration.js';
-import {recoverOctoberCampaignsToV2} from './runtime/v2-campaign-recovery.js';
 
 const PORT=Number(process.env.PORT||10000);
 const X_CLIENT_ID=process.env.X_CLIENT_ID||"";
@@ -417,18 +416,13 @@ server.listen(PORT,()=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
     for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
   }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
-  let editorialRepair;
-  store().then(client=>recoverOctoberCampaignsToV2(new RedisStore(client))).then(async records=>{
-    console.log('V2_OCTOBER_RECOVERY '+JSON.stringify(records.map(record=>({campaign_id:record.campaign_id,status:record.status,review_count:record.review_count,proposal_count:record.proposals.length,exclusions:record.exclusions,external_actions:record.external_actions}))));
-    const s=new RedisStore(await store());
-    await recoverV2ReviewCoverage({store:s,runtime:await v2Runtime(),campaign_id:'EMRADAR_2026_10_10_LAUNCH'});
-    editorialRepair=await repairV2EditorialReview({store:s,runtime:await v2Runtime(),campaign_id:'EMRADAR_2026_10_10_LAUNCH'});
-    return v2Preflight();
-  }).then(async result=>{
-    cutoverState=result;console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
-    const deliveries=await (await v2Runtime()).distribute({campaign_ids:['EMRADAR_2026_10_10_LAUNCH']});
-    for(const delivery of deliveries)console.log('V2_AUTOMATIC_DISTRIBUTION '+JSON.stringify(delivery));
-  }).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_OR_DISTRIBUTION_BLOCKED '+JSON.stringify(cutoverState));});
+  // Startup observes readiness only. Campaign recovery, preparation and
+  // distribution remain owned by explicit authenticated execution paths.
+  v2Preflight().then(result=>{
+    cutoverState=result;
+    console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
+    if(result.status==='BLOCKED')return;
+  }).catch(error=>{cutoverState={status:'BLOCKED',reason:error.message,external_submissions:0};console.error('V2_CUTOVER_PREFLIGHT_BLOCKED '+JSON.stringify(cutoverState));});
 });
 
 async function runPendingSourceRelease(){
