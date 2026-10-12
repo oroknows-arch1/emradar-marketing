@@ -7,6 +7,7 @@ on:
       - 'runtime/v2-integration.js'
       - 'server.js'
       - 'tests/runtime/v2-integration.test.js'
+      - 'tests/runtime/v2-approved-wakeup.test.js'
       - '.github/workflows/v2-recovery.yml'
   workflow_dispatch:
 jobs:
@@ -21,4 +22,4 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: node --test tests/runtime/v2-integration.test.js
+      - run: node --test tests/runtime/v2-integration.test.js tests/runtime/v2-approved-wakeup.test.js

@@ -183,7 +183,10 @@ const server=http.createServer(async(req,res)=>{
       const proposal=await runtime.review(input.proposal_id);
       if(!proposal)return json(res,404,{reason:'PUBLICATION_REVIEW_NOT_FOUND'});
       if(!authorizedPublicationReview(req,proposal.campaign_id))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
-      return json(res,200,await runtime.decide(input));
+      const result=await runtime.decide(input);
+      json(res,200,result);
+      if(input.decision==='APPROVE')setImmediate(()=>v2DistributionCycle('OWNER_APPROVAL').catch(error=>console.error('V2_APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:error.message}))));
+      return;
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/V2/DELIVERY_STATE'){
@@ -436,6 +439,13 @@ server.listen(PORT,()=>{
   console.log('EMRADAR Marketing Engine V2 listening; V1 execution inactive; owner-approved distribution automatic');
   const notify=()=>notifyReadyReviews().catch(()=>console.error('OWNER_REVIEW_NOTIFICATION_STORE_UNAVAILABLE'));
   notify();setInterval(notify,60000).unref();
+  // Restore October 6's durable approval recovery contract for the V2 executor.
+  // The V2 executor owns receipt claims, approval binding and duplicate-send protection.
+  if(process.env.MARKETING_V2_DISTRIBUTION_ENABLED==='true'){
+    const wake=()=>v2DistributionCycle('RECOVERY').catch(error=>console.error('V2_APPROVED_DISTRIBUTION_BLOCKED '+JSON.stringify({reason:error.message})));
+    setImmediate(wake);
+    setInterval(wake,60000).unref();
+  }
   // Read-only bounded billing visibility; no generation, settlement or transport.
   if(KEY_VALUE_URL)store().then(client=>billingAudit(new RedisStore(client))).then(audit=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
@@ -552,3 +562,15 @@ async function distributionCycle(){
   return distributionPromise;
 }
 
+
+let v2DistributionPromise=null;
+async function v2DistributionCycle(trigger){
+  if(process.env.MARKETING_V2_DISTRIBUTION_ENABLED!=='true')return [];
+  if(v2DistributionPromise)return v2DistributionPromise;
+  v2DistributionPromise=(async()=>{
+    const results=await (await v2Runtime()).distribute();
+    console.log('V2_APPROVED_DISTRIBUTION_CYCLE '+JSON.stringify({trigger,processed:results.length,results:results.map(r=>({proposal_id:r.proposal_id,status:r.status,error:r.error||r.receipt?.error||null,receipt_id:r.receipt?.id||r.receipt_id||null}))}));
+    return results;
+  })().finally(()=>{v2DistributionPromise=null;});
+  return v2DistributionPromise;
+}
