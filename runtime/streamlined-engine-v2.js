@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import {calendarMonth} from './spending.js';
 import {selectDestinations} from './destination-rotation.js';
-import {editorialEvidence,plannedEmailIdentity,verifyEmailGroupLimit} from './editorial-group-policy.js';
+import {editorialEvidence,plannedEmailIdentity,verifyEmailGroupLimit,isEditorialCampaignId} from './editorial-group-policy.js';
 
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const now=()=>new Date().toISOString();
@@ -81,7 +81,7 @@ export class StreamlinedMarketingEngineV2 {
       const scanHash=hash(scan),prior=await this.store.get('v2:campaign:'+campaign_id);
       if(prior&&prior.scan_hash!==scanHash)fail('CAMPAIGN_SOURCE_CHANGED');
       if(!expand_review&&(prior?.status==='AWAITING_OWNER_REVIEW'||prior?.status==='COMPLETE'))return prior;
-      const selection=/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign_id)&&(!prior||prior.destination_selection)?await selectDestinations({store:this.store,campaign_id,scan,destinations:this.destinations,assetPlanner:this.assetPlanner}):null;
+      const selection=isEditorialCampaignId(campaign_id)&&(!prior||prior.destination_selection)?await selectDestinations({store:this.store,campaign_id,scan,destinations:this.destinations,assetPlanner:this.assetPlanner}):null;
       const formations=scan.formations||[scan.formation],trace=[{node:'SCAN',status:'PASS',formations:formations.length,at:now()}],matches=[],opportunities=[],dispositions=[];
       for(let index=0;index<formations.length;index++)for(const route of this.destinations){
         const formation=formations[index],scanWide=route.id==='EMRADAR-X-OROKNOWS';if(scanWide&&index>0)continue;

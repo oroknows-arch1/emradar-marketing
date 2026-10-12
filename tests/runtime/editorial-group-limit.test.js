@@ -20,13 +20,13 @@ function asset(route,group=route.id){const subject='Contribution '+group,body='H
 test('hard fifteen-group ceiling is planned before expensive generation with mandatory separate X',async()=>{
  const s=await store(),routes=Array.from({length:40},(_,i)=>route(i,i<20?'Copper mining':'Solar generation')).concat(X);let expensiveCalls=0;
  const engine=new StreamlinedMarketingEngineV2({store:s,destinations:routes,assetBuilder:async({route})=>{expensiveCalls++;return route.id===X.id?{subject:'X fixture',body:'X text',to:route.endpoint.address,delivery_method:'X',mime:'image/png',base64:'fixture',copy:'X text'}:asset(route);}});
- const record=await engine.prepare({campaign_id:campaign(1),scan});assert.equal(record.destination_selection.planned_email_groups,15);assert.equal(record.email_group_count,15);assert.equal(expensiveCalls,16);assert.equal(record.proposals.length,16);assert.equal(record.external_actions,0);
+ const record=await engine.prepare({campaign_id:campaign(1)+'_REPLACEMENT_1',scan});assert.equal(record.destination_selection.planned_email_groups,15);assert.equal(record.email_group_count,15);assert.equal(expensiveCalls,16);assert.equal(record.proposals.length,16);assert.equal(record.external_actions,0);
  assert.equal(record.proposals.filter(p=>p.destination===X.id).length,1);assert(record.route_dispositions.some(d=>d.reason==='EMAIL_GROUP_LIMIT_ROTATE_FUTURE_SCAN'));assert.equal((await s.keys('v2:preparation-work:')).length,0);
 });
 test('genuine shared complete drafts maximise recipient coverage to thirty without consuming extra groups',async()=>{
  const s=await store(),single={...scan,formations:[scan.formation]},routes=Array.from({length:40},(_,i)=>route(i)).concat(X),group=r=>'shared-'+Number(r.id.slice(1))%10;let calls=0;
  const planner=async({route})=>({asset:asset(route,group(route))});
- const engine=new StreamlinedMarketingEngineV2({store:s,destinations:routes,assetPlanner:planner,assetBuilder:async({route})=>{calls++;return route.id===X.id?{subject:'X',body:'X',to:route.endpoint.address,delivery_method:'X'}:asset(route,group(route));}}),record=await engine.prepare({campaign_id:campaign(1),scan:single});
+ const engine=new StreamlinedMarketingEngineV2({store:s,destinations:routes,assetPlanner:planner,assetBuilder:async({route})=>{calls++;return route.id===X.id?{subject:'X',body:'X',to:route.endpoint.address,delivery_method:'X'}:asset(route,group(route));}}),record=await engine.prepare({campaign_id:campaign(1)+'_REPLACEMENT_1',scan:single});
  assert.equal(record.destination_selection.external_count,30);assert.equal(record.email_group_count,10);assert.equal(record.proposals.length,31);assert.equal(calls,31);const groups=equivalentEmailGroups(record.proposals).filter(g=>g.email);assert(groups.some(g=>g.proposals.length>1));
  const html=campaignReviewHtml(record,record.campaign_id,{v2:true,decisionPath:'/V2/PUBLICATION_REVIEW'});assert.match(html,/id="remaining-actions">11<\/span>/);assert.equal((html.match(/<section class="email-group"/g)||[]).length,10);
 });

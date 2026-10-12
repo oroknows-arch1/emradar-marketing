@@ -1,4 +1,3 @@
-import crypto from 'node:crypto';
 import {reviewAction} from './v2-review-actions.js';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
@@ -7,11 +6,6 @@ import {loadEditorialOutreach} from './adapters.js';
 import {StreamlinedMarketingEngineV2,existingEditorialTransport,existingXTransport} from './streamlined-engine-v2.js';
 
 const fail=reason=>{throw new Error(reason);};
-export function authorizedV2Owner(header,secret=process.env.MARKETING_PUBLICATION_REVIEW_TOKEN){
-  const actual=String(header||''),expected='Bearer '+String(secret||'');
-  return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
-}
-
 async function configuration({integrationModule,integrationModulePath}){
   if(integrationModule)return integrationModule;
   if(!integrationModulePath)fail('V2_INTEGRATION_MODULE_NOT_CONFIGURED');
@@ -29,8 +23,7 @@ export async function createV2Runtime({store,redisClient,integrationModule,integ
     store:persistentStore,engine,
     prepare:input=>engine.prepare(input),
     async review(proposalId){return persistentStore.get('v2:review:'+proposalId);},
-    async decide(input,authorization){
-      if(!authorizedV2Owner(authorization))fail('OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED');
+    async decide(input){
       const decision=input.action?await reviewAction(engine,input):await engine.decide(input);
       const distribution=input.action!=='REQUEST_REVISION'&&input.decision==='APPROVE'?await engine.distribute({proposal_ids:[input.proposal_id]}):[];
       return {...decision,automatic_distribution:distribution[0]||null};

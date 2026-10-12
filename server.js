@@ -1,5 +1,5 @@
-import {createOwnerReview,ownerReviewLanding,handleOwnerReviewAccess} from './runtime/owner-review.js';
-import {createReviewAuth} from './runtime/review-auth.js';
+import {createOwnerReview} from './runtime/owner-review.js';
+import {isEditorialCampaignId} from './runtime/editorial-group-policy.js';
 import {ownerOverride} from './runtime/owner-override.js';
 import approvedReleases from './config/approved-campaign-releases.json' with {type:'json'};
 import sentenceCorrection from './config/october7-sentence-correction.json' with {type:'json'};
@@ -90,9 +90,7 @@ function authorizedRequest(req){
   const expected='Bearer '+secret;
   return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
 }
-const reviewAuth=createReviewAuth({secret:()=>process.env.MARKETING_PUBLICATION_REVIEW_TOKEN,origin:req=>PUBLIC_BASE_URL||'https://'+req.headers.host});
-function authorizedPublicationReview(req){return reviewAuth.authorized(req);}
-async function ownerReview(){return createOwnerReview({store:new RedisStore(await store()),auth:reviewAuth,secret:()=>process.env.MARKETING_PUBLICATION_REVIEW_TOKEN,baseUrl:PUBLIC_BASE_URL||'https://emradar-x-executor.onrender.com',send:sendOwnerReviewNotification});}
+async function ownerReview(){return createOwnerReview({store:new RedisStore(await store()),baseUrl:PUBLIC_BASE_URL||'https://emradar-x-executor.onrender.com',send:sendOwnerReviewNotification});}
 async function notifyReadyReviews(){
  const service=await ownerReview(),s=service.store;
  for(const key of await s.keys('v2:review_package:')){
@@ -154,15 +152,14 @@ async function v2Preflight(){
     summary.receipt_count+=receipts.length;summary.decision_count+=jobs.length;summary.unresolved_delivery_count+=receipts.filter(r=>['IN_FLIGHT','AMBIGUOUS'].includes(r.execution_status)).length;
   }
   const email=await editorialRouteStatus();
-  const historyPresent=campaigns.every(c=>summary.campaigns[c].review_package),ownerConfigured=reviewAuth.configured(),emailReady=['PASS','CONFIGURED'].includes(email.status);
-  return {status:historyPresent&&ownerConfigured&&emailReady&&!summary.unresolved_delivery_count?'PASS':'BLOCKED',engine:'V2',v1_execution:'INACTIVE',persistent_store:'REDIS',owner_auth:ownerConfigured?'CONFIGURED':'BLOCKED',email:{status:email.status,identity:editorialSenderStatus().expected,relay_preserved:!!process.env.EMRADAR_EMAIL_RELAY_URL},history:summary,external_distribution:'OWNER_APPROVAL_AUTOMATIC',external_submissions:0,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'};
+  const historyPresent=campaigns.every(c=>summary.campaigns[c].review_package),emailReady=['PASS','CONFIGURED'].includes(email.status);
+  return {status:historyPresent&&emailReady&&!summary.unresolved_delivery_count?'PASS':'BLOCKED',engine:'V2',v1_execution:'INACTIVE',persistent_store:'REDIS',owner_auth:'NOT_REQUIRED',email:{status:email.status,identity:editorialSenderStatus().expected,relay_preserved:!!process.env.EMRADAR_EMAIL_RELAY_URL},history:summary,external_distribution:'OWNER_APPROVAL_AUTOMATIC',external_submissions:0,runtime_commit:process.env.RENDER_GIT_COMMIT||'UNKNOWN'};
 }
 
 const server=http.createServer(async(req,res)=>{
   const u=new URL(req.url,`http://${req.headers.host}`);
   if(req.method==='POST'&&['/PRODUCT_INPUT','/OUTCOME_REVIEW','/PUBLICATION_REVIEW','/PUBLICATION_REVIEW/revise','/PUBLICATION_REVIEW/recover-connection-timeout','/RUN_MARKETING','/COLLECT_PERFORMANCE','/CYCLE'].includes(u.pathname))return json(res,410,{ok:false,status:'RETIRED',reason:'V1_EXECUTION_PERMANENTLY_RETIRED',replacement:'/V2/PREPARE'});
   if(u.pathname==='/V2/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
-    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       const runtime=await v2Runtime();
       if(req.method==='GET'){
@@ -171,18 +168,24 @@ const server=http.createServer(async(req,res)=>{
       }
       const input=JSON.parse(await readBody(req));
       if(!/^[a-f0-9]{64}$/.test(input?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(input?.review_hash||'')||!(input?.action==='REQUEST_REVISION'||['APPROVE','REJECT'].includes(input?.decision)&&(!input.action||input.action==='OVERRIDE')))return json(res,400,{reason:'V2_OWNER_DECISION_INVALID'});
-      return json(res,200,await runtime.decide(input,'Bearer '+process.env.MARKETING_PUBLICATION_REVIEW_TOKEN));
+      return json(res,200,await runtime.decide(input));
     }catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/V2/DELIVERY_STATE'){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
-    const campaign=u.searchParams.get('campaign_id');if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+    const campaign=u.searchParams.get('campaign_id');if(!isEditorialCampaignId(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
     try{return json(res,200,{campaign_id:campaign,deliveries:await (await v2Runtime()).deliveryState(campaign)});}catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
     if(u.pathname==='/V2/DISTRIBUTE'&&process.env.MARKETING_V2_DISTRIBUTION_ENABLED!=='true')return json(res,423,{ok:false,status:'BLOCKED',reason:'EXTERNAL_DISTRIBUTION_DISABLED'});
-    try{const runtime=await v2Runtime(),input=JSON.parse(await readBody(req));const result=u.pathname==='/V2/PREPARE'?await runtime.prepare(input):u.pathname==='/V2/DISTRIBUTE'?await runtime.distribute():await runtime.feedback(input);return json(res,200,result);}
+    try{const runtime=await v2Runtime(),input=JSON.parse(await readBody(req));
+      if(u.pathname==='/V2/PREPARE'&&!isEditorialCampaignId(input.campaign_id))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+      const result=u.pathname==='/V2/PREPARE'?await runtime.prepare(input):u.pathname==='/V2/DISTRIBUTE'?await runtime.distribute():await runtime.feedback(input);
+      if(u.pathname==='/V2/PREPARE'&&result.status==='AWAITING_OWNER_REVIEW'){
+        await runtime.store.put('v2:review_package:'+input.campaign_id,result);
+        const notification=await (await ownerReview()).notify(input.campaign_id);return json(res,200,{...result,owner_notification:notification});
+      }
+      return json(res,200,result);}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(u.pathname==='/X_DISCOVERY_PREVIEW'&&['GET','POST'].includes(req.method)){
@@ -240,7 +243,7 @@ const server=http.createServer(async(req,res)=>{
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(u.pathname==='/OUTCOME_REVIEW'&&['GET','POST'].includes(req.method)){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
+    if(!authorizedRequest(req))return json(res,403,{reason:'ENGINE_AUTHORIZATION_REQUIRED'});
     try{
       const engine=await marketingEngine(),s=engine.store;
       if(req.method==='GET'){
@@ -287,7 +290,6 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/PUBLICATION_REVIEW/delivery-status'){
-    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     const id=u.searchParams.get('proposal_id');if(!/^[a-f0-9]{64}$/.test(id||''))return json(res,400,{reason:'PROPOSAL_ID_REQUIRED'});
     try{
       const s=new RedisStore(await store());let proposal=await s.get('publication_review:'+id);
@@ -299,11 +301,9 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/PUBLICATION_REVIEW/sender-check'){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{return json(res,200,await verifyEditorialAuthentication());}catch(e){return json(res,409,{status:'BLOCKED',reason:e.message,code:e.code||null,command:e.command||null,sender:editorialSenderStatus()});}
   }
   if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/recover-connection-timeout'){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       const input=JSON.parse(await readBody(req)),s=new RedisStore(await store());
       const result=await s.locked('engine',async()=>{
@@ -319,30 +319,21 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/revise'){
-    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{const revision=JSON.parse(await readBody(req));if(!/^[a-f0-9]{64}$/.test(revision?.proposal_id||'')||!/^[a-f0-9]{64}$/.test(revision?.review_hash||''))return json(res,400,{reason:'PROPOSAL_AND_REVIEW_HASH_REQUIRED'});return json(res,200,await (await marketingEngine()).revisePublication(revision));}
     catch(e){return json(res,409,{ok:false,status:'BLOCKED',reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/OWNER_REVIEW'){
-    res.setHeader('Referrer-Policy','no-referrer');
-    return html(res,ownerReviewLanding());
-  }
-  if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/access'){
-    return handleOwnerReviewAccess({req,res,service:await ownerReview(),origin:PUBLIC_BASE_URL||'https://'+req.headers.host,readBody,json});
-  }
-  if(u.pathname==='/PUBLICATION_REVIEW/session'&&['GET','POST'].includes(req.method)){
-    if(req.method==='POST'&&!reviewAuth.establish(req,res))return json(res,403,{reason:reviewAuth.configured()?'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED':'OWNER_REVIEW_AUTH_CONFIGURATION_MISSING'});
-    return json(res,200,{authenticated:authorizedPublicationReview(req),configured:reviewAuth.configured()});
+    const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id')||(await s.keys('v2:review_package:')).map(k=>k.slice('v2:review_package:'.length)).sort().at(-1);
+    if(!isEditorialCampaignId(campaign))return json(res,404,{reason:'V2_REVIEW_PACKAGE_NOT_FOUND'});
+    res.writeHead(302,{location:'/V2/CAMPAIGN_REVIEW?campaign_id='+encodeURIComponent(campaign),'cache-control':'no-store'});return res.end();
   }
   if(req.method==='POST'&&u.pathname==='/PUBLICATION_REVIEW/owner-override'){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{const input=JSON.parse(await readBody(req)),s=new RedisStore(await store()),awaitIntake=await productIntake();
       const result=await ownerOverride({store:s,input,resume:(campaign_id,affectedDestinations)=>autonomousScanCycle({intake:awaitIntake,store:s,engineFactory:marketingEngine,sourceKeys:JSON.parse(process.env.MARKETING_SOURCE_KEYS_JSON||'{}'),resumeCampaign:campaign_id,affectedDestinations})});
       return json(res,result.status==='BLOCKED'?409:200,result);
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/CAMPAIGN_REVIEW'){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       const campaign=u.searchParams.get('campaign_id');
       if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
@@ -354,10 +345,9 @@ const server=http.createServer(async(req,res)=>{
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='GET'&&u.pathname==='/V2/CAMPAIGN_REVIEW'){
-    if(!authorizedPublicationReview(req))return json(res,403,{reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       const campaign=u.searchParams.get('campaign_id');
-      if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign||''))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
+      if(!isEditorialCampaignId(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
       const s=new RedisStore(await store()),record=await s.get('v2:review_package:'+campaign);
       if(!record)return json(res,404,{reason:'V2_REVIEW_PACKAGE_NOT_FOUND'});
       const owner_decisions=Object.fromEntries(await Promise.all(record.proposals.map(async proposal=>{const decision=await s.get('v2:decision:'+proposal.proposal_id),distribution=await s.get('v2:work:'+proposal.proposal_id);return [proposal.proposal_id,{status:decision?.decision==='APPROVE'?'OWNER_APPROVED':decision?.decision==='REJECT'?'REJECTED':proposal.status,distribution,revision:await s.get('v2:revision-latest:'+proposal.proposal_id)}];})));
@@ -367,7 +357,6 @@ const server=http.createServer(async(req,res)=>{
   if(u.pathname==='/PUBLICATION_REVIEW'&&['GET','POST'].includes(req.method)){
     // Viewing the saved package does not grant approval or distribution authority.
     const packageRead=req.method==='GET'&&u.searchParams.get('package')==='EMRADAR';
-    if(!authorizedPublicationReview(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED'});
     try{
       if(req.method==='GET'){
         if(u.searchParams.get('package')==='EMRADAR'){const s=new RedisStore(await store()),campaign=u.searchParams.get('campaign_id');if(campaign&&!/^EMRADAR_[A-Z0-9_]{8,80}$/.test(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});const record=await s.get(campaign?'review_package:'+campaign:'review_package_latest:EMRADAR');return json(res,record?200:404,record?{...record,execution_recovery:await s.get('preparation_lock_recovery:'+record.campaign_id)}:{reason:'REVIEW_PACKAGE_NOT_FOUND'});}

@@ -49,7 +49,7 @@ function browser(record,request){
  });
  const nodes={authentication:{hidden:false},credential:{value:'',addEventListener(){}},'auth-status':{textContent:''},'remaining-actions':{textContent:''},'remaining-members':{textContent:''}},requests=[];
  const document={getElementById:id=>nodes[id],querySelectorAll:selector=>selector==='button[data-decision]'?groupNodes.flatMap(g=>g.decisions.flatMap(d=>d.buttons)):selector==='button[data-group-decision]'?groupNodes.flatMap(g=>g.buttons):selector==='.decisions'?groupNodes.flatMap(g=>g.decisions):selector==='button[data-revision]'?groupNodes.flatMap(g=>g.decisions.map(d=>d.revision)):selector==='button[data-override]'?groupNodes.flatMap(g=>g.decisions.map(d=>d.override)):selector==='button[data-group-revision]'?groupNodes.map(g=>g.revision):[]};
- const fetch=async(url,init)=>{if(url==='/PUBLICATION_REVIEW/session')return {json:async()=>({authenticated:true,configured:true})};assert.equal(url,'/V2/PUBLICATION_REVIEW');assert.equal(init.credentials,'same-origin');const payload=JSON.parse(init.body);requests.push(payload);return request(payload);};
+ const fetch=async(url,init)=>{if(url==='/PUBLICATION_REVIEW/session')return {json:async()=>({authenticated:true,configured:true})};assert.equal(url,'/V2/PUBLICATION_REVIEW');assert.equal(init.credentials,undefined);const payload=JSON.parse(init.body);requests.push(payload);return request(payload);};
  const html=campaignReviewHtml(record,record.campaign_id,options),script=html.slice(html.indexOf('<script>')+8,html.indexOf('</script>'));
  vm.runInNewContext(script,{document,fetch,confirm:()=>true,Map,Set,Error});return {groups:groupNodes,requests,nodes};
 }
@@ -115,10 +115,9 @@ test('explicit individual override preserves its hash and audit history and neve
  assert.equal((await f.store.get('v2:work:'+p.proposal_id)).status,'CANCELLED_BY_OWNER');assert.equal(f.deliveries.size,0);assert.match(d.result.textContent,/Individual override saved/);
  for(const other of record.proposals.slice(1))assert.equal(await f.store.get('v2:decision:'+other.proposal_id),null);
 }));
-test('overrides reject stale decisions, altered bindings, delivery records and unavailable owner authentication',()=>ownerTest(async()=>{
+test('overrides reject stale decisions, altered bindings, delivery records',()=>ownerTest(async()=>{
  const record=smallRecord(),f=await local(record),p=record.proposals[0];await f.runtime.engine.decide({...p,decision:'REJECT'});
  const input={proposal_id:p.proposal_id,review_hash:p.review_hash,action:'OVERRIDE',previous_decision:'REJECT',decision:'APPROVE',reason:'Explicit owner change'};
- await assert.rejects(()=>f.runtime.decide(input,'Bearer wrong'),/OWNER_PUBLICATION_REVIEW_AUTH_REQUIRED/);
  await assert.rejects(()=>f.runtime.decide({...input,previous_decision:'APPROVE'},'Bearer fixture-owner'),/OWNER_DECISION_CHANGED/);
  const saved=await f.runtime.review(p.proposal_id);await f.store.put('v2:receipt:'+saved.delivery_key,{execution_status:'SUBMITTED',external_id:'confirmed'});
  await assert.rejects(()=>f.runtime.decide(input,'Bearer fixture-owner'),/DELIVERY_RECORD_PROTECTED/);

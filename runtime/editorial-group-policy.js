@@ -14,3 +14,5 @@ export function verifyEmailGroupLimit(proposals){
  if(count>policy.max_email_groups)throw Error('EDITORIAL_EMAIL_GROUP_LIMIT_EXCEEDED');
  return count;
 }
+
+export const isEditorialCampaignId=id=>/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH(?:_REPLACEMENT(?:_[A-Z0-9]+)?)?$/.test(id||'');
