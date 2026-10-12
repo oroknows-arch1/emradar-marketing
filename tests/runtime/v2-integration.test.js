@@ -78,3 +78,13 @@ test('scheduled V2 approved distribution survives a new-scan preparation excepti
  assert.match(route,/const v2_distribution=await \(await v2Runtime\(\)\)\.distribute\(\)/);
  assert.ok(route.indexOf('catch(error)')<route.indexOf('const v2_distribution='));
 });
+
+test('verified recovery marker cannot override provider delivery evidence',async()=>{
+ const directory=await mkdtemp(path.join(os.tmpdir(),'v2-receipt-evidence-'));
+ const store=new FileStore(directory),key='v2:receipt:provider-evidence';
+ const original={id:'provider-evidence',proposal_id:'p',review_hash:'h',delivery_hash:'d',execution_status:'FAILED',attempts:0,verified_unsent_recovery:true,provider_receipt:{message_id:'already-accepted'}};
+ await store.put(key,original);
+ const attempted={...original,provider_receipt:null,execution_status:'IN_FLIGHT',retry_idempotent_email:true,attempts:1};
+ assert.equal(await store.claimReceipt(key,attempted),false);
+ assert.deepEqual(await store.get(key),original);
+});
