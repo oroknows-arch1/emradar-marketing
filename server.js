@@ -252,7 +252,10 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE'){
     try{
       await verifySchedulerToken(String(req.headers.authorization||'').replace(/^Bearer /,''));
-      const result=await normalCycle();
+      let result;
+      try{result=await normalCycle();}
+      catch(error){result={preparation:{status:'BLOCKED',blocker:error.message,external_actions:0},feedback:null};console.error('SCHEDULED_PREPARATION_BLOCKED '+JSON.stringify({reason:error.message}));}
+      // Persisted owner-approved V2 work must survive a failed new scan.
       const v2_distribution=await (await v2Runtime()).distribute();
       return json(res,200,{...result,v2_distribution});
     }
