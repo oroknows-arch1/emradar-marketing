@@ -23,3 +23,19 @@ test('LatAm review requires verified language work instead of reusing ungrounded
 test('mandatory X artifact is scan-generic and remains exactly one text plus one PNG',async()=>{const x=productionDestinations.find(r=>r.id==='EMRADAR-X-OROKNOWS'),formation={...scan.formation,title:'New infrastructure finance milestone',industries:['Infrastructure finance'],geography:['Africa']},future={...scan,snapshot_date:'2026-10-11',formation,formations:[formation,{...formation,id:'second',state:'INVESTIGATE',title:'Second evidence-bound formation'}]},asset=await productionAssetBuilder({scan:future,route:x});assert.match(asset.subject,/2026-10-11/);assert.match(asset.copy,/11 Oct/);assert.equal(asset.lineage.formation_ids.length,2);assert.equal(asset.format,'image');assert.equal(asset.mime,'image\/png');assert.equal(asset.required_visual_or_attachment,'IMAGE_REQUIRED');assert.ok(asset.copy.length<=280);});
 test('server cutover has no V1 timers or second V2 approval gate',async()=>{const source=await fs.readFile(new URL('../../server.js',import.meta.url),'utf8');assert.doesNotMatch(source,/setInterval\(\(\)=>normalCycle|setInterval\(\(\)=>distributionCycle/);assert.match(source,/V1_EXECUTION_PERMANENTLY_RETIRED/);assert.doesNotMatch(source,/MARKETING_V2_AUTOMATIC_DISTRIBUTION_ENABLED/);assert.match(source,/const v2_distribution=await \(await v2Runtime\(\)\)\.distribute\(\)/);assert.match(source,/V2_CUTOVER_PREFLIGHT_BLOCKED/);assert.match(source,/EMRADAR_MARKETING_ENGINE_V2/);});
 
+
+test('V2 does not retry ambiguous failed email without verified non-delivery',async()=>{
+ const f=await setup();
+ const campaign=await f.runtime.prepare({campaign_id:'V2_UNVERIFIED_EMAIL_RECOVERY',scan});
+ const p=campaign.proposals[0];
+ const saved=await f.runtime.review(p.proposal_id);
+ const key='v2:receipt:'+saved.delivery_key;
+ await f.store.put(key,{id:saved.delivery_key,proposal_id:p.proposal_id,review_hash:p.review_hash,delivery_hash:(await import('node:crypto')).createHash('sha256').update(JSON.stringify(saved.asset)).digest('hex'),execution_status:'FAILED',error:'Connection timeout',provider_receipt:null,external_id:null,definitely_unsent:false});
+ await f.runtime.decide({proposal_id:p.proposal_id,review_hash:p.review_hash,decision:'APPROVE'});
+ assert.equal(f.calls(),0);
+ const persisted=await f.store.get(key);
+ assert.equal(persisted.execution_status,'FAILED');
+ assert.equal(persisted.error,'Connection timeout');
+ assert.equal((await f.runtime.distribute()).length,0);
+ assert.equal(f.calls(),0);
+});
