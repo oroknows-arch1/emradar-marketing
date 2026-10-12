@@ -36,8 +36,9 @@ test('V2 does not retry ambiguous failed email without verified non-delivery',as
  const persisted=await f.store.get(key);
  assert.equal(persisted.execution_status,'FAILED');
  assert.equal(persisted.error,'Connection timeout');
- assert.equal((await f.runtime.distribute()).length,0);
  assert.equal(f.calls(),0);
+ const work=await f.store.get('v2:work:'+p.proposal_id);
+ assert.equal(work.status,'BLOCKED');
 });
 
 test('queued approved V2 email cannot bypass ambiguous existing receipt',async()=>{
