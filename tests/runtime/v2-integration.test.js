@@ -69,3 +69,12 @@ test('receipt storage cannot reclaim an ambiguous email but can reclaim confirme
  assert.equal(await store.claimReceipt(key,attempted),true);
  assert.equal((await store.get(key)).execution_status,'IN_FLIGHT');
 });
+
+test('scheduled V2 approved distribution survives a new-scan preparation exception',async()=>{
+ const source=await fs.readFile(new URL('../../server.js',import.meta.url),'utf8');
+ const route=source.slice(source.indexOf("if(req.method==='POST'&&u.pathname==='/SCHEDULED_CYCLE')"),source.indexOf("if(u.pathname==='/OUTCOME_REVIEW'"));
+ assert.match(route,/try\{result=await normalCycle\(\);\}/);
+ assert.match(route,/catch\(error\)\{result=\{preparation:/);
+ assert.match(route,/const v2_distribution=await \(await v2Runtime\(\)\)\.distribute\(\)/);
+ assert.ok(route.indexOf('catch(error)')<route.indexOf('const v2_distribution='));
+});
