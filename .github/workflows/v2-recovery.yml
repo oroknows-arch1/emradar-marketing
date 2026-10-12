@@ -1,0 +1,24 @@
+name: V2 recovery safety tests
+on:
+  pull_request:
+    paths:
+      - 'runtime/streamlined-engine-v2.js'
+      - 'runtime/store.js'
+      - 'runtime/v2-integration.js'
+      - 'server.js'
+      - 'tests/runtime/v2-integration.test.js'
+      - '.github/workflows/v2-recovery.yml'
+  workflow_dispatch:
+jobs:
+  recovery-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/runtime/v2-integration.test.js
