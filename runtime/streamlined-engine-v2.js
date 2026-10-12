@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import {calendarMonth} from './spending.js';
+import {selectDestinations} from './destination-rotation.js';
 
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const now=()=>new Date().toISOString();
@@ -79,11 +80,13 @@ export class StreamlinedMarketingEngineV2 {
       const scanHash=hash(scan),prior=await this.store.get('v2:campaign:'+campaign_id);
       if(prior&&prior.scan_hash!==scanHash)fail('CAMPAIGN_SOURCE_CHANGED');
       if(!expand_review&&(prior?.status==='AWAITING_OWNER_REVIEW'||prior?.status==='COMPLETE'))return prior;
+      const selection=/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign_id)&&(!prior||prior.destination_selection)?await selectDestinations({store:this.store,campaign_id,scan,destinations:this.destinations}):null;
       const formations=scan.formations||[scan.formation],trace=[{node:'SCAN',status:'PASS',formations:formations.length,at:now()}],matches=[],opportunities=[],dispositions=[];
       for(let index=0;index<formations.length;index++)for(const route of this.destinations){
         const formation=formations[index],scanWide=route.id==='EMRADAR-X-OROKNOWS';if(scanWide&&index>0)continue;
+        if(selection&&!selection.selected.some(item=>item.destination_id===route.id&&item.formation_id===formation.id)){dispositions.push({formation_id:formation.id,destination:route.id,status:'NOT_SELECTED',reason:selection.dispositions.find(d=>d.destination===route.id&&d.formation_id===formation.id)?.reason||'DESTINATION_NOT_SELECTED'});continue;}
         const formationScan={...scan,formation};if(!scanWide)delete formationScan.formations;
-        const evaluated={...route,editorial_relevance:routeDecision(route.editorial_relevance,formationScan,route),evidence_suitable:routeDecision(route.evidence_suitable,formationScan,route)};
+        const evaluated={...route,editorial_relevance:scanWide||routeDecision(route.editorial_relevance,formationScan,route),evidence_suitable:scanWide||routeDecision(route.evidence_suitable,formationScan,route)};
         const relevant=evaluated.editorial_relevance&&evaluated.evidence_suitable;
         if(!relevant){dispositions.push({formation_id:formation.id,destination:route.id,status:'NOT_RELEVANT',reason:evaluated.evidence_suitable?'NO_EVIDENCE_SUPPORTED_BEAT_OR_GEOGRAPHY_MATCH':'PUBLISHED_EVIDENCE_UNSUITABLE'});continue;}
         const executable=routeExecutable(evaluated);
@@ -117,7 +120,7 @@ export class StreamlinedMarketingEngineV2 {
         if(disposition){disposition.status=saved.status==='REJECTED'?'OWNER_REJECTED':saved.status==='OWNER_APPROVED'?'OWNER_APPROVED':'REVIEW_ONLY';disposition.reason='PERSISTED_REVIEW_PRESERVED';}
       }
       trace.push({node:'PREPARE',status:'PASS',count:proposals.length,at:now()},{node:'VERIFY',status:'PASS',count:proposals.length,at:now()},{node:'OWNER_REVIEW',status:'WAITING',at:now()});
-      const record={engine:'EMRADAR_MARKETING_ENGINE_V2',campaign_id,scan_hash:scanHash,source_revision:scan.source_revision,status:'AWAITING_OWNER_REVIEW',findings:formations.map(f=>({id:f.id,state:f.state,title:f.title,evidence_count:f.evidence.length,uncertainty:f.uncertainty})),proposals,opportunities,route_dispositions:dispositions,trace,...(supersede_unapproved_editorial?{editorial_repair:{superseded_count:superseded.length,superseded_proposal_ids:superseded,approved_assets_preserved:decisions.size,external_actions:0}}:{}),external_actions:0,updated_at:now()};
+      const record={engine:'EMRADAR_MARKETING_ENGINE_V2',campaign_id,scan_hash:scanHash,source_revision:scan.source_revision,status:'AWAITING_OWNER_REVIEW',findings:formations.map(f=>({id:f.id,state:f.state,title:f.title,evidence_count:f.evidence.length,uncertainty:f.uncertainty})),proposals,opportunities,route_dispositions:dispositions,trace,...(selection?{destination_selection:selection}:{}),...(supersede_unapproved_editorial?{editorial_repair:{superseded_count:superseded.length,superseded_proposal_ids:superseded,approved_assets_preserved:decisions.size,external_actions:0}}:{}),external_actions:0,updated_at:now()};
       await this.store.put('v2:campaign:'+campaign_id,record);return record;
     });
   }
@@ -225,3 +228,4 @@ export class StreamlinedMarketingEngineV2 {
     return this.learn({receipt_id:receiptId,events:outcome.events||[],collection:outcome.collection||{status:outcome.status,source:outcome.source}});
   }
 }
+
