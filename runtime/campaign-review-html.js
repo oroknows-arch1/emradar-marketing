@@ -5,9 +5,9 @@ const finalReviewStatuses=new Set(['OWNER_APPROVED','REJECTED','SUBMITTED','PUBL
 const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
 // Exact editorial identity: recipient addresses and delivery metadata are not
 // prose. Greetings, publication names, asks, presentation and attachments are.
-function emailEquivalenceKey(p){
+export function emailEquivalenceKey(p){
  const a=p.asset||{},email=a.email||p.email;
- if(!email?.subject||typeof email.body!=='string'||a.delivery_method&&a.delivery_method!=='EMAIL'||p.platform==='X'||a.mime?.startsWith('image/')||a.article)return null;
+ if(!email?.subject||typeof email.body!=='string'||a.delivery_method&&!['EMAIL','MANUAL'].includes(a.delivery_method)||p.platform==='X'||a.mime?.startsWith('image/')||a.article)return null;
  const normalise=value=>typeof value==='string'?value.replace(/\r\n/g,'\n').trim():value;
  return JSON.stringify(canonical({
   subject:normalise(email.subject),body:normalise(email.body),

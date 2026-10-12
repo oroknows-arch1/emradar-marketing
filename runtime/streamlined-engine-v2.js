@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {calendarMonth} from './spending.js';
 import {selectDestinations} from './destination-rotation.js';
+import {editorialEvidence,plannedEmailIdentity,verifyEmailGroupLimit} from './editorial-group-policy.js';
 
 const hash=value=>crypto.createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const now=()=>new Date().toISOString();
@@ -70,8 +71,8 @@ function reviewView(p){
 }
 
 export class StreamlinedMarketingEngineV2 {
-  constructor({store,destinations=[],transports={},assetBuilder,maxSteps=Infinity,campaignLimitAud=5,monthLimitAud=50}){
-    this.store=store;this.destinations=destinations;this.transports=transports;this.assetBuilder=assetBuilder;this.maxSteps=maxSteps;this.campaignLimitAud=campaignLimitAud;this.monthLimitAud=monthLimitAud;
+  constructor({store,destinations=[],transports={},assetBuilder,assetPlanner,maxSteps=Infinity,campaignLimitAud=5,monthLimitAud=50}){
+    this.store=store;this.destinations=destinations;this.transports=transports;this.assetBuilder=assetBuilder;this.assetPlanner=assetPlanner;this.maxSteps=maxSteps;this.campaignLimitAud=campaignLimitAud;this.monthLimitAud=monthLimitAud;
   }
 
   async prepare({campaign_id,scan,expand_review=false,supersede_unapproved_editorial=false}){
@@ -80,7 +81,7 @@ export class StreamlinedMarketingEngineV2 {
       const scanHash=hash(scan),prior=await this.store.get('v2:campaign:'+campaign_id);
       if(prior&&prior.scan_hash!==scanHash)fail('CAMPAIGN_SOURCE_CHANGED');
       if(!expand_review&&(prior?.status==='AWAITING_OWNER_REVIEW'||prior?.status==='COMPLETE'))return prior;
-      const selection=/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign_id)&&(!prior||prior.destination_selection)?await selectDestinations({store:this.store,campaign_id,scan,destinations:this.destinations}):null;
+      const selection=/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(campaign_id)&&(!prior||prior.destination_selection)?await selectDestinations({store:this.store,campaign_id,scan,destinations:this.destinations,assetPlanner:this.assetPlanner}):null;
       const formations=scan.formations||[scan.formation],trace=[{node:'SCAN',status:'PASS',formations:formations.length,at:now()}],matches=[],opportunities=[],dispositions=[];
       for(let index=0;index<formations.length;index++)for(const route of this.destinations){
         const formation=formations[index],scanWide=route.id==='EMRADAR-X-OROKNOWS';if(scanWide&&index>0)continue;
@@ -104,13 +105,16 @@ export class StreamlinedMarketingEngineV2 {
         const asset=await this.assetBuilder({scan:structuredClone(formationScan),route:structuredClone(route)});
         if(!asset?.subject||!asset?.body||asset.to!==route.endpoint.address||asset.delivery_method!==route.delivery.method)fail('FINISHED_ASSET_REQUIRED');
         if(/\b(?:BUY|HOLD|SELL)\b/i.test(asset.subject+' '+asset.body))fail('INVESTMENT_RECOMMENDATION_FORBIDDEN');
-        const evidenceBinding={source_revision:scan.source_revision,formation_id:formation.id,formation_state:formation.state,causal_chain:formation.causal_chain,evidence:formation.evidence,strengthening_evidence:formation.strengthening_evidence,weakening_evidence:formation.weakening_evidence,break_conditions:formation.break_conditions,uncertainty:formation.uncertainty,companies:formation.companies||[],tickers:formation.tickers||[]};
+        const evidenceBinding=editorialEvidence(scan,formation);
         if(scanWide)evidenceBinding.formations=formations.map(f=>({id:f.id,state:f.state,evidence:f.evidence,uncertainty:f.uncertainty,causal_chain:f.causal_chain}));
+        const planned=selection?.selected.find(item=>item.destination_id===route.id&&item.formation_id===formation.id);
+        if(planned?.exact_editorial_identity&&plannedEmailIdentity(asset,formationScan)!==planned.editorial_group_key)fail('PLANNED_EDITORIAL_IDENTITY_CHANGED');
         const binding={campaign_id,scan_hash:scanHash,evidence:evidenceBinding,destination:route,asset};
         const reviewHash=hash(binding),proposalId=hash([deliveryKey,reviewHash]);
         const replaced=[];
         if(supersede_unapproved_editorial&&!scanWide)for(const old of savedReviews.filter(p=>p.delivery_key===deliveryKey&&!decisions.has(p.proposal_id)&&p.proposal_id!==proposalId)){old.status='SUPERSEDED';old.superseded_reason='OWNER_REJECTED_DEFICIENT_EDITORIAL_CORRESPONDENCE';old.superseded_at=now();old.replaced_by=proposalId;await this.store.put('v2:review:'+old.proposal_id,old);replaced.push(old.proposal_id);superseded.push(old.proposal_id);}
         const proposal={proposal_id:proposalId,review_hash:reviewHash,delivery_key:deliveryKey,campaign_id,formation_id:formationId,formation_state:scanWide?'SCAN_WIDE':formation.state,status:'AWAITING_OWNER_REVIEW',destination:route.id,evidence_summary:asset.evidence_summary,asset,required_visual_or_attachment:asset.required_visual_or_attachment||'NONE',route:{method:route.delivery.method,recipient:route.endpoint.address,verification:route.endpoint.verification_state},delivery_capability:executable?'VERIFIED_EXECUTABLE':'UNAVAILABLE_REVIEW_ONLY',uncertainty:scanWide?formations.flatMap(f=>f.uncertainty):[...formation.uncertainty],binding,...(replaced.length?{replaces_proposal_ids:replaced}:{}),created_at:now()};
+        if(selection?.version===2)verifyEmailGroupLimit([...proposals,reviewView(proposal)]);
         await this.store.put('v2:review:'+proposalId,proposal);proposals.push(reviewView(proposal));
       }
       for(const saved of savedReviews.filter(proposal=>proposal.status!=='SUPERSEDED')){
@@ -119,8 +123,9 @@ export class StreamlinedMarketingEngineV2 {
         const disposition=dispositions.find(item=>item.formation_id===saved.binding?.evidence?.formation_id&&item.destination===saved.destination);
         if(disposition){disposition.status=saved.status==='REJECTED'?'OWNER_REJECTED':saved.status==='OWNER_APPROVED'?'OWNER_APPROVED':'REVIEW_ONLY';disposition.reason='PERSISTED_REVIEW_PRESERVED';}
       }
+      const emailGroupCount=selection?.version===2?verifyEmailGroupLimit(proposals):null;
       trace.push({node:'PREPARE',status:'PASS',count:proposals.length,at:now()},{node:'VERIFY',status:'PASS',count:proposals.length,at:now()},{node:'OWNER_REVIEW',status:'WAITING',at:now()});
-      const record={engine:'EMRADAR_MARKETING_ENGINE_V2',campaign_id,scan_hash:scanHash,source_revision:scan.source_revision,status:'AWAITING_OWNER_REVIEW',findings:formations.map(f=>({id:f.id,state:f.state,title:f.title,evidence_count:f.evidence.length,uncertainty:f.uncertainty})),proposals,opportunities,route_dispositions:dispositions,trace,...(selection?{destination_selection:selection}:{}),...(supersede_unapproved_editorial?{editorial_repair:{superseded_count:superseded.length,superseded_proposal_ids:superseded,approved_assets_preserved:decisions.size,external_actions:0}}:{}),external_actions:0,updated_at:now()};
+      const record={engine:'EMRADAR_MARKETING_ENGINE_V2',campaign_id,scan_hash:scanHash,source_revision:scan.source_revision,status:'AWAITING_OWNER_REVIEW',findings:formations.map(f=>({id:f.id,state:f.state,title:f.title,evidence_count:f.evidence.length,uncertainty:f.uncertainty})),proposals,opportunities,route_dispositions:dispositions,trace,...(selection?{destination_selection:selection,email_group_count:emailGroupCount}:{}),...(supersede_unapproved_editorial?{editorial_repair:{superseded_count:superseded.length,superseded_proposal_ids:superseded,approved_assets_preserved:decisions.size,external_actions:0}}:{}),external_actions:0,updated_at:now()};
       await this.store.put('v2:campaign:'+campaign_id,record);return record;
     });
   }

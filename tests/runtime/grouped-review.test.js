@@ -28,9 +28,9 @@ test('different claims, evidence, angles, requests, wording, presentation and at
  }
  const first=structuredClone(members[0]),second=structuredClone(members[1]);first.asset.email.body+='\n\nPublication 0 reports a new investment.';second.asset.email.body+='\n\nPublication 4 reports a new investment.';assert.equal(equivalentEmailGroups([first,second]).length,2);
 });
-test('manual, non-email and X assets stay individually reviewable',()=>{
+test('identical manual correspondence groups while article and X assets remain separate',()=>{
  const p=groupedReviewFixture().proposals[0],manual={...p,asset:{...p.asset,delivery_method:'MANUAL'}},article={...p,asset:{...p.asset,article:{title:'Article',body:'Body'}}};
- assert.equal(equivalentEmailGroups([manual,manual,article,article]).length,4);
+ assert.equal(equivalentEmailGroups([manual,manual,article,article]).length,3);
 });
 
 // Execute the actual embedded browser handlers against a minimal DOM and local protected runtime.

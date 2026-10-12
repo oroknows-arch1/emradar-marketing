@@ -28,9 +28,9 @@ test('manual verified submission routes are credible but remain review only',asy
  const result=await select(s,campaign(1),scan(),[manual]);assert.equal(externals(result).length,1);
  const missing={...manual,id:'MISSING',delivery_record:{public_submission_url:'UNKNOWN'}};const second=await select(s,campaign(2),scan(),[missing]);assert.equal(externals(second).length,0);
 });
-test('five evidence-supported categories enforce thirty unique external destinations plus mandatory X',async()=>{
+test('five evidence-supported categories respect the group ceiling, thirty-destination cap and separate X',async()=>{
  const s=await store(),categories=['Copper mining','Solar generation','Battery manufacturing','Medical equipment','Port construction'],formations=categories.map((c,i)=>formation('f'+i,c)),routes=categories.flatMap((c,i)=>Array.from({length:14},(_,j)=>route('D'+i+'-'+String(j).padStart(2,'0'),c)));
- const result=await select(s,campaign(1),scan(formations),routes);assert.equal(externals(result).length,30);assert.equal(new Set(externals(result).map(r=>r.destination_id)).size,30);assert.equal(result.selected.filter(r=>r.destination_id===X.id).length,1);assert.equal(result.selected.length,31);assert(result.categories.every(c=>c.selected_count>=5));
+ const result=await select(s,campaign(1),scan(formations),routes);assert.equal(externals(result).length,15);assert.equal(new Set(externals(result).map(r=>r.destination_id)).size,15);assert.equal(result.selected.filter(r=>r.destination_id===X.id).length,1);assert.equal(result.selected.length,16);assert.equal(result.planned_email_groups,15);assert(result.categories.every(c=>c.selected_count>0));
 });
 test('one category stops at the target range even when more eligible outlets exist',async()=>{
  const s=await store(),result=await select(s,campaign(1),scan(),Array.from({length:25},(_,i)=>route('D'+String(i).padStart(2,'0'))));assert.equal(externals(result).length,10);

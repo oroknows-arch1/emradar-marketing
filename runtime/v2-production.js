@@ -156,3 +156,10 @@ export async function assetBuilder({scan,route,editorialWork}){
   validateEditorialAsset({asset,scan,route});return asset;
 }
 
+
+// Deterministic local preview only; Spanish model work reserves an individual
+// slot until the existing verified writer produces its exact correspondence.
+export async function assetPlanner({scan,route}){
+ if(route.delivery.method==='X'||route.delivery_record.accepted_formats?.includes('latam_editor_pitch'))return null;
+ return {asset:await assetBuilder({scan,route})};
+}

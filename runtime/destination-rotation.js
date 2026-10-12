@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import {editorialReviewPolicy,plannedEmailIdentity} from './editorial-group-policy.js';
 const hash=v=>crypto.createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const X='EMRADAR-X-OROKNOWS';
 const normal=v=>String(v||'').normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -64,11 +65,12 @@ async function history(store){
 
 // A durable campaign plan is also the rotation history. No counters are
 // incremented on retry, and observations/receipts are never rewritten.
-export async function selectDestinations({store,campaign_id,scan,destinations,requireX=true}){
+export async function selectDestinations({store,campaign_id,scan,destinations,requireX=true,assetPlanner}){
  if(!store?.locked||!store.keys||!store.get||!store.put)throw Error('DESTINATION_ROTATION_PERSISTENCE_REQUIRED');
  return store.locked('v2:destination-selection',async()=>{
   const key='v2:destination-selection:'+campaign_id,sourceHash=hash(scan),previous=await store.get(key);
   if(previous){
+   if(previous.version!==2)throw Error('EXISTING_SELECTION_REQUIRES_EXPLICIT_GROUP_LIMIT_MIGRATION');
    if(previous.source_hash!==sourceHash)throw Error('DESTINATION_SELECTION_SOURCE_CHANGED');
    for(const entry of previous.selected){const route=destinations.find(r=>r.id===entry.destination_id);if(!route||routeHash(route)!==entry.route_hash)throw Error('SELECTED_DESTINATION_CHANGED');}
    return previous;
@@ -83,21 +85,27 @@ export async function selectDestinations({store,campaign_id,scan,destinations,re
    if(!credibleDestination(route)){dispositions.push({destination:route.id,formation_id:formation.id,reason:'NO_CREDIBLE_VERIFIED_ROUTE'});continue;}
    const pitch=pitchIdentity(formation);
    if((pitches.get(route.id)||[]).some(old=>substantiallySamePitch(pitch,old))){dispositions.push({destination:route.id,formation_id:formation.id,reason:'SUBSTANTIALLY_IDENTICAL_PREVIOUS_PITCH'});continue;}
-   candidates.push({destination_id:route.id,formation_id:formation.id,categories:supported,route_hash:routeHash(route),pitch,observations:stats.get(route.id)||{contacts:0,selections:0,relationship:false,outcome:'UNKNOWN'}});
+   const preview=assetPlanner?await assetPlanner({scan:structuredClone(local),route:structuredClone({...route,editorial_relevance:true,evidence_suitable:true})}):null;
+   const exactKey=preview?.asset?plannedEmailIdentity(preview.asset,local):null;
+   const editorial_group_key=exactKey||hash(['reserved-editorial-slot',route.id,formation.id]);
+   candidates.push({editorial_group_key,exact_editorial_identity:!!exactKey,destination_id:route.id,formation_id:formation.id,categories:supported,route_hash:routeHash(route),pitch,observations:stats.get(route.id)||{contacts:0,selections:0,relationship:false,outcome:'UNKNOWN'}});
   }
-  const categoryNames=[...supportedCategories].sort(),selected=[],ids=new Set(),counts=Object.fromEntries(categoryNames.map(c=>[c,0]));
-  const order=(a,b)=>a.observations.contacts-b.observations.contacts||a.observations.selections-b.observations.selections||Number(b.observations.relationship)-Number(a.observations.relationship)||a.destination_id.localeCompare(b.destination_id)||a.formation_id.localeCompare(b.formation_id);
-  function add(item,reason){if(!item||ids.has(item.destination_id)||selected.length>=30)return false;ids.add(item.destination_id);selected.push({...item,reason});for(const c of item.categories)counts[c]++;return true;}
+  const categoryNames=[...supportedCategories].sort(),selected=[],ids=new Set(),groupKeys=new Set(),counts=Object.fromEntries(categoryNames.map(c=>[c,0]));
+  const coverage=key=>new Set(candidates.filter(c=>c.editorial_group_key===key).map(c=>c.destination_id)).size;
+  const order=(a,b)=>coverage(b.editorial_group_key)-coverage(a.editorial_group_key)||a.observations.contacts-b.observations.contacts||a.observations.selections-b.observations.selections||Number(b.observations.relationship)-Number(a.observations.relationship)||a.destination_id.localeCompare(b.destination_id)||a.formation_id.localeCompare(b.formation_id);
+  function add(item,reason){if(!item||ids.has(item.destination_id)||selected.length>=editorialReviewPolicy.max_external_destinations||!groupKeys.has(item.editorial_group_key)&&groupKeys.size>=editorialReviewPolicy.max_email_groups)return false;ids.add(item.destination_id);groupKeys.add(item.editorial_group_key);selected.push({...item,reason});for(const c of item.categories)counts[c]++;return true;}
   // Keep one suitable established relationship per category, then favour
   // under-contacted outlets. Evidence overlap can satisfy multiple categories.
   for(const category of categoryNames){if(counts[category])continue;add(candidates.filter(c=>c.categories.includes(category)&&c.observations.relationship).sort(order)[0],'PRESERVE_OBSERVED_EDITORIAL_RELATIONSHIP');}
   for(const target of [5,10])for(let round=0;round<target;round++)for(const category of categoryNames){
    if(counts[category]>=target)continue;
-   add(candidates.filter(c=>c.categories.includes(category)&&!ids.has(c.destination_id)).sort(order)[0],'EVIDENCE_RELEVANCE_AND_UNDER_CONTACTED_ROTATION');
+   add(candidates.filter(c=>c.categories.includes(category)&&!ids.has(c.destination_id)&&(groupKeys.has(c.editorial_group_key)||groupKeys.size<editorialReviewPolicy.max_email_groups)).sort(order)[0],'EVIDENCE_RELEVANCE_AND_UNDER_CONTACTED_ROTATION');
   }
-  for(const candidate of candidates)if(!selected.some(s=>s.destination_id===candidate.destination_id&&s.formation_id===candidate.formation_id))dispositions.push({destination:candidate.destination_id,formation_id:candidate.formation_id,reason:ids.has(candidate.destination_id)?'CROSS_CATEGORY_DESTINATION_DEDUPLICATION':selected.length>=30?'CAMPAIGN_DESTINATION_CEILING':'CATEGORY_TARGET_REACHED'});
+  // Additional members of an exact selected email cost no new review action.
+  for(const candidate of candidates.filter(c=>c.exact_editorial_identity&&groupKeys.has(c.editorial_group_key)).sort(order))add(candidate,'IDENTICAL_EDITORIAL_MEMBER_ADDITIONAL_COVERAGE');
+  for(const candidate of candidates)if(!selected.some(s=>s.destination_id===candidate.destination_id&&s.formation_id===candidate.formation_id))dispositions.push({destination:candidate.destination_id,formation_id:candidate.formation_id,reason:ids.has(candidate.destination_id)?'CROSS_CATEGORY_DESTINATION_DEDUPLICATION':selected.length>=editorialReviewPolicy.max_external_destinations?'CAMPAIGN_DESTINATION_CEILING':!groupKeys.has(candidate.editorial_group_key)&&groupKeys.size>=editorialReviewPolicy.max_email_groups?'EMAIL_GROUP_LIMIT_ROTATE_FUTURE_SCAN':'CATEGORY_TARGET_REACHED'});
   if(x)selected.push({destination_id:X,formation_id:formations[0].id,categories:[],route_hash:routeHash(x),reason:'MANDATORY_X_SEPARATE_FROM_EXTERNAL_CEILING'});
-  const record={version:1,campaign_id,source_hash:sourceHash,target_min:5,target_max:10,external_limit:30,external_count:ids.size,selected,categories:categoryNames.map(category=>({category,selected_count:counts[category],available_count:new Set(candidates.filter(c=>c.categories.includes(category)).map(c=>c.destination_id)).size,quota_forced:false})),dispositions,created_at:new Date().toISOString(),external_actions:0};
+  const record={version:2,email_group_limit:editorialReviewPolicy.max_email_groups,planned_email_groups:groupKeys.size,campaign_id,source_hash:sourceHash,target_min:5,target_max:10,external_limit:editorialReviewPolicy.max_external_destinations,external_count:ids.size,selected,categories:categoryNames.map(category=>({category,selected_count:counts[category],available_count:new Set(candidates.filter(c=>c.categories.includes(category)).map(c=>c.destination_id)).size,quota_forced:false})),dispositions,created_at:new Date().toISOString(),external_actions:0};
   await store.put(key,record);return record;
  });
 }

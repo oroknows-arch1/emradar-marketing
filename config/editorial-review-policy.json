@@ -1,0 +1,8 @@
+{
+  "max_email_groups": 15,
+  "max_external_destinations": 30,
+  "x_is_separate": true,
+  "identity": "Exact reviewed editorial content, including greeting, publication wording, claims, ask and closing",
+  "overflow": "Leave unselected opportunities eligible for future scans; never create deferred review jobs",
+  "quotas_forced": false
+}
