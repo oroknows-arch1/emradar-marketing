@@ -168,7 +168,7 @@ export class StreamlinedMarketingEngineV2 {
           const recoveryKey='v2:delivery-recovery:'+p.delivery_key;
           const previous=await this.store.get(recoveryKey);
           await this.store.put(recoveryKey,{prior:receipt,previous,proposal_id:p.proposal_id,review_hash:p.review_hash,at:now()});
-          await this.store.put(receiptKey,{...receipt,execution_status:'FAILED',attempts:receipt.attempts,definitely_unsent:receipt.definitely_unsent===true});
+          await this.store.put(receiptKey,{...receipt,execution_status:'FAILED',attempts:receipt.attempts,definitely_unsent:receipt.definitely_unsent===true||receipt.verified_unsent_recovery===true});
         }
         if(!work||work.status!=='QUEUED')await this.store.put(workKey,{...work,proposal_id:p.proposal_id,review_hash:p.review_hash,delivery_key:p.delivery_key,campaign_id:p.campaign_id,status:'QUEUED',attempts:work?.attempts||0,created_at:work?.created_at||now()});
       }
