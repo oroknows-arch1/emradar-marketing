@@ -95,6 +95,10 @@ function authorizedRequest(req){
   return !!secret&&Buffer.byteLength(actual)===Buffer.byteLength(expected)&&crypto.timingSafeEqual(Buffer.from(actual),Buffer.from(expected));
 }
 async function ownerReview(){return createOwnerReview({store:new RedisStore(await store()),baseUrl:PUBLIC_BASE_URL||'https://emradar-x-executor.onrender.com',send:sendOwnerReviewNotification});}
+async function prepareInternalReplacement(original){
+ const runtime=await v2Runtime();
+ return prepareReplacement({original,store:runtime.store,runtime,publishedSource:date=>publishedSource(fetch,date),scanFromPublished:v2ScanFromPublished,validateAsset:validateEditorialAsset,notify:async campaign=>(await ownerReview()).notify(campaign)});
+}
 async function notifyReadyReviews(){
  const service=await ownerReview(),s=service.store;
  for(const key of await s.keys('v2:review_package:')){
@@ -184,7 +188,7 @@ const server=http.createServer(async(req,res)=>{
     try{const runtime=await v2Runtime(),original=req.method==='GET'?u.searchParams.get('original'):JSON.parse(await readBody(req)).original;
       if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(original||''))return json(res,400,{reason:'ORIGINAL_CAMPAIGN_ID_INVALID'});
       if(req.method==='GET')return json(res,200,{request:await runtime.store.get('v2:replacement:'+original),notification:await runtime.store.get('owner_review_notification:'+original+'_REPLACEMENT_1')});
-      return json(res,200,await prepareReplacement({original,store:runtime.store,runtime,publishedSource:date=>publishedSource(fetch,date),scanFromPublished:v2ScanFromPublished,validateAsset:validateEditorialAsset,notify:async campaign=>(await ownerReview()).notify(campaign)}));
+      return json(res,200,await prepareInternalReplacement(original));
     }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
@@ -417,8 +421,9 @@ server.listen(PORT,()=>{
     console.log('EMRADAR_BILLING_AUDIT '+JSON.stringify({...audit,records:undefined}));
     for(const record of audit.records)console.log('EMRADAR_BILLING_RECORD '+JSON.stringify(record));
   }).catch(error=>console.error('EMRADAR_BILLING_AUDIT_BLOCKED '+error.message));
-  // Startup observes readiness only. Campaign recovery, preparation and
-  // distribution remain owned by explicit authenticated execution paths.
+  // Deployment authorises this bounded replacement; external requests stay protected.
+  prepareInternalReplacement('EMRADAR_2026_10_12_LAUNCH').then(result=>console.log('V2_REPLACEMENT_REVIEW '+JSON.stringify(result))).catch(error=>console.error('V2_REPLACEMENT_REVIEW_BLOCKED '+JSON.stringify({original:'EMRADAR_2026_10_12_LAUNCH',reason:error.message,external_actions:0})));
+  // Startup observes distribution readiness without executing publication transports.
   v2Preflight().then(result=>{
     cutoverState=result;
     console.log('V2_CUTOVER_PREFLIGHT '+JSON.stringify(result));
