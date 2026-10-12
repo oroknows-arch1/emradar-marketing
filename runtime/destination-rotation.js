@@ -86,6 +86,7 @@ export async function selectDestinations({store,campaign_id,scan,destinations,re
    const pitch=pitchIdentity(formation);
    if((pitches.get(route.id)||[]).some(old=>substantiallySamePitch(pitch,old))){dispositions.push({destination:route.id,formation_id:formation.id,reason:'SUBSTANTIALLY_IDENTICAL_PREVIOUS_PITCH'});continue;}
    const preview=assetPlanner?await assetPlanner({scan:structuredClone(local),route:structuredClone({...route,editorial_relevance:true,evidence_suitable:true})}):null;
+   if(preview?.blocked_reason){dispositions.push({destination:route.id,formation_id:formation.id,reason:preview.blocked_reason});continue;}
    const exactKey=preview?.asset?plannedEmailIdentity(preview.asset,local):null;
    const editorial_group_key=exactKey||hash(['reserved-editorial-slot',route.id,formation.id]);
    candidates.push({editorial_group_key,exact_editorial_identity:!!exactKey,destination_id:route.id,formation_id:formation.id,categories:supported,route_hash:routeHash(route),pitch,observations:stats.get(route.id)||{contacts:0,selections:0,relationship:false,outcome:'UNKNOWN'}});

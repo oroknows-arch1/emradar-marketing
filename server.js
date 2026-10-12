@@ -1,3 +1,7 @@
+import {authorizedPreparation} from './runtime/preparation-access.js';
+import {prepareReplacement} from './runtime/replacement-review.js';
+import {publishedSource} from './runtime/autonomous-source.js';
+import {validateEditorialAsset} from './runtime/v2-production.js';
 import {createOwnerReview} from './runtime/owner-review.js';
 import {isEditorialCampaignId} from './runtime/editorial-group-policy.js';
 import {ownerOverride} from './runtime/owner-override.js';
@@ -9,7 +13,7 @@ import {campaignReviewHtml} from "./runtime/campaign-review-html.js";
 import approvedRecovery from "./config/approved-campaign-recovery.json" with {type:"json"};
 import scanControl from "./config/scan-control.json" with {type:"json"};
 import {autonomousScanCycle,intakeHeld} from "./runtime/autonomous-source.js";
-import {autonomousV2ScanCycle} from './runtime/v2-autonomous-source.js';
+import {autonomousV2ScanCycle,v2ScanFromPublished} from './runtime/v2-autonomous-source.js';
 import {recoverOctober10Capacity} from './runtime/v2-capacity-recovery.js';
 import {correspondenceProbe} from './runtime/correspondence-probe.js';
 import {emailVersion,correspondentName} from './runtime/editorial-email.js';
@@ -174,6 +178,14 @@ const server=http.createServer(async(req,res)=>{
   if(req.method==='GET'&&u.pathname==='/V2/DELIVERY_STATE'){
     const campaign=u.searchParams.get('campaign_id');if(!isEditorialCampaignId(campaign))return json(res,400,{reason:'CAMPAIGN_ID_INVALID'});
     try{return json(res,200,{campaign_id:campaign,deliveries:await (await v2Runtime()).deliveryState(campaign)});}catch(e){return json(res,409,{reason:e.message});}
+  }
+  if(u.pathname==='/V2/PREPARE_REPLACEMENT'&&['GET','POST'].includes(req.method)){
+    if(!authorizedRequest(req)&&!authorizedPreparation(req))return json(res,403,{reason:'ENGINE_AUTHORIZATION_REQUIRED'});
+    try{const runtime=await v2Runtime(),original=req.method==='GET'?u.searchParams.get('original'):JSON.parse(await readBody(req)).original;
+      if(!/^EMRADAR_\d{4}_\d{2}_\d{2}_LAUNCH$/.test(original||''))return json(res,400,{reason:'ORIGINAL_CAMPAIGN_ID_INVALID'});
+      if(req.method==='GET')return json(res,200,{request:await runtime.store.get('v2:replacement:'+original),notification:await runtime.store.get('owner_review_notification:'+original+'_REPLACEMENT_1')});
+      return json(res,200,await prepareReplacement({original,store:runtime.store,runtime,publishedSource:date=>publishedSource(fetch,date),scanFromPublished:v2ScanFromPublished,validateAsset:validateEditorialAsset,notify:async campaign=>(await ownerReview()).notify(campaign)}));
+    }catch(e){return json(res,409,{reason:e.message});}
   }
   if(req.method==='POST'&&['/V2/PREPARE','/V2/DISTRIBUTE','/V2/FEEDBACK'].includes(u.pathname)){
     if(!authorizedRequest(req))return json(res,403,{ok:false,status:'BLOCKED',reason:'ENGINE_AUTHORIZATION_REQUIRED'});
