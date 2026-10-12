@@ -55,3 +55,16 @@ test('queued approved V2 email cannot bypass ambiguous existing receipt',async()
  assert.equal(work.error,'EXISTING_DELIVERY_RECEIPT_REQUIRES_VERIFIED_RECOVERY');
  assert.equal((await f.store.get(key)).execution_status,'FAILED');
 });
+
+test('receipt storage cannot reclaim an ambiguous email but can reclaim confirmed unsent',async()=>{
+ const directory=await mkdtemp(path.join(os.tmpdir(),'v2-receipt-claim-'));
+ const store=new FileStore(directory),key='v2:receipt:verified-claim';
+ const original={id:'verified-claim',proposal_id:'p',review_hash:'h',delivery_hash:'d',execution_status:'FAILED',attempts:1};
+ await store.put(key,original);
+ const attempted={...original,execution_status:'IN_FLIGHT',retry_idempotent_email:true,attempts:2};
+ assert.equal(await store.claimReceipt(key,attempted),false);
+ assert.deepEqual(await store.get(key),original);
+ await store.put(key,{...original,definitely_unsent:true});
+ assert.equal(await store.claimReceipt(key,attempted),true);
+ assert.equal((await store.get(key)).execution_status,'IN_FLIGHT');
+});
