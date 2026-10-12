@@ -1,3 +1,4 @@
+import {recoverOctober12Distribution} from './runtime/october12-distribution.js';
 import {createReviewAuth} from './runtime/review-auth.js';
 import {authorizedPreparation} from './runtime/preparation-access.js';
 import {prepareReplacement} from './runtime/replacement-review.js';
@@ -437,6 +438,7 @@ const server=http.createServer(async(req,res)=>{
 });
 server.listen(PORT,()=>{
   console.log('EMRADAR Marketing Engine V2 listening; V1 execution inactive; owner-approved distribution automatic');
+  v2Runtime().then(runtime=>recoverOctober12Distribution({runtime,enabled:process.env.MARKETING_V2_DISTRIBUTION_ENABLED==='true'})).catch(error=>console.error('OCT12_DISTRIBUTION_AUDIT_BLOCKED '+JSON.stringify({reason:error.message})));
   const notify=()=>notifyReadyReviews().catch(()=>console.error('OWNER_REVIEW_NOTIFICATION_STORE_UNAVAILABLE'));
   notify();setInterval(notify,60000).unref();
   // Restore October 6's durable approval recovery contract for the V2 executor.
