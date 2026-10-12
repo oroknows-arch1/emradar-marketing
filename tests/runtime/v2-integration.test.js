@@ -39,3 +39,19 @@ test('V2 does not retry ambiguous failed email without verified non-delivery',as
  assert.equal((await f.runtime.distribute()).length,0);
  assert.equal(f.calls(),0);
 });
+
+test('queued approved V2 email cannot bypass ambiguous existing receipt',async()=>{
+ const f=await setup();
+ const campaign=await f.runtime.prepare({campaign_id:'V2_QUEUED_RECEIPT_GUARD',scan});
+ const p=campaign.proposals[0];
+ const saved=await f.runtime.review(p.proposal_id);
+ const key='v2:receipt:'+saved.delivery_key;
+ await f.store.put(key,{id:saved.delivery_key,proposal_id:p.proposal_id,review_hash:p.review_hash,delivery_hash:(await import('node:crypto')).createHash('sha256').update(JSON.stringify(saved.asset)).digest('hex'),execution_status:'FAILED',error:'Connection timeout',external_id:null,provider_receipt:null});
+ const decision=await f.runtime.decide({proposal_id:p.proposal_id,review_hash:p.review_hash,decision:'APPROVE'});
+ assert.equal(decision.automatic_distribution.status,'BLOCKED');
+ assert.equal(decision.automatic_distribution.receipt.error,'Connection timeout');
+ assert.equal(f.calls(),0);
+ const work=await f.store.get('v2:work:'+p.proposal_id);
+ assert.equal(work.error,'EXISTING_DELIVERY_RECEIPT_REQUIRES_VERIFIED_RECOVERY');
+ assert.equal((await f.store.get(key)).execution_status,'FAILED');
+});
