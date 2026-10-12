@@ -162,13 +162,13 @@ export class StreamlinedMarketingEngineV2 {
         const workKey='v2:work:'+p.proposal_id,work=await this.store.get(workKey),receiptKey='v2:receipt:'+p.delivery_key;
         const legacy=await this.store.get('receipt:'+p.delivery_key),receipt=await this.store.get(receiptKey);
         if(legacy)continue; // Historical provider identity remains authoritative.
-        const recoverable=receipt&&!finalDelivery.has(receipt.execution_status)&&!receipt.external_id&&!receipt.provider_receipt&&receipt.proposal_id===p.proposal_id&&receipt.review_hash===p.review_hash&&receipt.delivery_hash===hash(p.asset)&&(p.asset.delivery_method==='EMAIL'||receipt.definitely_unsent===true||receipt.verified_unsent_recovery===true);
+        const recoverable=receipt&&!finalDelivery.has(receipt.execution_status)&&!receipt.external_id&&!receipt.provider_receipt&&receipt.proposal_id===p.proposal_id&&receipt.review_hash===p.review_hash&&receipt.delivery_hash===hash(p.asset)&&(receipt.definitely_unsent===true||receipt.verified_unsent_recovery===true);
         if(receipt&&!recoverable)continue;
         if(receipt&&recoverable){
           const recoveryKey='v2:delivery-recovery:'+p.delivery_key;
           const previous=await this.store.get(recoveryKey);
           await this.store.put(recoveryKey,{prior:receipt,previous,proposal_id:p.proposal_id,review_hash:p.review_hash,at:now()});
-          await this.store.put(receiptKey,{...receipt,execution_status:'FAILED',attempts:receipt.attempts,definitely_unsent:receipt.definitely_unsent===true});
+          await this.store.put(receiptKey,{...receipt,execution_status:'FAILED',attempts:receipt.attempts,definitely_unsent:receipt.definitely_unsent===true||receipt.verified_unsent_recovery===true});
         }
         if(!work||work.status!=='QUEUED')await this.store.put(workKey,{...work,proposal_id:p.proposal_id,review_hash:p.review_hash,delivery_key:p.delivery_key,campaign_id:p.campaign_id,status:'QUEUED',attempts:work?.attempts||0,created_at:work?.created_at||now()});
       }
@@ -181,6 +181,7 @@ export class StreamlinedMarketingEngineV2 {
         if(!proposal||decision?.authority!=='OWNER'||decision.decision!=='APPROVE'||['REJECTED','SUPERSEDED'].includes(proposal.status)||hash(proposal.asset)!==hash(proposal.binding.asset)||decision.review_hash!==proposal.review_hash||hash(proposal.binding)!==proposal.review_hash){work.status='BLOCKED';work.error='APPROVAL_BINDING_INVALID';await this.store.put(key,work);results.push(work);continue;}
         const old=await this.store.get('receipt:'+proposal.delivery_key)||await this.store.get('v2:receipt:'+proposal.delivery_key);
         if(finalDelivery.has(old?.execution_status)||old?.external_id||old?.provider_receipt){work.status=old.execution_status;work.receipt_id=old.id;await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:old,duplicate:true});continue;}
+        if(old&&old.definitely_unsent!==true&&old.verified_unsent_recovery!==true){work.status='BLOCKED';work.error='EXISTING_DELIVERY_RECEIPT_REQUIRES_VERIFIED_RECOVERY';await this.store.put(key,work);results.push({proposal_id:proposal.proposal_id,status:work.status,receipt:old,duplicate:true});continue;}
         const transport=this.transports[proposal.asset.delivery_method];
         if(!transport?.send){work.status='FAILED';work.error='TRANSPORT_UNAVAILABLE';await this.store.put(key,work);results.push(work);continue;}
         const quote=await transport.quote?.(proposal.asset)??{currency:'AUD',max_cost_aud:'UNKNOWN'};
